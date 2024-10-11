@@ -1,0 +1,9 @@
+set args -vvvv
+set confirm off
+set pagination off
+tui enable
+
+b main
+
+r
+set pagination on

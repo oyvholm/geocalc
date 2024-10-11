@@ -1,0 +1,11 @@
+/*.c.gcov
+/*.gcda
+/*.gcno
+/*.o
+/.make-tlok.tmp
+/gdbopts
+/geocalc
+/gmon.out
+/gmon.sum
+/tags
+/version.h
