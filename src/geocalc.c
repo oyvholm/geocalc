@@ -165,9 +165,9 @@ static int print_version(void)
 static int usage(const int retval)
 {
 	if (retval != EXIT_SUCCESS) {
-		fprintf(stderr, "Type \"%s --help\" for help screen."
+		fprintf(stderr, "%s: Type \"%s --help\" for help screen."
 		                " Returning with value %d.\n",
-		                progname, retval);
+		                progname, progname, retval);
 		return retval;
 	}
 	puts("");
