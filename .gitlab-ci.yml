@@ -1,0 +1,11 @@
+# .gitlab-ci.yml
+# File ID: 310b1b8c-8e3d-11ef-bead-83850402c3ce
+
+image: gcc
+
+geocalc:linux:
+  stage: build
+  before_script:
+    - apt-get update -qq && apt-get install -y valgrind
+  script:
+    - script -e -q -c "make testall clean valgrind"
