@@ -10,15 +10,40 @@ CC = cc
 LD = cc
 
 CFLAGS  =
+CFLAGS += $$(test "$$(uname -o)" = "Android" || echo -fcf-protection=full)
 CFLAGS += $$(test -n "$(GCOV)" && echo -n "-fprofile-arcs -ftest-coverage")
 CFLAGS += $$(test -n "$(PROF)" && echo -n "-pg")
-CFLAGS += -O0 -c -g
+CFLAGS += -O0
 CFLAGS += -Wall
+CFLAGS += -Wcast-align
+CFLAGS += -Wcast-qual
+CFLAGS += -Wconversion
+CFLAGS += -Wdouble-promotion
 CFLAGS += -Werror
+CFLAGS += -Werror=implicit-function-declaration
 CFLAGS += -Wextra
+CFLAGS += -Wfloat-conversion
+CFLAGS += -Wformat
+CFLAGS += -Wformat-overflow
+CFLAGS += -Wformat-security
+CFLAGS += -Wformat-truncation
+CFLAGS += -Wpedantic
+CFLAGS += -Wshadow
+CFLAGS += -Wstrict-aliasing
+CFLAGS += -Wstrict-overflow=5
+CFLAGS += -Wstrict-prototypes
+CFLAGS += -c
+CFLAGS += -fno-common
+CFLAGS += -fstack-protector-strong
+CFLAGS += -fwrapv
+CFLAGS += -g3
+CFLAGS += -pedantic
+CFLAGS += -std=c99
 
 LDFLAGS  =
 LDFLAGS += $$(test -n "$(PROF)" && echo -n "-pg")
+LDFLAGS += -Wl,-z,now
+LDFLAGS += -Wl,-z,relro
 
 LIBS  =
 LIBS += $$(test -n "$(GCOV)" && echo "-lgcov --coverage")
