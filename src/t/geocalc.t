@@ -127,13 +127,18 @@ sub test_standard_options {
 	        "",
 	        "../$CMDB: main(): Using verbose level 4\n"
 	        . "../$CMDB: main(): argc = 3, optind = 3\n"
-	        . "../$CMDB: Returning from main() with value 0\n",
-	        0,
+	        . "../$CMDB: No arguments specified\n"
+	        . "../$CMDB: Type \"../$CMDB --help\" for help screen."
+	        . " Returning with value 1.\n",
+	        1,
 	        '-vvv --verbose');
 	testcmd("$CMD -vvqv --verbose",
 	        "",
-	        "",
-	        0,
+	        ""
+	        . "../$CMDB: No arguments specified\n"
+	        . "../$CMDB: Type \"../$CMDB --help\" for help screen."
+	        . " Returning with value 1.\n",
+	        1,
 	        'One -q reduces the verbosity level');
 
 	diag('Testing --version option...');
@@ -176,8 +181,10 @@ sub test_executable {
 	        "../$CMDB: main(): Using verbose level 4\n"
 	        . "../$CMDB: main(): argc = 3, optind = 2\n"
 	        . "../$CMDB: main(): Non-option arg 2: abc\n"
-	        . "../$CMDB: Returning from main() with value 0\n",
-	        0,
+	        . "../$CMDB: process_args(): cmd = abc\n"
+	        . "../$CMDB: Unknown command: abc\n"
+	        . "../$CMDB: Returning from main() with value 1\n",
+	        1,
 	        'One argument');
 	test_selftest();
 

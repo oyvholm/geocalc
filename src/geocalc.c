@@ -175,7 +175,10 @@ static int usage(const int retval)
 		print_version();
 		puts("");
 	}
-	printf("Usage: %s [options]\n", progname);
+	printf("Usage: %s [options] <command> [args]\n", progname);
+	printf("\n");
+	printf("Commands:\n");
+	printf("\n");
 	printf("\n");
 	printf("Options:\n");
 	printf("\n");
@@ -268,6 +271,7 @@ static int parse_options(const int argc, char * const argv[])
 		};
 
 		c = getopt_long(argc, argv,
+		                "+"  /* Stop parsing after first non-option */
 		                "h"  /* --help */
 		                "q"  /* --quiet */
 		                "v"  /* --verbose */
@@ -275,6 +279,29 @@ static int parse_options(const int argc, char * const argv[])
 		if (c == -1)
 			break;
 		retval = choose_opt_action(c, &long_options[option_index]);
+	}
+
+	return retval;
+}
+
+/*
+ * process_args() - Parses non-option arguments and executes the appropriate 
+ * command with the provided arguments. Returns `EXIT_SUCCESS` if the command 
+ * succeeds are valid, otherwise it returns `EXIT_FAILURE`.
+ */
+
+static int process_args(int argc, char *argv[])
+{
+	int retval;
+	const char *cmd = argv[optind];
+
+	msg(VERBOSE_DEBUG, "%s(): cmd = %s", __func__, cmd);
+
+	if (0) {
+		if (argc) { } /* Temporary, avoid warning */
+	} else {
+		myerror("Unknown command: %s", cmd);
+		retval = EXIT_FAILURE;
 	}
 
 	return retval;
@@ -319,6 +346,10 @@ int main(int argc, char *argv[])
 			msg(VERBOSE_DEBUG, "%s(): Non-option arg %d: %s",
 			       __func__, t, argv[t]);
 		}
+		retval = process_args(argc, argv);
+	} else {
+		myerror("No arguments specified");
+		return usage(EXIT_FAILURE);
 	}
 
 	msg(VERBOSE_DEBUG, "Returning from %s() with value %d",
