@@ -59,6 +59,7 @@ LDFLAGS += -Wl,-z,now
 LDFLAGS += -Wl,-z,relro
 LIBS  =
 LIBS += $$(test -n "$(GCOV)" && echo "-lgcov --coverage")
+MANSRC = $(MANPAGE).man
 MAN_DATE = $$(grep EXEC_DATE version.h | cut -d '"' -f 2 | sed 's/-/\\\\-/g;')
 OBJS  =
 OBJS += cmds.o
@@ -77,7 +78,7 @@ all: $(EXEC) $(MANPAGE)
 $(EXEC): $(OBJS)
 	$(LD) -o $(EXEC) $(LDFLAGS) $(OBJS) $(LIBS)
 
-$(MANPAGE): $(MANPAGE).man version.h
+$(MANPAGE): $(MANSRC) version.h
 	sed "s/RPL_DATE/$(MAN_DATE)/g; s/RPL_VERSION/$(MAN_VERSION)/g;" <$< >$@
 
 version.h: Gen-version $(CFILES) $(HFILES) Makefile
@@ -161,7 +162,7 @@ testcomb:
 .PHONY: testsrc
 testsrc:
 	@echo Check files for long lines >&2
-	@for f in $(CFILES) $(HFILES) Gen-version Makefile; do \
+	@for f in $(CFILES) $(HFILES) $(MANSRC) Gen-version Makefile; do \
 		[ -f "$$f" ] && expand "$$f" | sed 's/ $$//;' \
 		| grep -q -E '.{80}' && echo "$$f"; \
 	done | grep . && exit 1 || true
