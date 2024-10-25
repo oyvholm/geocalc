@@ -75,8 +75,8 @@ another window.
 
 ### make install
 
-`make install` installs `geocalc` to the location defined by `PREFIX` 
-in `src/Makefile`. Default location is `/usr/local`, but it can be 
+`make install` installs `geocalc` to the location defined by `PREFIX` in 
+`src/Makefile`. Default location is `/usr/local`, but it can be 
 installed somewhere else by specifying `PREFIX`. For example:
 
     make install PREFIX=~/local
