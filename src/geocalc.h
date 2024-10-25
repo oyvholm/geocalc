@@ -32,6 +32,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "geomath.h"
+
 #if 1
 #  define DEBL  msg(VERBOSE_TRACE, "DEBL: %s, line %u in %s()", \
                                    __FILE__, __LINE__, __func__)
@@ -105,6 +107,8 @@ struct Options {
 /*
  * Public function prototypes
  */
+
+/* cmds.c */
 
 /* geocalc.c */
 int msg(const VerboseLevel verbose, const char *format, ...);

@@ -11,7 +11,9 @@ CC = cc
 LD = cc
 
 CFILES  =
+CFILES += cmds.c
 CFILES += geocalc.c
+CFILES += geomath.c
 CFILES += selftest.c
 CFLAGS  =
 CFLAGS += $$(test "$$(uname -o)" = "Android" || echo -fcf-protection=full)
@@ -47,6 +49,7 @@ DEPS = version.h $(HFILES) Makefile
 GNCOV_STR = $$(test -n "$(GNCOV)" && echo "-g")
 HFILES  =
 HFILES += geocalc.h
+HFILES += geomath.h
 INSTALL_TARGETS  =
 INSTALL_TARGETS += $(PREFIX)/bin/$(EXEC)
 INSTALL_TARGETS += $(PREFIX)/share/man/man1/$(MANPAGE)
@@ -58,7 +61,9 @@ LIBS  =
 LIBS += $$(test -n "$(GCOV)" && echo "-lgcov --coverage")
 MAN_DATE = $$(grep EXEC_DATE version.h | cut -d '"' -f 2 | sed 's/-/\\\\-/g;')
 OBJS  =
+OBJS += cmds.o
 OBJS += geocalc.o
+OBJS += geomath.o
 OBJS += selftest.o
 
 MAN_VERSION = $$(grep EXEC_VERSION version.h | cut -d '"' -f 2 \
@@ -78,8 +83,14 @@ $(MANPAGE): $(MANPAGE).man version.h
 version.h: Gen-version $(CFILES) $(HFILES) Makefile
 	./Gen-version
 
+cmds.o: cmds.c $(DEPS)
+	$(CC) $(CFLAGS) cmds.c
+
 geocalc.o: geocalc.c $(DEPS)
 	$(CC) $(CFLAGS) geocalc.c
+
+geomath.o: geomath.c $(DEPS)
+	$(CC) $(CFLAGS) geomath.c
 
 selftest.o: selftest.c $(DEPS)
 	$(CC) $(CFLAGS) selftest.c
