@@ -9,6 +9,9 @@ EXEC = geocalc
 CC = cc
 LD = cc
 
+CFILES  =
+CFILES += geocalc.c
+CFILES += selftest.c
 CFLAGS  =
 CFLAGS += $$(test "$$(uname -o)" = "Android" || echo -fcf-protection=full)
 CFLAGS += $$(test -n "$(GCOV)" && echo -n "-fprofile-arcs -ftest-coverage")
@@ -39,28 +42,20 @@ CFLAGS += -fwrapv
 CFLAGS += -g3
 CFLAGS += -pedantic
 CFLAGS += -std=c99
-
+DEPS = version.h $(HFILES) Makefile
+GNCOV_STR = $$(test -n "$(GNCOV)" && echo "-g")
+HFILES  =
+HFILES += geocalc.h
 LDFLAGS  =
 LDFLAGS += $$(test -n "$(PROF)" && echo -n "-pg")
 LDFLAGS += -Wl,-z,now
 LDFLAGS += -Wl,-z,relro
-
 LIBS  =
 LIBS += $$(test -n "$(GCOV)" && echo "-lgcov --coverage")
-
 OBJS  =
 OBJS += geocalc.o
 OBJS += selftest.o
 
-CFILES  =
-CFILES += geocalc.c
-CFILES += selftest.c
-
-HFILES  =
-HFILES += geocalc.h
-
-DEPS = version.h $(HFILES) Makefile
-GNCOV_STR = $$(test -n "$(GNCOV)" && echo "-g")
 TESTABLE_LINES = $$(grep -E '^ +\#\#\#\#\#:' *.c.gcov \
                     | grep -vF '/* gncov */' | wc -l)
 
