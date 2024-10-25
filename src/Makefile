@@ -5,6 +5,7 @@
 PREFIX = /usr/local
 
 EXEC = geocalc
+MANPAGE = $(EXEC).1
 
 CC = cc
 LD = cc
@@ -48,24 +49,31 @@ HFILES  =
 HFILES += geocalc.h
 INSTALL_TARGETS  =
 INSTALL_TARGETS += $(PREFIX)/bin/$(EXEC)
+INSTALL_TARGETS += $(PREFIX)/share/man/man1/$(MANPAGE)
 LDFLAGS  =
 LDFLAGS += $$(test -n "$(PROF)" && echo -n "-pg")
 LDFLAGS += -Wl,-z,now
 LDFLAGS += -Wl,-z,relro
 LIBS  =
 LIBS += $$(test -n "$(GCOV)" && echo "-lgcov --coverage")
+MAN_DATE = $$(grep EXEC_DATE version.h | cut -d '"' -f 2 | sed 's/-/\\\\-/g;')
 OBJS  =
 OBJS += geocalc.o
 OBJS += selftest.o
 
+MAN_VERSION = $$(grep EXEC_VERSION version.h | cut -d '"' -f 2 \
+                 | sed 's/-/\\\\-/g;')
 TESTABLE_LINES = $$(grep -E '^ +\#\#\#\#\#:' *.c.gcov \
                     | grep -vF '/* gncov */' | wc -l)
 
 .PHONY: all
-all: $(EXEC)
+all: $(EXEC) $(MANPAGE)
 
 $(EXEC): $(OBJS)
 	$(LD) -o $(EXEC) $(LDFLAGS) $(OBJS) $(LIBS)
+
+$(MANPAGE): $(MANPAGE).man version.h
+	sed "s/RPL_DATE/$(MAN_DATE)/g; s/RPL_VERSION/$(MAN_VERSION)/g;" <$< >$@
 
 version.h: Gen-version $(CFILES) $(HFILES) Makefile
 	./Gen-version
@@ -78,7 +86,7 @@ selftest.o: selftest.c $(DEPS)
 
 .PHONY: clean
 clean:
-	rm -f $(EXEC) $(OBJS)
+	rm -f $(EXEC) $(OBJS) $(MANPAGE)
 	rm -f *.gcda *.gcno *.gcov
 	rm -f gmon.out gmon.sum
 	rm -f version.h
@@ -116,6 +124,10 @@ install: $(INSTALL_TARGETS)
 $(PREFIX)/bin/$(EXEC): $(EXEC)
 	mkdir -p $(PREFIX)/bin
 	install $(EXEC) $(PREFIX)/bin/$(EXEC)
+
+$(PREFIX)/share/man/man1/$(MANPAGE): $(MANPAGE)
+	mkdir -p $(PREFIX)/share/man/man1
+	install $(MANPAGE) $(PREFIX)/share/man/man1/$(MANPAGE)
 
 tags: $(CFILES) $(HFILES)
 	ctags $(CFILES) $(HFILES)
