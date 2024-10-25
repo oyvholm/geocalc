@@ -24,8 +24,10 @@
 #include "version.h"
 
 #include <assert.h>
+#include <ctype.h>
 #include <errno.h>
 #include <getopt.h>
+#include <math.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -109,6 +111,8 @@ struct Options {
  */
 
 /* cmds.c */
+int cmd_dist(const char *lat1_s, const char *lon1_s,
+             const char *lat2_s, const char *lon2_s);
 
 /* geocalc.c */
 int msg(const VerboseLevel verbose, const char *format, ...);

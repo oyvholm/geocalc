@@ -59,6 +59,7 @@ LDFLAGS += -Wl,-z,now
 LDFLAGS += -Wl,-z,relro
 LIBS  =
 LIBS += $$(test -n "$(GCOV)" && echo "-lgcov --coverage")
+LIBS += -lm
 MANSRC = $(MANPAGE).man
 MAN_DATE = $$(grep EXEC_DATE version.h | cut -d '"' -f 2 | sed 's/-/\\\\-/g;')
 OBJS  =

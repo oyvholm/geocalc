@@ -20,4 +20,85 @@
 
 #include "geocalc.h"
 
+/*
+ * string_to_double() - Converts a number from `char *` to `double` and checks 
+ * for errors. If any error occurs, it sets `errno` and returns 1, otherwise it 
+ * returns 0.
+ */
+
+static int string_to_double(const char *s, double *dest)
+{
+	char *endptr;
+	errno = 0;
+
+	*dest = strtod(s, &endptr);
+
+	if (errno == ERANGE) {
+		/* Number is too large or small */
+		return 1;
+	}
+
+	if (endptr == s) {
+		/* No valid conversion possible */
+		errno = EINVAL;
+		return 1;
+	}
+
+	/*
+	 * Check for extra characters after the number, whitespace and `,` are 
+	 * allowed for the time being in case it's copy+paste.
+	 */
+	while (*endptr != '\0') {
+		if (*endptr != ',' && !isspace((unsigned char)*endptr)) {
+			errno = EINVAL;
+			return 1;
+		}
+		endptr++;
+	}
+
+	if (isnan(*dest)) {
+		errno = EINVAL;
+		return 1;
+	}
+
+	if (isinf(*dest)) {
+		errno = ERANGE;
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
+ * cmd_dist() - Executes the `dist` command. Returns `EXIT_SUCCESS` or 
+ * `EXIT_FAILURE`.
+ */
+
+int cmd_dist(const char *lat1_s, const char *lon1_s,
+             const char *lat2_s, const char *lon2_s)
+{
+	double lat1, lon1, lat2, lon2, result;
+
+	assert(lat1_s && lon1_s && lat2_s && lon2_s);
+
+	msg(VERBOSE_TRACE, "cmd_dist(%s, %s, %s, %s)",
+	    lat1_s, lon1_s, lat2_s, lon2_s);
+
+	if (string_to_double(lat1_s, &lat1) || string_to_double(lon1_s, &lon1)
+	    || string_to_double(lat2_s, &lat2)
+	    || string_to_double(lon2_s, &lon2)) {
+		myerror("Invalid number specified");
+		return EXIT_FAILURE;
+	}
+
+	result = haversine(lat1, lon1, lat2, lon2);
+	if (result == -1.0) {
+		myerror("Coordinates out of range");
+		return EXIT_FAILURE;
+	}
+	printf("%f\n", result);
+
+	return EXIT_SUCCESS;
+}
+
 /* vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 : */

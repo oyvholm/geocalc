@@ -64,6 +64,10 @@ static const char *std_strerror(const int errnum)
 	switch (errnum) {
 	case EACCES:
 		return "Permission denied";
+	case EINVAL:
+		return "Invalid argument";
+	case ERANGE:
+		return "Numerical result out of range";
 	default:
 		/*
 		 * Should never happen. If this line is executed, an `errno` 
@@ -179,6 +183,8 @@ static int usage(const int retval)
 	printf("\n");
 	printf("Commands:\n");
 	printf("\n");
+	printf("  dist <lat1> <lon1> <lat2> <lon2>\n"
+	       "    Calculate the distance between two points.\n");
 	printf("\n");
 	printf("Options:\n");
 	printf("\n");
@@ -293,12 +299,21 @@ static int parse_options(const int argc, char * const argv[])
 static int process_args(int argc, char *argv[])
 {
 	int retval;
+	const int numargs = argc - optind;
 	const char *cmd = argv[optind];
 
 	msg(VERBOSE_DEBUG, "%s(): cmd = %s", __func__, cmd);
 
-	if (0) {
-		if (argc) { } /* Temporary, avoid warning */
+	if (!strcmp(cmd, "dist")) {
+		if (numargs != 5) {
+			myerror("%s: %s arguments",
+			        cmd,
+			        numargs < 5 ? "Missing lat/lon"
+			                    : "Too many");
+			return EXIT_FAILURE;
+		}
+		retval = cmd_dist(argv[optind + 1], argv[optind + 2],
+		                  argv[optind + 3], argv[optind + 4]);
 	} else {
 		myerror("Unknown command: %s", cmd);
 		retval = EXIT_FAILURE;

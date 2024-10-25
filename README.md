@@ -11,7 +11,12 @@ document are to be interpreted as described in RFC 2119.
 
 ## Status
 
-In the startup/design phase, does nothing yet.
+Contains the following command:
+
+  - **`dist`**
+    - Calculate the distance between two geographic coordinates, using 
+      the Haversine formula. The result (in meters) is printed to 
+      stdout.
 
 ## Development
 

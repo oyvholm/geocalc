@@ -21,6 +21,15 @@
 #ifndef _GEOMATH_H
 #define _GEOMATH_H
 
+#include <math.h>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
+double haversine(const double lat1, const double lon1,
+                 const double lat2, const double lon2);
+
 #endif /* ifndef _GEOMATH_H */
 
 /* vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 : */

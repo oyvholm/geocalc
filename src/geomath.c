@@ -20,4 +20,45 @@
 
 #include "geocalc.h"
 
+const double EARTH_RADIUS = 6371000; /* Meters */
+
+/*
+ * deg2rad() - Convert degrees to radians.
+ */
+
+static inline double deg2rad(const double deg)
+{
+	return deg * M_PI / 180.0;
+}
+
+/*
+ * haversine() - Return distance in meters between two geographic coordinates.
+ *
+ * If values outside the valid coordinate range are provided, it returns -1.0.
+ */
+
+double haversine(const double lat1, const double lon1,
+                 const double lat2, const double lon2)
+{
+	if (fabs(lat1) > 90.0 || fabs(lat2) > 90.0
+	    || fabs(lon1) > 180.0 || fabs(lon2) > 180.0)
+		return -1.0;
+
+	const double lat1_rad = deg2rad(lat1);
+	const double lat2_rad = deg2rad(lat2);
+	const double delta_phi = deg2rad(lat2 - lat1);
+	const double delta_lambda = deg2rad(lon2 - lon1);
+
+	const double sin_delta_phi = sin(delta_phi / 2.0);
+	const double sin_delta_lambda = sin(delta_lambda / 2.0);
+
+	const double hav = sin_delta_phi * sin_delta_phi
+	                   + cos(lat1_rad) * cos(lat2_rad)
+	                   * sin_delta_lambda * sin_delta_lambda;
+
+	const double arc = 2.0 * atan2(sqrt(hav), sqrt(1.0 - hav));
+
+	return EARTH_RADIUS * arc; /* Distance in meters */
+}
+
 /* vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 : */

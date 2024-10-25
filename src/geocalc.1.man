@@ -31,6 +31,10 @@ Print version information.
 All coordinates must be entered as decimal degrees, using the format 
 \fB[-]xxx.yyyyy\fP. Only metric units are supported; distances are printed in 
 meters, and distance inputs are also expected to be in meters.
+.TP
+\fBdist\fP <\fIlat1\fP> <\fIlon1\fP> <\fIlat2\fP> <\fIlon2\fP>
+Calculate the distance between two geographic points, using the Haversine 
+formula. The result (in meters) is printed to standard output.
 .SS Exit status:
 .TP
 0
