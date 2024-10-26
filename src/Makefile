@@ -58,6 +58,7 @@ LDFLAGS += $$(test -n "$(PROF)" && echo -n "-pg")
 LDFLAGS += -Wl,-z,now
 LDFLAGS += -Wl,-z,relro
 LIBS  =
+HTMLFILE = $(EXEC).html
 LIBS += $$(test -n "$(GCOV)" && echo "-lgcov --coverage")
 LIBS += -lm
 MANSRC = $(MANPAGE).man
@@ -67,6 +68,7 @@ OBJS += cmds.o
 OBJS += geocalc.o
 OBJS += geomath.o
 OBJS += selftest.o
+PDFFILE = $(EXEC).pdf
 
 MAN_VERSION = $$(grep EXEC_VERSION version.h | cut -d '"' -f 2 \
                  | sed 's/-/\\\\-/g;')
@@ -79,9 +81,17 @@ all: $(EXEC) $(MANPAGE)
 $(EXEC): $(OBJS)
 	$(LD) -o $(EXEC) $(LDFLAGS) $(OBJS) $(LIBS)
 
+$(HTMLFILE): $(MANPAGE)
+	man -Thtml ./$(MANPAGE) >$@.tmp
+	mv $@.tmp $@
+
 $(MANPAGE): $(MANSRC) version.h
 	sed "s/RPL_DATE/$(MAN_DATE)/g; s/RPL_VERSION/$(MAN_VERSION)/g;" \
 	<$< >$@.tmp
+	mv $@.tmp $@
+
+$(PDFFILE): $(MANPAGE)
+	man -Tpdf ./$(MANPAGE) >$@.tmp
 	mv $@.tmp $@
 
 version.h: Gen-version $(CFILES) $(HFILES) Makefile
@@ -102,7 +112,9 @@ selftest.o: selftest.c $(DEPS)
 .PHONY: clean
 clean:
 	rm -f $(EXEC) $(OBJS)
+	rm -f $(HTMLFILE) $(HTMLFILE).tmp
 	rm -f $(MANPAGE) $(MANPAGE).tmp
+	rm -f $(PDFFILE) $(PDFFILE).tmp
 	rm -f *.gcda *.gcno *.gcov
 	rm -f gmon.out gmon.sum
 	rm -f version.h
@@ -134,8 +146,14 @@ gcov-cmt-clean:
 gdb: $(EXEC)
 	gdb -x gdbrc $$(cat gdbopts 2>/dev/null) $(EXEC)
 
+.PHONY: html
+html: $(HTMLFILE)
+
 .PHONY: install
 install: $(INSTALL_TARGETS)
+
+.PHONY: pdf
+pdf: $(PDFFILE)
 
 $(PREFIX)/bin/$(EXEC): $(EXEC)
 	mkdir -p $(PREFIX)/bin

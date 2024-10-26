@@ -48,8 +48,18 @@ edit: tags
 .PHONY: FORCE
 FORCE:
 
+.PHONY: html
+html:
+	$(MAKE) README.html
+	cd src && $(MAKE) $@
+
 .PHONY: install
 install:
+	cd src && $(MAKE) $@
+
+.PHONY: pdf
+pdf:
+	$(MAKE) README.pdf
 	cd src && $(MAKE) $@
 
 .PHONY: test
