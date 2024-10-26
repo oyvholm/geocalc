@@ -70,8 +70,8 @@ static int string_to_double(const char *s, double *dest)
 }
 
 /*
- * cmd_bear_dist() - Executes the `dist` command, specified in `cmd`. Returns 
- * `EXIT_SUCCESS` or `EXIT_FAILURE`.
+ * cmd_bear_dist() - Executes the `bear` or `dist` commands, specified in 
+ * `cmd`. Returns `EXIT_SUCCESS` or `EXIT_FAILURE`.
  */
 
 int cmd_bear_dist(const char *cmd,
@@ -81,11 +81,11 @@ int cmd_bear_dist(const char *cmd,
 	double lat1, lon1, lat2, lon2, result;
 
 	assert(cmd);
-	assert(!strcmp(cmd, "dist"));
+	assert(!strcmp(cmd, "bear") || !strcmp(cmd, "dist"));
 	assert(lat1_s && lon1_s && lat2_s && lon2_s);
 
-	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\", \"%s\", \"%s\")",
-	    __func__, cmd, lat1_s, lon1_s, lat2_s, lon2_s);
+	msg(VERBOSE_TRACE, "%s(%s, %s, %s, %s)",
+	    __func__, lat1_s, lon1_s, lat2_s, lon2_s);
 
 	if (string_to_double(lat1_s, &lat1) || string_to_double(lon1_s, &lon1)
 	    || string_to_double(lat2_s, &lat2)
@@ -94,7 +94,8 @@ int cmd_bear_dist(const char *cmd,
 		return EXIT_FAILURE;
 	}
 
-	result = haversine(lat1, lon1, lat2, lon2);
+	result = !strcmp(cmd, "bear") ? initial_bearing(lat1, lon1, lat2, lon2)
+	                              : haversine(lat1, lon1, lat2, lon2);
 	if (result == -1.0) {
 		myerror("Coordinates out of range");
 		return EXIT_FAILURE;

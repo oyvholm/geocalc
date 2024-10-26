@@ -11,8 +11,10 @@ document are to be interpreted as described in RFC 2119.
 
 ## Status
 
-Contains the following command:
+Contains the following commands:
 
+  - **`bear`**
+    - Print initial compass bearing (0-360) between two points.
   - **`dist`**
     - Calculate the distance between two geographic coordinates, using 
       the Haversine formula. The result (in meters) is printed to 

@@ -88,6 +88,7 @@ sub main {
 
 	test_standard_options();
 	test_executable();
+	test_multi_bear_dist("bear");
 	test_multi_bear_dist("dist");
 
 	diag('========== BEGIN version info ==========');
@@ -195,12 +196,15 @@ sub test_executable {
 sub test_multi_bear_dist {
 	my ($cmd) = @_;
 	my %c_1234 = (
+	        'bear' => "44.951998",
 	        'dist' => "314402.951024",
 	);
 	my %c_comma = (
+	        'bear' => "164.027619",
 	        'dist' => "809080.682265",
 	);
 	my %c_poles = (
+	        'bear' => "180.000000",
 	        'dist' => "20015086.796021",
 	);
 

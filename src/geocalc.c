@@ -183,6 +183,9 @@ static int usage(const int retval)
 	printf("\n");
 	printf("Commands:\n");
 	printf("\n");
+	printf("  bear <lat1> <lon1> <lat2> <lon2>\n"
+	       "    Print initial compass bearing (0-360) between"
+	       " two points.\n");
 	printf("  dist <lat1> <lon1> <lat2> <lon2>\n"
 	       "    Calculate the distance between two points.\n");
 	printf("\n");
@@ -304,7 +307,7 @@ static int process_args(int argc, char *argv[])
 
 	msg(VERBOSE_DEBUG, "%s(): cmd = %s", __func__, cmd);
 
-	if (!strcmp(cmd, "dist")) {
+	if (!strcmp(cmd, "bear") || !strcmp(cmd, "dist")) {
 		if (numargs != 5) {
 			myerror("%s: %s arguments",
 			        cmd,

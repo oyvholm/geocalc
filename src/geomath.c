@@ -32,6 +32,15 @@ static inline double deg2rad(const double deg)
 }
 
 /*
+ * rad2deg() - Convert radians to degrees.
+ */
+
+static inline double rad2deg(const double rad)
+{
+	return rad * 180.0 / M_PI;
+}
+
+/*
  * haversine() - Return distance in meters between two geographic coordinates.
  *
  * If values outside the valid coordinate range are provided, it returns -1.0.
@@ -59,6 +68,35 @@ double haversine(const double lat1, const double lon1,
 	const double arc = 2.0 * atan2(sqrt(hav), sqrt(1.0 - hav));
 
 	return EARTH_RADIUS * arc; /* Distance in meters */
+}
+
+/*
+ * initial_bearing() - Calculate the initial bearing from point `lat1, lon1` to 
+ * point `lat2, lon2`. Returns bearing in degrees: 0 = north, 90 = east, 180 = 
+ * south, 270 = west.
+ *
+ * If values outside the valid coordinate range are provided, it returns -1.0.
+ */
+
+double initial_bearing(const double lat1, const double lon1,
+                       const double lat2, const double lon2)
+{
+	if (fabs(lat1) > 90.0 || fabs(lat2) > 90.0
+	    || fabs(lon1) > 180.0 || fabs(lon2) > 180.0)
+		return -1.0;
+
+	const double lat1_rad = deg2rad(lat1);
+	const double lat2_rad = deg2rad(lat2);
+	const double delta_lon = deg2rad(lon2 - lon1);
+
+	const double cos_lat1 = cos(lat1_rad);
+	const double cos_lat2 = cos(lat2_rad);
+
+	const double y = sin(delta_lon) * cos_lat2;
+	const double x = cos_lat1 * sin(lat2_rad)
+	                 - sin(lat1_rad) * cos_lat2 * cos(delta_lon);
+
+	return fmod(rad2deg(atan2(y, x)) + 360.0, 360.0);
 }
 
 /* vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 : */

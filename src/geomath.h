@@ -29,6 +29,8 @@
 
 double haversine(const double lat1, const double lon1,
                  const double lat2, const double lon2);
+double initial_bearing(const double lat1, const double lon1,
+                       const double lat2, const double lon2);
 
 #endif /* ifndef _GEOMATH_H */
 
