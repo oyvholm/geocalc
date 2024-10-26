@@ -80,7 +80,9 @@ $(EXEC): $(OBJS)
 	$(LD) -o $(EXEC) $(LDFLAGS) $(OBJS) $(LIBS)
 
 $(MANPAGE): $(MANSRC) version.h
-	sed "s/RPL_DATE/$(MAN_DATE)/g; s/RPL_VERSION/$(MAN_VERSION)/g;" <$< >$@
+	sed "s/RPL_DATE/$(MAN_DATE)/g; s/RPL_VERSION/$(MAN_VERSION)/g;" \
+	<$< >$@.tmp
+	mv $@.tmp $@
 
 version.h: Gen-version $(CFILES) $(HFILES) Makefile
 	./Gen-version
@@ -99,7 +101,8 @@ selftest.o: selftest.c $(DEPS)
 
 .PHONY: clean
 clean:
-	rm -f $(EXEC) $(OBJS) $(MANPAGE)
+	rm -f $(EXEC) $(OBJS)
+	rm -f $(MANPAGE) $(MANPAGE).tmp
 	rm -f *.gcda *.gcno *.gcov
 	rm -f gmon.out gmon.sum
 	rm -f version.h
