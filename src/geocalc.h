@@ -111,8 +111,9 @@ struct Options {
  */
 
 /* cmds.c */
-int cmd_dist(const char *lat1_s, const char *lon1_s,
-             const char *lat2_s, const char *lon2_s);
+int cmd_bear_dist(const char *cmd,
+                  const char *lat1_s, const char *lon1_s,
+                  const char *lat2_s, const char *lon2_s);
 
 /* geocalc.c */
 int msg(const VerboseLevel verbose, const char *format, ...);

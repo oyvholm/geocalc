@@ -312,8 +312,9 @@ static int process_args(int argc, char *argv[])
 			                    : "Too many");
 			return EXIT_FAILURE;
 		}
-		retval = cmd_dist(argv[optind + 1], argv[optind + 2],
-		                  argv[optind + 3], argv[optind + 4]);
+		retval = cmd_bear_dist(cmd,
+		                       argv[optind + 1], argv[optind + 2],
+		                       argv[optind + 3], argv[optind + 4]);
 	} else {
 		myerror("Unknown command: %s", cmd);
 		retval = EXIT_FAILURE;

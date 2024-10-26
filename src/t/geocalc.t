@@ -88,7 +88,7 @@ sub main {
 
 	test_standard_options();
 	test_executable();
-	test_cmd_dist();
+	test_multi_bear_dist("dist");
 
 	diag('========== BEGIN version info ==========');
 	diag($exec_version);
@@ -192,85 +192,96 @@ sub test_executable {
 	return;
 }
 
-sub test_cmd_dist {
-	diag("Test dist command");
-	testcmd("$CMD -vv dist",
+sub test_multi_bear_dist {
+	my ($cmd) = @_;
+	my %c_1234 = (
+	        'dist' => "314402.951024",
+	);
+	my %c_comma = (
+	        'dist' => "809080.682265",
+	);
+	my %c_poles = (
+	        'dist' => "20015086.796021",
+	);
+
+	diag("Test $cmd command");
+	testcmd("$CMD -vv $cmd",
 	        "",
-	        "../$CMDB: dist: Missing lat/lon arguments\n",
+	        "../$CMDB: $cmd: Missing lat/lon arguments\n",
 	        1,
-	        "dist with no arguments");
-	testcmd("$CMD dist 1 2 3",
+	        "$cmd with no arguments");
+	testcmd("$CMD $cmd 1 2 3",
 	        "",
-	        "../$CMDB: dist: Missing lat/lon arguments\n",
+	        "../$CMDB: $cmd: Missing lat/lon arguments\n",
 	        1,
-	        "dist with only 3 arguments");
-	testcmd("$CMD dist 1 2 3 4",
-	        "314402.951024\n",
+	        "$cmd with only 3 arguments");
+	testcmd("$CMD $cmd 1 2 3 4",
+	        "$c_1234{$cmd}\n",
 	        "",
 	        0,
-	        "dist 1 2 3 4");
-	testcmd("$CMD dist 1 2 3 4 5",
+	        "$cmd 1 2 3 4");
+	testcmd("$CMD $cmd 1 2 3 4 5",
 	        "",
-	        "../$CMDB: dist: Too many arguments\n",
+	        "../$CMDB: $cmd: Too many arguments\n",
 	        1,
-	        "dist with 1 argument too much");
-	testcmd("$CMD dist 1 2 3 1e+900",
+	        "$cmd with 1 argument too much");
+	testcmd("$CMD $cmd 1 2 3 1e+900",
 	        "",
 	        "../$CMDB: Invalid number specified:"
 	        . " Numerical result out of range\n",
 	        1,
-	        "dist with 1 number too large");
-	testcmd("$CMD dist 1 2 urgh 4",
+	        "$cmd with 1 number too large");
+	testcmd("$CMD $cmd 1 2 urgh 4",
 	        "",
 	        "../$CMDB: Invalid number specified:"
 	        . " Invalid argument\n",
 	        1,
-	        "dist with 1 non-number");
-	testcmd("$CMD dist 1 2.9y 3 4",
+	        "$cmd with 1 non-number");
+	testcmd("$CMD $cmd 1 2.9y 3 4",
 	        "",
 	        "../$CMDB: Invalid number specified:"
 	        . " Invalid argument\n",
 	        1,
-	        "dist with non-digit after number");
-	testcmd("$CMD dist 1 '2 g' 3 4",
+	        "$cmd with non-digit after number");
+	testcmd("$CMD $cmd 1 '2 g' 3 4",
 	        "",
 	        "../$CMDB: Invalid number specified:"
 	        . " Invalid argument\n",
 	        1,
-	        "dist with whitespace and non-digit after number");
-	testcmd("$CMD dist 10, 2 3 4",
-	        "809080.682265\n",
+	        "$cmd with whitespace and non-digit after number");
+	testcmd("$CMD $cmd 10, 2 3 4",
+	        "$c_comma{$cmd}\n",
 	        "",
 	        0,
-	        "dist with comma after number");
-	testcmd("$CMD dist 1 2 3 NAN",
+	        "$cmd with comma after number");
+	testcmd("$CMD $cmd 1 2 3 NAN",
 	        "",
 	        "../$CMDB: Invalid number specified:"
 	        . " Invalid argument\n",
 	        1,
-	        "dist with NAN");
-	testcmd("$CMD dist 1 2 3 INF",
+	        "$cmd with NAN");
+	testcmd("$CMD $cmd 1 2 3 INF",
 	        "",
 	        "../$CMDB: Invalid number specified:"
 	        . " Numerical result out of range\n",
 	        1,
-	        "dist with INF");
-	testcmd("$CMD dist 1 2 '' 4.0",
+	        "$cmd with INF");
+	testcmd("$CMD $cmd 1 2 '' 4.0",
 	        "",
 	        "../$CMDB: Invalid number specified:"
 	        . " Invalid argument\n",
 	        1,
-	        "dist with empty argument");
-	testcmd("$CMD dist 1 2 3 180.001",
+	        "$cmd with empty argument");
+	testcmd("$CMD $cmd 1 2 3 180.001",
 	        "",
 	        "../$CMDB: Coordinates out of range\n",
 	        1,
-	        "lon2 out of range");
-	testcmd("$CMD dist 90 0 -90 0",
-	        "20015086.796021\n",
+	        "$cmd: lon2 out of range");
+	testcmd("$CMD $cmd 90 0 -90 0",
+	        "$c_poles{$cmd}\n",
 	        "",
 	        0,
-	        "dist 90 0 -90 0");
+	        "$cmd 90 0 -90 0");
 }
 
 sub test_selftest {
