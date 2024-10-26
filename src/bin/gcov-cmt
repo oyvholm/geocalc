@@ -1,0 +1,186 @@
+#!/usr/bin/env perl
+
+#==============================================================================
+# gcov-cmt
+# File ID: a6fde67c-bd88-11e7-93f2-f74d993421b0
+#
+# Add "/* gcov */" markers to lines in .c files reported by gcov(1) as unused.
+#
+# Character set: UTF-8
+# ©opyleft 2017– Øyvind A. Holm <sunny@sunbase.org>
+# License: GNU General Public License version 2 or later, see end of file for 
+# legal stuff.
+#==============================================================================
+
+use strict;
+use warnings;
+use Getopt::Long;
+
+local $| = 1;
+
+our %Opt = (
+
+	'delete' => 0,
+	'gncov' => 0,
+	'help' => 0,
+	'quiet' => 0,
+	'verbose' => 0,
+	'version' => 0,
+
+);
+
+our $progname = $0;
+$progname =~ s/^.*\/(.*?)$/$1/;
+our $VERSION = '0.3.1';
+
+Getopt::Long::Configure('bundling');
+GetOptions(
+
+	'delete|d' => \$Opt{'delete'},
+	'gncov|g' => \$Opt{'gncov'},
+	'help|h' => \$Opt{'help'},
+	'quiet|q+' => \$Opt{'quiet'},
+	'verbose|v+' => \$Opt{'verbose'},
+	'version' => \$Opt{'version'},
+
+) || die("$progname: Option error. Use -h for help.\n");
+
+$Opt{'verbose'} -= $Opt{'quiet'};
+$Opt{'help'} && usage(0);
+if ($Opt{'version'}) {
+	print_version();
+	exit(0);
+}
+
+exit(main());
+
+sub main {
+	my $Retval = 0;
+
+	for my $f (@ARGV) {
+		msg(1, "Processing $f");
+		if (process_file($f)) {
+			print(STDERR "$progname: $f: "
+			             . "Error when processing file: $!\n");
+		}
+	}
+	return $Retval;
+}
+
+sub process_file {
+	my $f = shift;
+	my $line;
+
+	if ($Opt{'delete'}) {
+		open(from_fp, "<$f") or return 1;
+		open(to_fp, ">$f.tmp") or return 1;
+		while ($line = <from_fp>) {
+			chomp($line);
+			$line =~ s! /\* gcov \*/$!!;
+			print(to_fp "$line\n");
+		}
+	} else {
+		if (!-f "$f.gcov") {
+			printf(STDERR "$progname: $f.gcov not found\n");
+			return 0;
+		}
+		open(from_fp, "<$f.gcov") or return 1;
+		open(to_fp, ">$f.tmp") or return 1;
+		while ($line = <from_fp>) {
+			chomp($line);
+			if ($line =~ /^(.+?): +(\d+):(.*)$/) {
+				my ($c1, $c2, $c3) = ($1, $2, $3);
+				$c2 eq "0" && next;
+				$c3 =~ s! /\* gcov \*/$!!;
+				if ($c1 =~ /\#\#\#\#\#/
+				    && !($line =~ m'/\* gncov \*/'
+				         && !$Opt{'gncov'}
+				       )
+				) {
+					$c3 .= " /* gcov */";
+				}
+				print(to_fp "$c3\n");
+			}
+		}
+	}
+	close(to_fp);
+	close(from_fp);
+	rename("$f.tmp", $f) or return 1;
+	return 0;
+}
+
+sub print_version {
+	# Print program version
+	print("$progname $VERSION\n");
+	return;
+}
+
+sub usage {
+	# Send the help message to stdout
+	my $Retval = shift;
+
+	if ($Opt{'verbose'}) {
+		print("\n");
+		print_version();
+	}
+	print(<<"END");
+
+Usage: $progname [options] C_FILES [...]
+
+Add "/* gcov */" markers to lines in .c files reported by gcov(1) as 
+unused.
+
+\$ make clean test
+\$ gcov *.c
+\$ $progname *.c
+
+Options:
+
+  -d, --delete
+    Delete existing markers.
+  -g, --gncov
+    Mark lines even when they contain the gncov marker.
+  -h, --help
+    Show this help.
+  -q, --quiet
+    Be more quiet. Can be repeated to increase silence.
+  -v, --verbose
+    Increase level of verbosity. Can be repeated.
+  --version
+    Print version information.
+
+To suppress the gcov marker for some lines, add the string "/* gncov */" 
+to the relevant lines. This is for lines that are difficult to test 
+(full disk, memory full, long paths, etc).
+
+END
+	exit($Retval);
+}
+
+sub msg {
+	# Print a status message to stderr based on verbosity level
+	my ($verbose_level, $Txt) = @_;
+
+	if ($Opt{'verbose'} >= $verbose_level) {
+		print(STDERR "$progname: $Txt\n");
+	}
+	return;
+}
+
+__END__
+
+# This program is free software; you can redistribute it and/or modify it under 
+# the terms of the GNU General Public License as published by the Free Software 
+# Foundation; either version 2 of the License, or (at your option) any later 
+# version.
+#
+# This program is distributed in the hope that it will be useful, but WITHOUT 
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS 
+# FOR A PARTICULAR PURPOSE.
+# See the GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License along with 
+# this program.
+# If not, see L<http://www.gnu.org/licenses/>.
+
+# vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 :

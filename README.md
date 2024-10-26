@@ -68,9 +68,6 @@ GNCOV environment variable to a non-empty value. For example:
 
     make gcov-cmt GNCOV=1
 
-These commands need the `gcov-cmt` script, available from 
-<https://gitlab.com/oyvholm/utils/raw/master/gcov-cmt>.
-
 ### make gdb
 
 Start gdb with main() as the default breakpoint, this is defined in 

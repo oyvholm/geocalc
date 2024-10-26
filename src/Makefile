@@ -121,11 +121,11 @@ gcov:
 
 .PHONY: gcov-cmt
 gcov-cmt: gcov
-	gcov-cmt $(GNCOV_STR) $(CFILES)
+	bin/gcov-cmt $(GNCOV_STR) $(CFILES)
 
 .PHONY: gcov-cmt-clean
 gcov-cmt-clean:
-	gcov-cmt -d $(CFILES)
+	bin/gcov-cmt -d $(CFILES)
 
 .PHONY: gdb
 gdb: $(EXEC)
