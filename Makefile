@@ -3,6 +3,7 @@
 
 IGNFILES  =
 IGNFILES += -e ^COPYING
+IGNFILES += -e ^src/bin/gcov-cmt
 
 .PHONY: all
 all:

@@ -51,6 +51,8 @@ HFILES  =
 HFILES += geocalc.h
 HFILES += geomath.h
 HTMLFILE = $(EXEC).html
+IGNFILES  =
+IGNFILES += -e ^bin/gcov-cmt
 INSTALL_TARGETS  =
 INSTALL_TARGETS += $(PREFIX)/bin/$(EXEC)
 INSTALL_TARGETS += $(PREFIX)/share/man/man1/$(MANPAGE)
@@ -122,7 +124,7 @@ clean:
 
 .PHONY: edit
 edit: tags
-	$(EDITOR) $$(git ls-files)
+	$(EDITOR) $$(git ls-files | grep -v $(IGNFILES))
 	rm tags
 
 .PHONY: gcov
