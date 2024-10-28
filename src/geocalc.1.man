@@ -45,6 +45,14 @@ No error.
 .TP
 1
 Some error occurred, for example invalid coordinates or numbers were provided.
+.SH EXAMPLES
+.TP
+geocalc bear 60.393 5.324 51.53217 \-0.17786
+Find the bearing towards Abbey Road Studios when standing in the middle of 
+Bergen, Norway.
+.TP
+geocalc dist 90 0 \-90 0
+Calculate the distance from the North Pole to the South Pole.
 .SH AUTHOR
 Written by \[/O]yvind A. Holm <sunny@sunbase.org>
 .SH COPYRIGHT
