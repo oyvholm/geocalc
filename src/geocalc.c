@@ -80,10 +80,13 @@ static const char *std_strerror(const int errnum)
 
 /*
  * myerror() - Print an error message to stderr using this format:
- *   a: b: c
- * where a is the name of the program (progname), b is the output from the 
- * printf-like string and optional arguments, and c is the error message from 
- * errno. Returns the number of characters written.
+ *
+ *     a: b: c
+ *
+ * where `a` is the name of the program (the value of `progname`), `b` is the 
+ * output from the printf-like string and optional arguments, and `c` is the 
+ * error message from `errno`. If `errno` indicates no error, the ": c" part is 
+ * not printed. Returns the number of characters written.
  */
 
 int myerror(const char *format, ...)
@@ -107,7 +110,7 @@ int myerror(const char *format, ...)
 }
 
 /*
- * print_license() - Display the program license. Returns EXIT_SUCCESS.
+ * print_license() - Display the program license. Returns `EXIT_SUCCESS`.
  */
 
 static int print_license(void)
@@ -136,7 +139,8 @@ static int print_license(void)
 }
 
 /*
- * print_version() - Print version information on stdout. Returns EXIT_SUCCESS.
+ * print_version() - Print version information on stdout. If `-q` is used, only 
+ * the version number is printed. Returns `EXIT_SUCCESS`.
  */
 
 static int print_version(void)
@@ -163,7 +167,7 @@ static int print_version(void)
 }
 
 /*
- * usage() - Prints a help screen. Returns retval.
+ * usage() - Prints a help screen. Returns `retval`.
  */
 
 static int usage(const int retval)
@@ -296,7 +300,7 @@ static int parse_options(const int argc, char * const argv[])
 /*
  * process_args() - Parses non-option arguments and executes the appropriate 
  * command with the provided arguments. Returns `EXIT_SUCCESS` if the command 
- * succeeds are valid, otherwise it returns `EXIT_FAILURE`.
+ * succeeds, otherwise it returns `EXIT_FAILURE`.
  */
 
 static int process_args(int argc, char *argv[])
