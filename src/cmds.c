@@ -97,7 +97,7 @@ int cmd_bear_dist(const char *cmd,
 	result = !strcmp(cmd, "bear") ? initial_bearing(lat1, lon1, lat2, lon2)
 	                              : haversine(lat1, lon1, lat2, lon2);
 	if (result == -1.0) {
-		myerror("Coordinates out of range");
+		myerror("Value out of range");
 		return EXIT_FAILURE;
 	}
 	printf("%f\n", result);

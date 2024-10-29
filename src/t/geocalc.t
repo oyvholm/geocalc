@@ -88,8 +88,8 @@ sub main {
 
 	test_standard_options();
 	test_executable();
-	test_multi_bear_dist("bear");
-	test_multi_bear_dist("dist");
+	test_multiple("bear");
+	test_multiple("dist");
 
 	diag('========== BEGIN version info ==========');
 	diag($exec_version);
@@ -193,7 +193,7 @@ sub test_executable {
 	return;
 }
 
-sub test_multi_bear_dist {
+sub test_multiple {
 	my ($cmd) = @_;
 	my %c_1234 = (
 	        'bear' => "44.951998",
@@ -204,8 +204,8 @@ sub test_multi_bear_dist {
 	        'dist' => "809080.682265",
 	);
 	my %c_poles = (
-	        'bear' => "180.000000",
-	        'dist' => "20015086.796021",
+	        'bear' => "180.000000\n",
+	        'dist' => "20015086.796021\n",
 	);
 
 	diag("Test $cmd command");
@@ -276,16 +276,18 @@ sub test_multi_bear_dist {
 	        . " Invalid argument\n",
 	        1,
 	        "$cmd with empty argument");
-	testcmd("$CMD $cmd 1 2 3 180.001",
+	testcmd("$CMD $cmd 1 180.001 3 4",
 	        "",
-	        "../$CMDB: Coordinates out of range\n",
+	        "../$CMDB: Value out of range\n",
 	        1,
-	        "$cmd: lon2 out of range");
-	testcmd("$CMD $cmd 90 0 -90 0",
-	        "$c_poles{$cmd}\n",
-	        "",
-	        0,
-	        "$cmd 90 0 -90 0");
+	        "$cmd: lon1 out of range");
+	if ($cmd =~ /^(bear|dist)$/) {
+		testcmd("$CMD $cmd 90 0 -90 0",
+		        "$c_poles{$cmd}",
+		        "",
+		        0,
+		        "$cmd 90 0 -90 0");
+	}
 }
 
 sub test_selftest {
