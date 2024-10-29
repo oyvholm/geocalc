@@ -89,6 +89,7 @@ sub main {
 	test_standard_options();
 	test_executable();
 	test_multiple("bear");
+	test_multiple("bpos");
 	test_multiple("dist");
 
 	diag('========== BEGIN version info ==========');
@@ -197,10 +198,12 @@ sub test_multiple {
 	my ($cmd) = @_;
 	my %c_1234 = (
 	        'bear' => "44.951998",
+	        'bpos' => "1.000036,2.000002",
 	        'dist' => "314402.951024",
 	);
 	my %c_comma = (
 	        'bear' => "164.027619",
+	        'bpos' => "10.000036,2.000002",
 	        'dist' => "809080.682265",
 	);
 	my %c_poles = (

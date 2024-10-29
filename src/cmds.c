@@ -105,4 +105,34 @@ int cmd_bear_dist(const char *cmd,
 	return EXIT_SUCCESS;
 }
 
+/*
+ * cmd_bpos() - Executes the `bpos` command. Returns `EXIT_SUCCESS` or 
+ * `EXIT_FAILURE`.
+ */
+
+int cmd_bpos(const char *lat_s, const char *lon_s,
+             const char *bearing_s, const char *dist_s)
+{
+	double lat, lon, bearing, dist, nlat, nlon;
+	int result;
+
+	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\", \"%s\")",
+	    __func__, lat_s, lon_s, bearing_s, dist_s);
+
+	if (string_to_double(lat_s, &lat) || string_to_double(lon_s, &lon)
+	    || string_to_double(bearing_s, &bearing)
+	    || string_to_double(dist_s, &dist)) {
+		myerror("Invalid number specified");
+		return EXIT_FAILURE;
+	}
+	result = bearing_position(lat, lon, bearing, dist, &nlat, &nlon);
+	if (result) {
+		myerror("Value out of range");
+		return EXIT_FAILURE;
+	}
+	printf("%f,%f\n", nlat, nlon);
+
+	return EXIT_SUCCESS;
+}
+
 /* vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 : */

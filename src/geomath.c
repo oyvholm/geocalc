@@ -41,6 +41,53 @@ static inline double rad2deg(const double rad)
 }
 
 /*
+ * bearing_position() - Calculates the new geographic position after moving 
+ * `dist_m` meters from the position `lat, lon` in the direction `bearing_deg` 
+ * (where north is 0, south is 180). The new coordinate is stored at memory 
+ * locations pointed to by `new_lat` and `new_lon`.
+ *
+ * Negative values for `dist_m` are allowed, to calculate positions in the 
+ * opposite direction of `bearing_deg`.
+ *
+ * If the provided values are outside the valid coordinate range, it returns 1. 
+ * Otherwise, it returns 0.
+ */
+
+int bearing_position(const double lat, const double lon,
+                     const double bearing_deg, const double dist_m,
+                     double *new_lat, double *new_lon)
+{
+	if (fabs(lat) > 90.0 || fabs(lon) > 180.0
+	    || bearing_deg < 0.0 || bearing_deg > 360.0)
+		return 1;
+
+	const double lat_rad = deg2rad(lat);
+	const double lon_rad = deg2rad(lon);
+	const double bearing_rad = deg2rad(bearing_deg);
+	const double ang_dist = dist_m / EARTH_RADIUS;
+
+	const double sin_lat = sin(lat_rad);
+	const double cos_lat = cos(lat_rad);
+	const double sin_ang_dist = sin(ang_dist);
+	const double cos_ang_dist = cos(ang_dist);
+
+	const double lat2_rad = asin(sin_lat * cos_ang_dist
+	                             + cos_lat * sin_ang_dist
+	                             * cos(bearing_rad));
+
+	const double lon2_rad = lon_rad
+	                        + atan2(sin(bearing_rad) * sin_ang_dist
+	                                * cos_lat,
+	                                cos_ang_dist
+	                                - sin_lat * sin(lat2_rad));
+
+	*new_lat = rad2deg(lat2_rad);
+	*new_lon = rad2deg(lon2_rad);
+
+	return 0;
+}
+
+/*
  * haversine() - Return distance in meters between two geographic coordinates.
  *
  * If values outside the valid coordinate range are provided, it returns -1.0.

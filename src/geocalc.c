@@ -190,6 +190,14 @@ static int usage(const int retval)
 	printf("  bear <lat1> <lon1> <lat2> <lon2>\n"
 	       "    Print initial compass bearing (0-360) between"
 	       " two points.\n");
+	printf("  bpos <lat> <lon> <bearing> <length>\n"
+	       "    Find the new geographic position after moving a certain"
+	       " amount of \n"
+	       "    meters from the start position in a specific direction."
+	       " Negative \n"
+	       "    values for the length are allowed, to make it possible"
+	       " to calculate \n"
+	       "    positions in the opposite direction of the bearing.\n");
 	printf("  dist <lat1> <lon1> <lat2> <lon2>\n"
 	       "    Calculate the distance between two points.\n");
 	printf("\n");
@@ -333,6 +341,11 @@ static int process_args(int argc, char *argv[])
 		retval = cmd_bear_dist(cmd,
 		                       argv[optind + 1], argv[optind + 2],
 		                       argv[optind + 3], argv[optind + 4]);
+	} else if (!strcmp(cmd, "bpos")) {
+		if (wrong_argcount(5, numargs))
+			return EXIT_FAILURE;
+		retval = cmd_bpos(argv[optind + 1], argv[optind + 2],
+		                  argv[optind + 3], argv[optind + 4]);
 	} else {
 		myerror("Unknown command: %s", cmd);
 		retval = EXIT_FAILURE;
