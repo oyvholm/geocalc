@@ -211,12 +211,12 @@ sub test_multi_bear_dist {
 	diag("Test $cmd command");
 	testcmd("$CMD -vv $cmd",
 	        "",
-	        "../$CMDB: $cmd: Missing lat/lon arguments\n",
+	        "../$CMDB: Missing arguments\n",
 	        1,
 	        "$cmd with no arguments");
 	testcmd("$CMD $cmd 1 2 3",
 	        "",
-	        "../$CMDB: $cmd: Missing lat/lon arguments\n",
+	        "../$CMDB: Missing arguments\n",
 	        1,
 	        "$cmd with only 3 arguments");
 	testcmd("$CMD $cmd 1 2 3 4",
@@ -226,7 +226,7 @@ sub test_multi_bear_dist {
 	        "$cmd 1 2 3 4");
 	testcmd("$CMD $cmd 1 2 3 4 5",
 	        "",
-	        "../$CMDB: $cmd: Too many arguments\n",
+	        "../$CMDB: Too many arguments\n",
 	        1,
 	        "$cmd with 1 argument too much");
 	testcmd("$CMD $cmd 1 2 3 1e+900",

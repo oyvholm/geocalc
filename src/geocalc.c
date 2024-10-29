@@ -298,6 +298,22 @@ static int parse_options(const int argc, char * const argv[])
 }
 
 /*
+ * wrong_argcount() - Check that the number of arguments to a command is 
+ * correct. Returns 0 if the amount is correct, if it's not, it prints an error 
+ * message and returns 1.
+ */
+
+static int wrong_argcount(const int exp, const int got)
+{
+	if (got != exp) {
+		myerror("%s arguments", got < exp ? "Missing" : "Too many");
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
  * process_args() - Parses non-option arguments and executes the appropriate 
  * command with the provided arguments. Returns `EXIT_SUCCESS` if the command 
  * succeeds, otherwise it returns `EXIT_FAILURE`.
@@ -312,13 +328,8 @@ static int process_args(int argc, char *argv[])
 	msg(VERBOSE_DEBUG, "%s(): cmd = %s", __func__, cmd);
 
 	if (!strcmp(cmd, "bear") || !strcmp(cmd, "dist")) {
-		if (numargs != 5) {
-			myerror("%s: %s arguments",
-			        cmd,
-			        numargs < 5 ? "Missing lat/lon"
-			                    : "Too many");
+		if (wrong_argcount(5, numargs))
 			return EXIT_FAILURE;
-		}
 		retval = cmd_bear_dist(cmd,
 		                       argv[optind + 1], argv[optind + 2],
 		                       argv[optind + 3], argv[optind + 4]);
