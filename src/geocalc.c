@@ -159,9 +159,6 @@ static int print_version(void)
 #ifdef PROF
 	printf("has PROF\n");
 #endif
-#ifdef UNUSED
-	printf("has UNUSED\n");
-#endif
 
 	return EXIT_SUCCESS;
 }
