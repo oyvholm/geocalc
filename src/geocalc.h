@@ -130,6 +130,8 @@ int myerror(const char *format, ...);
 /* selftest.c */
 int selftest(void);
 
+/* string.c */
+
 /*
  * Global variables
  */

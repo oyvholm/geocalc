@@ -15,6 +15,7 @@ CFILES += cmds.c
 CFILES += geocalc.c
 CFILES += geomath.c
 CFILES += selftest.c
+CFILES += string.c
 CFLAGS  =
 CFLAGS += $$(test "$$(uname -o)" = "Android" || echo -fcf-protection=full)
 CFLAGS += $$(test -n "$(GCOV)" && echo -n "-fprofile-arcs -ftest-coverage")
@@ -70,6 +71,7 @@ OBJS += cmds.o
 OBJS += geocalc.o
 OBJS += geomath.o
 OBJS += selftest.o
+OBJS += string.o
 PDFFILE = $(EXEC).pdf
 
 MAN_VERSION = $$(grep EXEC_VERSION version.h | cut -d '"' -f 2 \
@@ -110,6 +112,9 @@ geomath.o: geomath.c $(DEPS)
 
 selftest.o: selftest.c $(DEPS)
 	$(CC) $(CFLAGS) selftest.c
+
+string.o: string.c $(DEPS)
+	$(CC) $(CFLAGS) string.c
 
 .PHONY: clean
 clean:
