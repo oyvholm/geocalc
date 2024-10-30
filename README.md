@@ -24,6 +24,10 @@ Contains the following commands:
     - Calculate the distance between two geographic coordinates, using 
       the Haversine formula. The result (in meters) is printed to 
       stdout.
+  - **`lpos`**
+    - Prints the position of a point on a straight line between the 
+      positions, where `fracdist` is a fraction that specifies how far 
+      along the line the point is.
 
 ## Development
 

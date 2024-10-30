@@ -87,6 +87,7 @@ sub main {
 
 	test_standard_options();
 	test_executable();
+	test_cmd_lpos();
 	test_multiple("bear");
 	test_multiple("bpos");
 	test_multiple("dist");
@@ -189,6 +190,54 @@ sub test_executable {
 	        1,
 	        'One argument');
 	test_selftest();
+
+	return;
+}
+
+sub test_cmd_lpos {
+	diag("Test lpos command");
+
+	testcmd("$CMD lpos 45 0 45 180 0.5",
+	        "90.000000,0.000000\n",
+	        "",
+	        0,
+	        "lpos: At the North Pole");
+	testcmd("$CMD lpos 1 2 3 4",
+	        "",
+	        "../$CMDB: Missing arguments\n",
+	        1,
+	        "lpos: Missing 1 argument");
+	testcmd("$CMD lpos 1 2 3 4 5 6",
+	        "",
+	        "../$CMDB: Too many arguments\n",
+	        1,
+	        "lpos: 1 argument too much");
+	testcmd("$CMD lpos -90.00001 0 12 34 1",
+	        "",
+	        "../$CMDB: Value out of range\n",
+	        1,
+	        "lpos: lat1 is outside range");
+	testcmd("$CMD lpos 17 6% 12 34 -1",
+	        "",
+	        "../$CMDB: Invalid number specified: Invalid argument\n",
+	        1,
+	        "lpos: lon1 is invalid number");
+	testcmd("$CMD lpos 1 2 3 4 0",
+	        "1.000000,2.000000\n",
+	        "",
+	        0,
+	        "lpos: fracdist is 0");
+	testcmd("$CMD lpos 11.231 -34.55 29.97777 47.311001 1",
+	        "29.977770,47.311001\n",
+	        "",
+	        0,
+	        "lpos: fracdist is 1");
+	testcmd("$CMD lpos 1 2 3 4 INF",
+	        "",
+	        "../$CMDB: Invalid number specified:"
+	        . " Numerical result out of range\n",
+	        1,
+	        "lpos: fracdist is INF");
 
 	return;
 }

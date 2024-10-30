@@ -146,4 +146,26 @@ double initial_bearing(const double lat1, const double lon1,
 	return fmod(rad2deg(atan2(y, x)) + 360.0, 360.0);
 }
 
+/*
+ * routepoint() - Calculates the position of a point on a straight line between 
+ * `lat1, lon1` and `lat2, lon2`, where `fracdist` is a fraction that specifies 
+ * how far along the line the point is, with 0 = start position, 1 = end 
+ * position. `fracdist` can also take values below 0 or above 1 to calculate 
+ * positions beyond `lat2, lon2` or in the opposite direction from `lat1, 
+ * lon1`.
+ *
+ * See `bearing_position()` for information on return values.
+ */
+
+int routepoint(const double lat1, const double lon1,
+               const double lat2, const double lon2,
+               const double fracdist,
+               double *next_lat, double *next_lon)
+{
+	return bearing_position(lat1, lon1,
+	                        initial_bearing(lat1, lon1, lat2, lon2),
+	                        haversine(lat1, lon1, lat2, lon2) * fracdist,
+	                        next_lat, next_lon);
+}
+
 /* vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 : */

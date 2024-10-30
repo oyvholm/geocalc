@@ -135,4 +135,35 @@ int cmd_bpos(const char *lat_s, const char *lon_s,
 	return EXIT_SUCCESS;
 }
 
+/*
+ * cmd_lpos() - Executes the `lpos` command. Returns `EXIT_SUCCESS` or 
+ * `EXIT_FAILURE`.
+ */
+
+int cmd_lpos(const char *lat1_s, const char *lon1_s,
+             const char *lat2_s, const char *lon2_s,
+             const char *fracdist_s)
+{
+	double lat1, lon1, lat2, lon2, fracdist, nlat, nlon;
+
+	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\", \"%s\", \"%s\")",
+	    __func__, lat1_s, lon1_s, lat2_s, lon2_s, fracdist_s);
+
+	if (string_to_double(lat1_s, &lat1) || string_to_double(lon1_s, &lon1)
+	    || string_to_double(lat2_s, &lat2)
+	    || string_to_double(lon2_s, &lon2)
+	    || string_to_double(fracdist_s, &fracdist)) {
+		myerror("Invalid number specified");
+		return EXIT_FAILURE;
+	}
+	if (!routepoint(lat1, lon1, lat2, lon2, fracdist, &nlat, &nlon)) {
+		printf("%f,%f\n", nlat, nlon);
+	} else {
+		myerror("Value out of range");
+		return EXIT_FAILURE;
+	}
+
+	return EXIT_SUCCESS;
+}
+
 /* vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 : */

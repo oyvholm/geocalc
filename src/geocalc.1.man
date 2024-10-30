@@ -44,6 +44,13 @@ the opposite direction of \fIbearing\fP.
 \fBdist\fP <\fIlat1\fP> <\fIlon1\fP> <\fIlat2\fP> <\fIlon2\fP>
 Calculate the distance between two geographic points, using the Haversine 
 formula. The result (in meters) is printed to standard output.
+.TP
+\fBlpos\fP <\fIlat1\fP> <\fIlon1\fP> <\fIlat2\fP> <\fIlon2\fP> <\fIfracdist\fP>
+Prints the position of a point on a straight line between the locations, where 
+\fIfracdist\fP is a fraction that specifies how far along the line the point 
+is. 0 = start position, 1 = end position. \fIfracdist\fP can also take values 
+below 0 or above 1 to calculate positions beyond \fIlat2\fP, \fIlon2\fP or in 
+the opposite direction from \fIlat1\fP, \fIlon1\fP.
 .SS Exit status:
 .TP
 0
@@ -63,6 +70,9 @@ Café" along a bearing of 188.7 degrees, heading slightly southwest.
 .TP
 geocalc dist 90 0 \-90 0
 Calculate the distance from the North Pole to the South Pole.
+.TP
+geocalc lpos 10 20 12 20 0.5
+Find halfway point between \fI10,20\fP and \fI12,20\fP.
 .SH AUTHOR
 Written by \[/O]yvind A. Holm <sunny@sunbase.org>
 .SH COPYRIGHT

@@ -196,6 +196,18 @@ static int usage(const int retval)
 	       "    positions in the opposite direction of the bearing.\n");
 	printf("  dist <lat1> <lon1> <lat2> <lon2>\n"
 	       "    Calculate the distance between two points.\n");
+	printf("  lpos <lat1> <lon1> <lat2> <lon2> <fracdist>\n"
+	       "    Prints the position of a point on a straight line between"
+	       " the \n"
+	       "    positions, where `fracdist` is a fraction that specifies"
+	       " how far \n"
+	       "    along the line the point is. 0 = start position,"
+	       " 1 = end position. \n"
+	       "    `fracdist` can also take values below 0 or above 1"
+	       " to calculate \n"
+	       "    positions beyond `lat2, lon2` or in the opposite direction"
+	       " from \n"
+	       "    `lat1, lon1`.\n");
 	printf("\n");
 	printf("Options:\n");
 	printf("\n");
@@ -342,6 +354,12 @@ static int process_args(int argc, char *argv[])
 			return EXIT_FAILURE;
 		retval = cmd_bpos(argv[optind + 1], argv[optind + 2],
 		                  argv[optind + 3], argv[optind + 4]);
+	} else if (!strcmp(cmd, "lpos")) {
+		if (wrong_argcount(6, numargs))
+			return EXIT_FAILURE;
+		retval = cmd_lpos(argv[optind + 1], argv[optind + 2],
+		                    argv[optind + 3], argv[optind + 4],
+		                    argv[optind + 5]);
 	} else {
 		myerror("Unknown command: %s", cmd);
 		retval = EXIT_FAILURE;

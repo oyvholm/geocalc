@@ -34,6 +34,10 @@ double haversine(const double lat1, const double lon1,
                  const double lat2, const double lon2);
 double initial_bearing(const double lat1, const double lon1,
                        const double lat2, const double lon2);
+int routepoint(const double lat1, const double lon1,
+               const double lat2, const double lon2,
+               const double fracdist,
+               double *next_lat, double *next_lon);
 
 #endif /* ifndef _GEOMATH_H */
 
