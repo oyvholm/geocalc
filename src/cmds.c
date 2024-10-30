@@ -33,9 +33,12 @@ int cmd_bear_dist(const char *cmd,
 
 	assert(cmd);
 	assert(!strcmp(cmd, "bear") || !strcmp(cmd, "dist"));
-	assert(lat1_s && lon1_s && lat2_s && lon2_s);
+	assert(lat1_s);
+	assert(lon1_s);
+	assert(lat2_s);
+	assert(lon2_s);
 
-	msg(VERBOSE_TRACE, "%s(%s, %s, %s, %s)",
+	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\", \"%s\")",
 	    __func__, lat1_s, lon1_s, lat2_s, lon2_s);
 
 	if (string_to_double(lat1_s, &lat1) || string_to_double(lon1_s, &lon1)
