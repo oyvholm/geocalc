@@ -41,6 +41,11 @@ the position \fIlat\fP,\fIlon\fP in direction \fIbearing\fP. Negative values
 for \fIdistance\fP are allowed, to make it possible to calculate positions in 
 the opposite direction of \fIbearing\fP.
 .TP
+\fBcourse\fP <\fIlat1\fP> <\fIlon1\fP> <\fIlat2\fP> <\fIlon2\fP> <\fInum\fP>
+Generate a list of \fInum\fP intermediate points on a direct line between two 
+locations. If a value of 0 is specified, only the begin and end positions are 
+printed.
+.TP
 \fBdist\fP <\fIlat1\fP> <\fIlon1\fP> <\fIlat2\fP> <\fIlon2\fP>
 Calculate the distance between two geographic points, using the Haversine 
 formula. The result (in meters) is printed to standard output.
@@ -67,6 +72,9 @@ Bergen, Norway.
 geocalc bpos 40.80542 \-73.96546 188.7 4817.84
 Determine the new position when traveling 4817.84 meters from the "Seinfeld 
 Café" along a bearing of 188.7 degrees, heading slightly southwest.
+.TP
+geocalc course 52.3731 4.891 35.681 139.767 1000
+Create 1000 intermediate points on a straight line from Amsterdam to Tokyo.
 .TP
 geocalc dist 90 0 \-90 0
 Calculate the distance from the North Pole to the South Pole.

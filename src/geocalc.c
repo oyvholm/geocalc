@@ -194,6 +194,11 @@ static int usage(const int retval)
 	       "    values for the length are allowed, to make it possible"
 	       " to calculate \n"
 	       "    positions in the opposite direction of the bearing.\n");
+	printf("  course <lat1> <lon1> <lat2> <lon2> <numpoints>\n"
+	       "    Generate a list of intermediate points on a direct line"
+	       " between two \n"
+	       "    locations.\n"
+	       "");
 	printf("  dist <lat1> <lon1> <lat2> <lon2>\n"
 	       "    Calculate the distance between two points.\n");
 	printf("  lpos <lat1> <lon1> <lat2> <lon2> <fracdist>\n"
@@ -354,6 +359,12 @@ static int process_args(int argc, char *argv[])
 			return EXIT_FAILURE;
 		retval = cmd_bpos(argv[optind + 1], argv[optind + 2],
 		                  argv[optind + 3], argv[optind + 4]);
+	} else if (!strcmp(cmd, "course")) {
+		if (wrong_argcount(6, numargs))
+			return EXIT_FAILURE;
+		retval = cmd_course(argv[optind + 1], argv[optind + 2],
+		                    argv[optind + 3], argv[optind + 4],
+		                    argv[optind + 5]);
 	} else if (!strcmp(cmd, "lpos")) {
 		if (wrong_argcount(6, numargs))
 			return EXIT_FAILURE;

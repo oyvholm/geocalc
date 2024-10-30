@@ -87,6 +87,7 @@ sub main {
 
 	test_standard_options();
 	test_executable();
+	test_cmd_course();
 	test_cmd_lpos();
 	test_multiple("bear");
 	test_multiple("bpos");
@@ -190,6 +191,84 @@ sub test_executable {
 	        1,
 	        'One argument');
 	test_selftest();
+
+	return;
+}
+
+sub test_cmd_course {
+	diag("Test course command");
+
+	testcmd("$CMD course 45 0 45 180 1",
+	        "45.000000,0.000000\n"
+	        . "90.000000,0.000000\n"
+	        . "45.000000,180.000000\n",
+	        "",
+	        0,
+	        "course: Across the North Pole");
+	testcmd("$CMD course 0 0 0 180 7",
+	        "0.000000,0.000000\n"
+	        . "0.000000,22.500000\n"
+	        . "0.000000,45.000000\n"
+	        . "0.000000,67.500000\n"
+	        . "0.000000,90.000000\n"
+	        . "0.000000,112.500000\n"
+	        . "0.000000,135.000000\n"
+	        . "0.000000,157.500000\n"
+	        . "0.000000,180.000000\n",
+	        "",
+	        0,
+	        "course 0 0 0 180 7");
+	testcmd("$CMD course 60.39299 5.32415 35.681389 139.766944 9",
+	        "60.392990,5.324150\n"
+	        . "66.169926,16.700678\n"
+	        . "70.664233,33.818071\n"
+	        . "72.834329,57.579125\n"
+	        . "71.826607,82.903321\n"
+	        . "68.075305,102.664288\n"
+	        . "62.689678,115.951619\n"
+	        . "56.449510,124.884500\n"
+	        . "49.752575,131.215240\n"
+	        . "42.795549,135.979229\n"
+	        . "35.681389,139.766944\n",
+	        "",
+	        0,
+	        "course: From Bergen to Tokyo");
+	testcmd("$CMD course 1 2 3 4",
+	        "",
+	        "../$CMDB: Missing arguments\n",
+	        1,
+	        "course: Missing 1 argument");
+	testcmd("$CMD course 1 2 3 4 5 6",
+	        "",
+	        "../$CMDB: Too many arguments\n",
+	        1,
+	        "course: 1 argument too much");
+	testcmd("$CMD course 90.00001 0 12 34 1",
+	        "",
+	        "../$CMDB: Value out of range\n",
+	        1,
+	        "course: lat1 is outside range");
+	testcmd("$CMD course 17 0 12 34 -1",
+	        "",
+	        "../$CMDB: Value out of range\n",
+	        1,
+	        "course: numpoints is -1");
+	testcmd("$CMD course 17 6 12 34 -0.5",
+	        "",
+	        "../$CMDB: Value out of range\n",
+	        1,
+	        "course: numpoints is -0.5");
+	testcmd("$CMD course 22 33 44 55 0",
+	        "22.000000,33.000000\n"
+	        . "44.000000,55.000000\n",
+	        "",
+	        0,
+	        "course: numpoints is 0");
+	testcmd("$CMD course 17 6% 12 34 -1",
+	        "",
+	        "../$CMDB: Invalid number specified: Invalid argument\n",
+	        1,
+	        "course: lon1 is invalid number");
 
 	return;
 }

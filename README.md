@@ -20,6 +20,9 @@ Contains the following commands:
       amount of meters from the start position in a specific direction. 
       Negative values for the length are allowed, to make it possible to 
       calculate positions in the opposite direction of the bearing.
+  - **`course`**
+    - Generate a list of intermediate points on a direct line between 
+      two locations.
   - **`dist`**
     - Calculate the distance between two geographic coordinates, using 
       the Haversine formula. The result (in meters) is printed to 
