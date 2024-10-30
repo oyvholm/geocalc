@@ -21,55 +21,6 @@
 #include "geocalc.h"
 
 /*
- * string_to_double() - Converts a number from `char *` to `double` and checks 
- * for errors. If any error occurs, it sets `errno` and returns 1, otherwise it 
- * returns 0.
- */
-
-static int string_to_double(const char *s, double *dest)
-{
-	char *endptr;
-	errno = 0;
-
-	*dest = strtod(s, &endptr);
-
-	if (errno == ERANGE) {
-		/* Number is too large or small */
-		return 1;
-	}
-
-	if (endptr == s) {
-		/* No valid conversion possible */
-		errno = EINVAL;
-		return 1;
-	}
-
-	/*
-	 * Check for extra characters after the number, whitespace and `,` are 
-	 * allowed for the time being in case it's copy+paste.
-	 */
-	while (*endptr != '\0') {
-		if (*endptr != ',' && !isspace((unsigned char)*endptr)) {
-			errno = EINVAL;
-			return 1;
-		}
-		endptr++;
-	}
-
-	if (isnan(*dest)) {
-		errno = EINVAL;
-		return 1;
-	}
-
-	if (isinf(*dest)) {
-		errno = ERANGE;
-		return 1;
-	}
-
-	return 0;
-}
-
-/*
  * cmd_bear_dist() - Executes the `bear` or `dist` commands, specified in 
  * `cmd`. Returns `EXIT_SUCCESS` or `EXIT_FAILURE`.
  */

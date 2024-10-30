@@ -131,6 +131,7 @@ int myerror(const char *format, ...);
 int selftest(void);
 
 /* string.c */
+int string_to_double(const char *s, double *dest);
 
 /*
  * Global variables
