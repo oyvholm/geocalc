@@ -69,4 +69,78 @@ int string_to_double(const char *s, double *dest)
 	return 0;
 }
 
+/*
+ * mystrdup() - Custom implementation of `strdup()`, which isn't available in 
+ * C99. Returns a pointer to an allocated duplicate of `s`. If `malloc()` fails 
+ * or `s` is NULL, it returns NULL.
+ */
+
+char *mystrdup(const char *s)
+{
+	size_t size;
+	char *p;
+
+	if (!s)
+		return NULL;
+	size = strlen(s);
+	p = malloc(size + 1);
+	if (!p) {
+		myerror("%s(): Could not allocate %z bytes", /* gncov */
+		        __func__, size);
+		return NULL; /* gncov */
+	}
+	memcpy(p, s, size);
+	p[size] = '\0';
+
+	return p;
+}
+
+/*
+ * parse_coordinate() - Parse the geographic coordinate in `s` and store 
+ * latitude and longitude in `dest_lat` and `dest_lon`. The coordinate must be 
+ * in the format `[-]dd.dddddd,[-]ddd.dddddd` (lat,lon) where the numbers are 
+ * in the range -90..90 and -180..180. If it's not a valid coordinate or if 
+ * anything fails, the function returns 1. If successful, it returns 0.
+ *
+ * There is intentionally no range check in this function, to make it more 
+ * universal. Functions that use this function must validate the values 
+ * themselves.
+ */
+
+int parse_coordinate(const char *s, double *dest_lat, double *dest_lon)
+{
+	char *comma, *sd;
+	double lat, lon;
+	int retval = 0;
+
+	assert(dest_lat);
+	assert(dest_lon);
+
+	if (!s || !dest_lat || !dest_lon)
+		return 1;
+	if (!strchr(s, ','))
+		return 1;
+	sd = mystrdup(s);
+	if (!sd) {
+		myerror("%s(): strdup() failed", __func__); /* gncov */
+		return 1; /* gncov */
+	}
+	comma = strchr(sd, ',');
+	if (string_to_double(comma + 1, &lon)) {
+		retval = 1;
+		goto cleanup;
+	}
+	*comma = '\0';
+	if (string_to_double(sd, &lat)) {
+		retval = 1;
+		goto cleanup;
+	}
+	*dest_lat = lat;
+	*dest_lon = lon;
+
+cleanup:
+	free(sd);
+	return retval;
+}
+
 /* vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 : */

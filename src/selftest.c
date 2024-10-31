@@ -70,6 +70,49 @@ static int ok(const int i, const char *desc, ...)
 }
 
 /*
+ * chk_coor() - Try to parse the coordinate in `s` with `parse_coordinate()`. 
+ * If `parse_coordinate()` returns the expected value, it returns 0, otherwise 
+ * it returns 1. In both cases the appropriate log line is written to stdout.
+ */
+
+static int chk_coor(const char *s, int exp)
+{
+	double lat, lon;
+	int result;
+
+	result = (parse_coordinate(s, &lat, &lon) == exp) ? 0 : 1;
+	ok(result, "parse_coordinate(\"%s\"), expected to %s",
+	           s, exp ? "fail" : "succeed");
+
+	return result;
+}
+
+/*
+ * test_parse_coordinate() - Various tests for `parse_coordinate()`. Returns 1 
+ * if any test failed, otherwise 0.
+ */
+
+static int test_parse_coordinate(void) {
+	int r = 0;
+
+	diag("Test parse_coordinate()");
+	r += chk_coor("12.34,56.78", 0);
+	r += chk_coor("12.34", 1);
+	r += chk_coor("", 1);
+	r += chk_coor("995.456,,456.345", 1);
+	r += chk_coor("56,78", 0);
+	r += chk_coor("-56,-78", 0);
+	r += chk_coor("-56.234,-78.345", 0);
+	r += chk_coor(" -56.234,-78.345", 0);
+	r += chk_coor("-56.234, -78.345", 0);
+	r += chk_coor("56.2r4,-78.345", 1);
+	r += chk_coor("+56.24,-78.345", 0);
+	r += chk_coor(NULL, 1);
+
+	return r ? 1 : 0;
+}
+
+/*
  * selftest() - Run internal testing to check that it works on the current 
  * system. Executed if --selftest is used. Returns `EXIT_FAILURE` if any tests 
  * fail; otherwise, it returns `EXIT_SUCCESS`.
@@ -87,6 +130,8 @@ int selftest(void)
 	errno = 0;
 	errcount += ok(!diag(NULL), "diag(NULL)");
 	errcount += ok(!ok(0, NULL), "ok(0, NULL)");
+	errcount += test_parse_coordinate();
+	errcount += ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
 
 	return errcount ? EXIT_FAILURE : EXIT_SUCCESS;
 }

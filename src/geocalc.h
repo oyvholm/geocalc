@@ -132,6 +132,8 @@ int selftest(void);
 
 /* string.c */
 int string_to_double(const char *s, double *dest);
+char *mystrdup(const char *s);
+int parse_coordinate(const char *s, double *dest_lat, double *dest_lon);
 
 /*
  * Global variables
