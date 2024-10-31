@@ -29,11 +29,11 @@ Run the built\-in test suite.
 Print version information.
 .SH COMMANDS
 All coordinates must be entered as decimal degrees, using the format 
-\fB[-]xxx.yyyyy\fP. Only metric units are supported; distances are printed in 
+\fB[\-]xxx.yyyyy\fP. Only metric units are supported; distances are printed in 
 meters, and distance inputs are also expected to be in meters.
 .TP
 \fBbear\fP <\fIlat1\fP> <\fIlon1\fP> <\fIlat2\fP> <\fIlon2\fP>
-Print initial compass bearing (0-360) between two points.
+Print initial compass bearing (0\-360) between two points.
 .TP
 \fBbpos\fP <\fIlat\fP> <\fIlon\fP> <\fIbearing\fP> <\fIdistance\fP>
 Calculates the new geographic position after moving \fIdistance\fP meters from 
