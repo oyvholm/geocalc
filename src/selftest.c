@@ -21,6 +21,55 @@
 #include "geocalc.h"
 
 /*
+ * The functions in this file are supposed to be compatible with `Test::More` 
+ * in Perl 5 as far as possible.
+ */
+
+/*
+ * diag() - Prints a diagnostic message prefixed with "# " to stdout. `printf` 
+ * sequences can be used. No multiline support, and no `\n` should be added to 
+ * the string. Returns 0 if successful, or 1 if `format` is NULL.
+ */
+
+static int diag(const char *format, ...)
+{
+	va_list ap;
+
+	if (!format)
+		return 1;
+	va_start(ap, format);
+	printf("# ");
+	vprintf(format, ap);
+	puts("");
+	va_end(ap);
+
+	return 0;
+}
+
+/*
+ * ok() - Print a log line to stdout. If `i` is 0, an "ok" line is printed, 
+ * otherwise a "not ok" line is printed. `desc` is the test description and can 
+ * use `printf` sequences. If `desc` is NULL, it returns 1. Otherwise, it 
+ * returns `i`.
+ */
+
+static int ok(const int i, const char *desc, ...)
+{
+	static int testnum = 0;
+	va_list ap;
+
+	if (!desc)
+		return 1;
+	va_start(ap, desc);
+	printf("%sok %d - ", (i ? "not " : ""), ++testnum);
+	vprintf(desc, ap);
+	puts("");
+	va_end(ap);
+
+	return i;
+}
+
+/*
  * selftest() - Run internal testing to check that it works on the current 
  * system. Executed if --selftest is used. Returns `EXIT_FAILURE` if any tests 
  * fail; otherwise, it returns `EXIT_SUCCESS`.
@@ -28,12 +77,16 @@
 
 int selftest(void)
 {
-	unsigned int errcount = 0;
+	int errcount = 0;
 
+	diag("Running tests for %s %s (%s)",
+	     progname, EXEC_VERSION, EXEC_DATE);
 	errno = EACCES;
 	puts("# myerror(\"errno is EACCES\")");
 	myerror("errno is EACCES");
 	errno = 0;
+	errcount += ok(!diag(NULL), "diag(NULL)");
+	errcount += ok(!ok(0, NULL), "ok(0, NULL)");
 
 	return errcount ? EXIT_FAILURE : EXIT_SUCCESS;
 }

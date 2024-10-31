@@ -422,13 +422,9 @@ sub test_multiple {
 
 sub test_selftest {
 	diag("--selftest");
-	testcmd("$CMD --selftest",
-	        <<END,
-# myerror("errno is EACCES")
-END
-	        <<END,
-../$CMDB: errno is EACCES: Permission denied
-END
+	likecmd("$CMD --selftest",
+	        '/.*/',
+	        '/errno is EACCES: Permission denied/',
 	        0,
 	        '--selftest');
 
