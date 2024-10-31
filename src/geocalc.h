@@ -111,17 +111,10 @@ struct Options {
  */
 
 /* cmds.c */
-int cmd_bear_dist(const char *cmd,
-                  const char *lat1_s, const char *lon1_s,
-                  const char *lat2_s, const char *lon2_s);
-int cmd_bpos(const char *lat_s, const char *lon_s,
-             const char *bearing_s, const char *dist_s);
-int cmd_course(const char *lat1_s, const char *lon1_s,
-               const char *lat2_s, const char *lon2_s,
-               const char *numpoints_s);
-int cmd_lpos(const char *lat1_s, const char *lon1_s,
-             const char *lat2_s, const char *lon2_s,
-             const char *fracdist_s);
+int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2);
+int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s);
+int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s);
+int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s);
 
 /* geocalc.c */
 int msg(const VerboseLevel verbose, const char *format, ...);

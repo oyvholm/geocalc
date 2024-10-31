@@ -31,31 +31,35 @@ Print version information.
 All coordinates must be entered as decimal degrees, using the format 
 \fB[\-]xxx.yyyyy\fP. Only metric units are supported; distances are printed in 
 meters, and distance inputs are also expected to be in meters.
+.PP
+Some arguments are specified as a coordinate. One format is allowed: 
+\fBlat,lon\fP where \fIlat\fP and \fIlon\fP is a number in the range \-90..90 
+and \-180..180, separated by a comma. The decimal comma must be a period, '.'.
 .TP
-\fBbear\fP <\fIlat1\fP> <\fIlon1\fP> <\fIlat2\fP> <\fIlon2\fP>
+\fBbear\fP <\fIcoor1\fP> <\fIcoor2\fP>
 Print initial compass bearing (0\-360) between two points.
 .TP
-\fBbpos\fP <\fIlat\fP> <\fIlon\fP> <\fIbearing\fP> <\fIdistance\fP>
+\fBbpos\fP <\fIcoor\fP> <\fIbearing\fP> <\fIdistance\fP>
 Calculates the new geographic position after moving \fIdistance\fP meters from 
-the position \fIlat\fP,\fIlon\fP in direction \fIbearing\fP. Negative values 
-for \fIdistance\fP are allowed, to make it possible to calculate positions in 
-the opposite direction of \fIbearing\fP.
+the position \fIcoor\fP in direction \fIbearing\fP. Negative values for 
+\fIdistance\fP are allowed, to make it possible to calculate positions in the 
+opposite direction of \fIbearing\fP.
 .TP
-\fBcourse\fP <\fIlat1\fP> <\fIlon1\fP> <\fIlat2\fP> <\fIlon2\fP> <\fInum\fP>
+\fBcourse\fP <\fIcoor1\fP> <\fIcoor2\fP> <\fInum\fP>
 Generate a list of \fInum\fP intermediate points on a direct line between two 
 locations. If a value of 0 is specified, only the begin and end positions are 
 printed.
 .TP
-\fBdist\fP <\fIlat1\fP> <\fIlon1\fP> <\fIlat2\fP> <\fIlon2\fP>
+\fBdist\fP <\fIcoor1\fP> <\fIcoor2\fP>
 Calculate the distance between two geographic points, using the Haversine 
 formula. The result (in meters) is printed to standard output.
 .TP
-\fBlpos\fP <\fIlat1\fP> <\fIlon1\fP> <\fIlat2\fP> <\fIlon2\fP> <\fIfracdist\fP>
+\fBlpos\fP <\fIcoor1\fP> <\fIcoor2\fP> <\fIfracdist\fP>
 Prints the position of a point on a straight line between the locations, where 
 \fIfracdist\fP is a fraction that specifies how far along the line the point 
 is. 0 = start position, 1 = end position. \fIfracdist\fP can also take values 
-below 0 or above 1 to calculate positions beyond \fIlat2\fP, \fIlon2\fP or in 
-the opposite direction from \fIlat1\fP, \fIlon1\fP.
+below 0 or above 1 to calculate positions beyond \fIcoor2\fP or in the opposite 
+direction from \fIcoor1\fP.
 .SS Exit status:
 .TP
 0
@@ -65,21 +69,21 @@ No error.
 Some error occurred, for example invalid coordinates or numbers were provided.
 .SH EXAMPLES
 .TP
-geocalc bear 60.393 5.324 51.53217 \-0.17786
+geocalc bear 60.393,5.324 51.53217,\-0.17786
 Find the bearing towards Abbey Road Studios when standing in the middle of 
 Bergen, Norway.
 .TP
-geocalc bpos 40.80542 \-73.96546 188.7 4817.84
+geocalc bpos 40.80542,\-73.96546 188.7,4817.84
 Determine the new position when traveling 4817.84 meters from the "Seinfeld 
 Café" along a bearing of 188.7 degrees, heading slightly southwest.
 .TP
-geocalc course 52.3731 4.891 35.681 139.767 1000
+geocalc course 52.3731,4.891 35.681,139.767 1000
 Create 1000 intermediate points on a straight line from Amsterdam to Tokyo.
 .TP
-geocalc dist 90 0 \-90 0
+geocalc dist 90,0 \-90,0
 Calculate the distance from the North Pole to the South Pole.
 .TP
-geocalc lpos 10 20 12 20 0.5
+geocalc lpos 10,20 12,20 0.5
 Find halfway point between \fI10,20\fP and \fI12,20\fP.
 .SH AUTHOR
 Written by \[/O]yvind A. Holm <sunny@sunbase.org>

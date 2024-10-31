@@ -183,10 +183,21 @@ static int usage(const int retval)
 	printf("\n");
 	printf("Commands:\n");
 	printf("\n");
-	printf("  bear <lat1> <lon1> <lat2> <lon2>\n"
+	printf("Some arguments are specified as a coordinate. One format is"
+	       " allowed, \n"
+	       "decimal degrees:\n"
+	       "\n"
+	       "  [-]lat,lon\n"
+	       "\n"
+	       "where `lat` and `lon` is a number in the range"
+	       " -90..90 and -180..180, \n"
+	       "separated by a comma. The decimal comma must be a period,"
+	       " '.'.\n");
+	printf("\n");
+	printf("  bear <coor1> <coor2>\n"
 	       "    Print initial compass bearing (0-360) between"
 	       " two points.\n");
-	printf("  bpos <lat> <lon> <bearing> <length>\n"
+	printf("  bpos <coor> <bearing> <length>\n"
 	       "    Find the new geographic position after moving a certain"
 	       " amount of \n"
 	       "    meters from the start position in a specific direction."
@@ -194,14 +205,14 @@ static int usage(const int retval)
 	       "    values for the length are allowed, to make it possible"
 	       " to calculate \n"
 	       "    positions in the opposite direction of the bearing.\n");
-	printf("  course <lat1> <lon1> <lat2> <lon2> <numpoints>\n"
+	printf("  course <coor1> <coor2> <numpoints>\n"
 	       "    Generate a list of intermediate points on a direct line"
 	       " between two \n"
 	       "    locations.\n"
 	       "");
-	printf("  dist <lat1> <lon1> <lat2> <lon2>\n"
+	printf("  dist <coor1> <coor2>\n"
 	       "    Calculate the distance between two points.\n");
-	printf("  lpos <lat1> <lon1> <lat2> <lon2> <fracdist>\n"
+	printf("  lpos <coor1> <coor2> <fracdist>\n"
 	       "    Prints the position of a point on a straight line between"
 	       " the \n"
 	       "    positions, where `fracdist` is a fraction that specifies"
@@ -210,9 +221,8 @@ static int usage(const int retval)
 	       " 1 = end position. \n"
 	       "    `fracdist` can also take values below 0 or above 1"
 	       " to calculate \n"
-	       "    positions beyond `lat2, lon2` or in the opposite direction"
-	       " from \n"
-	       "    `lat1, lon1`.\n");
+	       "    positions beyond `coor2` or in the opposite direction"
+	       " from `coor1`.\n");
 	printf("\n");
 	printf("Options:\n");
 	printf("\n");
@@ -349,28 +359,25 @@ static int process_args(int argc, char *argv[])
 	msg(VERBOSE_DEBUG, "%s(): cmd = %s", __func__, cmd);
 
 	if (!strcmp(cmd, "bear") || !strcmp(cmd, "dist")) {
-		if (wrong_argcount(5, numargs))
+		if (wrong_argcount(3, numargs))
 			return EXIT_FAILURE;
 		retval = cmd_bear_dist(cmd,
-		                       argv[optind + 1], argv[optind + 2],
-		                       argv[optind + 3], argv[optind + 4]);
+		                       argv[optind + 1], argv[optind + 2]);
 	} else if (!strcmp(cmd, "bpos")) {
-		if (wrong_argcount(5, numargs))
+		if (wrong_argcount(4, numargs))
 			return EXIT_FAILURE;
 		retval = cmd_bpos(argv[optind + 1], argv[optind + 2],
-		                  argv[optind + 3], argv[optind + 4]);
+		                  argv[optind + 3]);
 	} else if (!strcmp(cmd, "course")) {
-		if (wrong_argcount(6, numargs))
+		if (wrong_argcount(4, numargs))
 			return EXIT_FAILURE;
 		retval = cmd_course(argv[optind + 1], argv[optind + 2],
-		                    argv[optind + 3], argv[optind + 4],
-		                    argv[optind + 5]);
+		                    argv[optind + 3]);
 	} else if (!strcmp(cmd, "lpos")) {
-		if (wrong_argcount(6, numargs))
+		if (wrong_argcount(4, numargs))
 			return EXIT_FAILURE;
 		retval = cmd_lpos(argv[optind + 1], argv[optind + 2],
-		                    argv[optind + 3], argv[optind + 4],
-		                    argv[optind + 5]);
+		                  argv[optind + 3]);
 	} else {
 		myerror("Unknown command: %s", cmd);
 		retval = EXIT_FAILURE;

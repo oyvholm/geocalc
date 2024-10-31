@@ -87,10 +87,10 @@ sub main {
 
 	test_standard_options();
 	test_executable();
+	test_cmd_bpos();
 	test_cmd_course();
 	test_cmd_lpos();
 	test_multiple("bear");
-	test_multiple("bpos");
 	test_multiple("dist");
 
 	diag('========== BEGIN version info ==========');
@@ -195,17 +195,53 @@ sub test_executable {
 	return;
 }
 
+sub test_cmd_bpos {
+	diag("Test bpos command");
+
+	testcmd("$CMD bpos 45,0 45 1000",
+	        "45.006359,0.008994\n",
+	        "",
+	        0,
+	        "bpos: 1000 meters northeast from 45,0");
+
+	testcmd("$CMD bpos 1,2 r 1000",
+	        "",
+	        "../$CMDB: Invalid number specified: Invalid argument\n",
+	        1,
+	        "bpos: distance is not a number");
+
+	testcmd("$CMD bpos 1,2w 3 4",
+	        "",
+	        "../$CMDB: Invalid number specified: Invalid argument\n",
+	        1,
+	        "bpos: lon has trailing letter");
+
+	testcmd("$CMD bpos 90.0000000001,2 3 4",
+	        "",
+	        "../$CMDB: Value out of range\n",
+	        1,
+	        "bpos: lat is out of range");
+
+	testcmd("$CMD bpos 1,2 3 4 5",
+	        "",
+	        "../$CMDB: Too many arguments\n",
+	        1,
+	        "bpos: 1 extra argument");
+
+	return;
+}
+
 sub test_cmd_course {
 	diag("Test course command");
 
-	testcmd("$CMD course 45 0 45 180 1",
+	testcmd("$CMD course 45,0 45,180 1",
 	        "45.000000,0.000000\n"
 	        . "90.000000,0.000000\n"
 	        . "45.000000,180.000000\n",
 	        "",
 	        0,
 	        "course: Across the North Pole");
-	testcmd("$CMD course 0 0 0 180 7",
+	testcmd("$CMD course 0,0 0,180 7",
 	        "0.000000,0.000000\n"
 	        . "0.000000,22.500000\n"
 	        . "0.000000,45.000000\n"
@@ -217,8 +253,8 @@ sub test_cmd_course {
 	        . "0.000000,180.000000\n",
 	        "",
 	        0,
-	        "course 0 0 0 180 7");
-	testcmd("$CMD course 60.39299 5.32415 35.681389 139.766944 9",
+	        "course 0,0 0,180 7");
+	testcmd("$CMD course 60.39299,5.32415 35.681389,139.766944 9",
 	        "60.392990,5.324150\n"
 	        . "66.169926,16.700678\n"
 	        . "70.664233,33.818071\n"
@@ -233,38 +269,38 @@ sub test_cmd_course {
 	        "",
 	        0,
 	        "course: From Bergen to Tokyo");
-	testcmd("$CMD course 1 2 3 4",
+	testcmd("$CMD course 1,2 3,4",
 	        "",
 	        "../$CMDB: Missing arguments\n",
 	        1,
 	        "course: Missing 1 argument");
-	testcmd("$CMD course 1 2 3 4 5 6",
+	testcmd("$CMD course 1,2 3,4 5 6",
 	        "",
 	        "../$CMDB: Too many arguments\n",
 	        1,
 	        "course: 1 argument too much");
-	testcmd("$CMD course 90.00001 0 12 34 1",
+	testcmd("$CMD course 90.00001,0 12,34 1",
 	        "",
 	        "../$CMDB: Value out of range\n",
 	        1,
 	        "course: lat1 is outside range");
-	testcmd("$CMD course 17 0 12 34 -1",
+	testcmd("$CMD course 17,0 12,34 -1",
 	        "",
 	        "../$CMDB: Value out of range\n",
 	        1,
 	        "course: numpoints is -1");
-	testcmd("$CMD course 17 6 12 34 -0.5",
+	testcmd("$CMD course 17,6 12,34 -0.5",
 	        "",
 	        "../$CMDB: Value out of range\n",
 	        1,
 	        "course: numpoints is -0.5");
-	testcmd("$CMD course 22 33 44 55 0",
+	testcmd("$CMD course 22,33 44,55 0",
 	        "22.000000,33.000000\n"
 	        . "44.000000,55.000000\n",
 	        "",
 	        0,
 	        "course: numpoints is 0");
-	testcmd("$CMD course 17 6% 12 34 -1",
+	testcmd("$CMD course 17,6% 12,34 -1",
 	        "",
 	        "../$CMDB: Invalid number specified: Invalid argument\n",
 	        1,
@@ -276,42 +312,42 @@ sub test_cmd_course {
 sub test_cmd_lpos {
 	diag("Test lpos command");
 
-	testcmd("$CMD lpos 45 0 45 180 0.5",
+	testcmd("$CMD lpos 45,0 45,180 0.5",
 	        "90.000000,0.000000\n",
 	        "",
 	        0,
 	        "lpos: At the North Pole");
-	testcmd("$CMD lpos 1 2 3 4",
+	testcmd("$CMD lpos 1,2 3,4",
 	        "",
 	        "../$CMDB: Missing arguments\n",
 	        1,
 	        "lpos: Missing 1 argument");
-	testcmd("$CMD lpos 1 2 3 4 5 6",
+	testcmd("$CMD lpos 1,2 3,4 5 6",
 	        "",
 	        "../$CMDB: Too many arguments\n",
 	        1,
 	        "lpos: 1 argument too much");
-	testcmd("$CMD lpos -90.00001 0 12 34 1",
+	testcmd("$CMD lpos -90.00001,0 12,34 1",
 	        "",
 	        "../$CMDB: Value out of range\n",
 	        1,
 	        "lpos: lat1 is outside range");
-	testcmd("$CMD lpos 17 6% 12 34 -1",
+	testcmd("$CMD lpos 17,6% 12,34 -1",
 	        "",
 	        "../$CMDB: Invalid number specified: Invalid argument\n",
 	        1,
 	        "lpos: lon1 is invalid number");
-	testcmd("$CMD lpos 1 2 3 4 0",
+	testcmd("$CMD lpos 1,2 3,4 0",
 	        "1.000000,2.000000\n",
 	        "",
 	        0,
 	        "lpos: fracdist is 0");
-	testcmd("$CMD lpos 11.231 -34.55 29.97777 47.311001 1",
+	testcmd("$CMD lpos 11.231,-34.55 29.97777,47.311001 1",
 	        "29.977770,47.311001\n",
 	        "",
 	        0,
 	        "lpos: fracdist is 1");
-	testcmd("$CMD lpos 1 2 3 4 INF",
+	testcmd("$CMD lpos 1,2 3,4 INF",
 	        "",
 	        "../$CMDB: Invalid number specified:"
 	        . " Numerical result out of range\n",
@@ -325,12 +361,10 @@ sub test_multiple {
 	my ($cmd) = @_;
 	my %c_1234 = (
 	        'bear' => "44.951998",
-	        'bpos' => "1.000036,2.000002",
 	        'dist' => "314402.951024",
 	);
 	my %c_comma = (
 	        'bear' => "164.027619",
-	        'bpos' => "10.000036,2.000002",
 	        'dist' => "809080.682265",
 	);
 	my %c_poles = (
@@ -344,79 +378,78 @@ sub test_multiple {
 	        "../$CMDB: Missing arguments\n",
 	        1,
 	        "$cmd with no arguments");
-	testcmd("$CMD $cmd 1 2 3",
+	testcmd("$CMD $cmd 1,2 3",
 	        "",
-	        "../$CMDB: Missing arguments\n",
+	        "../$CMDB: Invalid number specified\n",
 	        1,
-	        "$cmd with only 3 arguments");
-	testcmd("$CMD $cmd 1 2 3 4",
+	        "$cmd: Argument 2 is not a coordinate");
+	testcmd("$CMD $cmd 1,2 3,4",
 	        "$c_1234{$cmd}\n",
 	        "",
 	        0,
-	        "$cmd 1 2 3 4");
-	testcmd("$CMD $cmd 1 2 3 4 5",
+	        "$cmd 1,2 3,4");
+	testcmd("$CMD $cmd 1,2 3,4 5",
 	        "",
 	        "../$CMDB: Too many arguments\n",
 	        1,
 	        "$cmd with 1 argument too much");
-	testcmd("$CMD $cmd 1 2 3 1e+900",
+	testcmd("$CMD $cmd 1,2 3,1e+900",
 	        "",
 	        "../$CMDB: Invalid number specified:"
 	        . " Numerical result out of range\n",
 	        1,
 	        "$cmd with 1 number too large");
-	testcmd("$CMD $cmd 1 2 urgh 4",
+	testcmd("$CMD $cmd 1,2 urgh,4",
 	        "",
 	        "../$CMDB: Invalid number specified:"
 	        . " Invalid argument\n",
 	        1,
 	        "$cmd with 1 non-number");
-	testcmd("$CMD $cmd 1 2.9y 3 4",
+	testcmd("$CMD $cmd 1,2.9y 3,4",
 	        "",
 	        "../$CMDB: Invalid number specified:"
 	        . " Invalid argument\n",
 	        1,
 	        "$cmd with non-digit after number");
-	testcmd("$CMD $cmd 1 '2 g' 3 4",
+	testcmd("$CMD $cmd '1,2 g' 3,4",
 	        "",
 	        "../$CMDB: Invalid number specified:"
 	        . " Invalid argument\n",
 	        1,
 	        "$cmd with whitespace and non-digit after number");
-	testcmd("$CMD $cmd 10, 2 3 4",
+	testcmd("$CMD $cmd 10,2, 3,4",
 	        "$c_comma{$cmd}\n",
 	        "",
 	        0,
 	        "$cmd with comma after number");
-	testcmd("$CMD $cmd 1 2 3 NAN",
+	testcmd("$CMD $cmd 1,2 3,NAN",
 	        "",
 	        "../$CMDB: Invalid number specified:"
 	        . " Invalid argument\n",
 	        1,
 	        "$cmd with NAN");
-	testcmd("$CMD $cmd 1 2 3 INF",
+	testcmd("$CMD $cmd 1,2 3,INF",
 	        "",
 	        "../$CMDB: Invalid number specified:"
 	        . " Numerical result out of range\n",
 	        1,
 	        "$cmd with INF");
-	testcmd("$CMD $cmd 1 2 '' 4.0",
+	testcmd("$CMD $cmd 1,2 ''",
 	        "",
-	        "../$CMDB: Invalid number specified:"
-	        . " Invalid argument\n",
+	        "../$CMDB: Invalid number specified\n",
 	        1,
 	        "$cmd with empty argument");
-	testcmd("$CMD $cmd 1 180.001 3 4",
+	testcmd("$CMD $cmd 1,180.001 3,4",
 	        "",
 	        "../$CMDB: Value out of range\n",
 	        1,
 	        "$cmd: lon1 out of range");
 	if ($cmd =~ /^(bear|dist)$/) {
-		testcmd("$CMD $cmd 90 0 -90 0",
+		testcmd("$CMD $cmd 90,0 -90,0",
 		        "$c_poles{$cmd}",
 		        "",
 		        0,
-		        "$cmd 90 0 -90 0");
+		        "$cmd 90,0 -90,0");
 	}
 }
 

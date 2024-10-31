@@ -25,25 +25,20 @@
  * `cmd`. Returns `EXIT_SUCCESS` or `EXIT_FAILURE`.
  */
 
-int cmd_bear_dist(const char *cmd,
-                  const char *lat1_s, const char *lon1_s,
-                  const char *lat2_s, const char *lon2_s)
+int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 {
 	double lat1, lon1, lat2, lon2, result;
 
 	assert(cmd);
 	assert(!strcmp(cmd, "bear") || !strcmp(cmd, "dist"));
-	assert(lat1_s);
-	assert(lon1_s);
-	assert(lat2_s);
-	assert(lon2_s);
+	assert(coor1);
+	assert(coor2);
 
-	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\", \"%s\")",
-	    __func__, lat1_s, lon1_s, lat2_s, lon2_s);
+	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\")",
+	    __func__, cmd, coor1, coor2);
 
-	if (string_to_double(lat1_s, &lat1) || string_to_double(lon1_s, &lon1)
-	    || string_to_double(lat2_s, &lat2)
-	    || string_to_double(lon2_s, &lon2)) {
+	if (parse_coordinate(coor1, &lat1, &lon1)
+	    || parse_coordinate(coor2, &lat2, &lon2)) {
 		myerror("Invalid number specified");
 		return EXIT_FAILURE;
 	}
@@ -64,16 +59,15 @@ int cmd_bear_dist(const char *cmd,
  * `EXIT_FAILURE`.
  */
 
-int cmd_bpos(const char *lat_s, const char *lon_s,
-             const char *bearing_s, const char *dist_s)
+int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
 {
 	double lat, lon, bearing, dist, nlat, nlon;
 	int result;
 
-	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\", \"%s\")",
-	    __func__, lat_s, lon_s, bearing_s, dist_s);
+	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\")",
+	    __func__, coor, bearing_s, dist_s);
 
-	if (string_to_double(lat_s, &lat) || string_to_double(lon_s, &lon)
+	if (parse_coordinate(coor, &lat, &lon)
 	    || string_to_double(bearing_s, &bearing)
 	    || string_to_double(dist_s, &dist)) {
 		myerror("Invalid number specified");
@@ -94,19 +88,16 @@ int cmd_bpos(const char *lat_s, const char *lon_s,
  * `EXIT_FAILURE`.
  */
 
-int cmd_course(const char *lat1_s, const char *lon1_s,
-               const char *lat2_s, const char *lon2_s,
-               const char *numpoints_s)
+int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 {
 	double lat1, lon1, lat2, lon2, numpoints, nlat, nlon;
 	int i, result;
 
-	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\", \"%s\", \"%s\")",
-	    __func__, lat1_s, lon1_s, lat2_s, lon2_s, numpoints_s);
+	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\")",
+	    __func__, coor1, coor2, numpoints_s);
 
-	if (string_to_double(lat1_s, &lat1) || string_to_double(lon1_s, &lon1)
-	    || string_to_double(lat2_s, &lat2)
-	    || string_to_double(lon2_s, &lon2)
+	if (parse_coordinate(coor1, &lat1, &lon1)
+	    || parse_coordinate(coor2, &lat2, &lon2)
 	    || string_to_double(numpoints_s, &numpoints)) {
 		myerror("Invalid number specified");
 		return EXIT_FAILURE;
@@ -134,18 +125,15 @@ int cmd_course(const char *lat1_s, const char *lon1_s,
  * `EXIT_FAILURE`.
  */
 
-int cmd_lpos(const char *lat1_s, const char *lon1_s,
-             const char *lat2_s, const char *lon2_s,
-             const char *fracdist_s)
+int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s)
 {
 	double lat1, lon1, lat2, lon2, fracdist, nlat, nlon;
 
-	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\", \"%s\", \"%s\")",
-	    __func__, lat1_s, lon1_s, lat2_s, lon2_s, fracdist_s);
+	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\")",
+	    __func__, coor1, coor2, fracdist_s);
 
-	if (string_to_double(lat1_s, &lat1) || string_to_double(lon1_s, &lon1)
-	    || string_to_double(lat2_s, &lat2)
-	    || string_to_double(lon2_s, &lon2)
+	if (parse_coordinate(coor1, &lat1, &lon1)
+	    || parse_coordinate(coor2, &lat2, &lon2)
 	    || string_to_double(fracdist_s, &fracdist)) {
 		myerror("Invalid number specified");
 		return EXIT_FAILURE;
