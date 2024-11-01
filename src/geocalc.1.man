@@ -73,7 +73,7 @@ Some error occurred, for example invalid coordinates or numbers were provided.
 Find the bearing towards Abbey Road Studios when standing in the middle of 
 Bergen, Norway.
 .TP
-\fCgeocalc bpos 40.80542,\-73.96546 188.7,4817.84\fP
+\fCgeocalc bpos 40.80542,\-73.96546 188.7 4817.84\fP
 Determine the new position when traveling 4817.84 meters from the "Seinfeld 
 Café" along a bearing of 188.7 degrees, heading slightly southwest.
 .TP

@@ -122,7 +122,7 @@ int parse_coordinate(const char *s, double *dest_lat, double *dest_lon)
 		return 1;
 	sd = mystrdup(s);
 	if (!sd) {
-		myerror("%s(): strdup() failed", __func__); /* gncov */
+		myerror("%s(): mystrdup() failed", __func__); /* gncov */
 		return 1; /* gncov */
 	}
 	comma = strchr(sd, ',');

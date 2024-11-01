@@ -187,7 +187,7 @@ static int usage(const int retval)
 	       " allowed, \n"
 	       "decimal degrees:\n"
 	       "\n"
-	       "  [-]lat,lon\n"
+	       "  lat,lon\n"
 	       "\n"
 	       "where `lat` and `lon` is a number in the range"
 	       " -90..90 and -180..180, \n"
