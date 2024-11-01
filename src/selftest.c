@@ -124,16 +124,19 @@ int selftest(void)
 
 	diag("Running tests for %s %s (%s)",
 	     progname, EXEC_VERSION, EXEC_DATE);
+
+	diag("Test selftest routines");
+	errcount += ok(!diag(NULL), "diag(NULL)");
+	errcount += ok(!ok(0, NULL), "ok(0, NULL)");
+
+	diag("Test myerror()");
 	errno = EACCES;
-	puts("# myerror(\"errno is EACCES\")");
 	myerror("errno is EACCES");
 	errno = 0;
 
 	diag("Test std_strerror()");
 	ok(!(std_strerror(0) != NULL), "std_strerror(0)");
 
-	errcount += ok(!diag(NULL), "diag(NULL)");
-	errcount += ok(!ok(0, NULL), "ok(0, NULL)");
 	errcount += test_parse_coordinate();
 	errcount += ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
 
