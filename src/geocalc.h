@@ -118,6 +118,7 @@ int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s);
 
 /* geocalc.c */
 int msg(const VerboseLevel verbose, const char *format, ...);
+const char *std_strerror(const int errnum);
 int myerror(const char *format, ...);
 
 /* selftest.c */

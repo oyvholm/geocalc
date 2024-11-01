@@ -128,6 +128,10 @@ int selftest(void)
 	puts("# myerror(\"errno is EACCES\")");
 	myerror("errno is EACCES");
 	errno = 0;
+
+	diag("Test std_strerror()");
+	ok(!(std_strerror(0) != NULL), "std_strerror(0)");
+
 	errcount += ok(!diag(NULL), "diag(NULL)");
 	errcount += ok(!ok(0, NULL), "ok(0, NULL)");
 	errcount += test_parse_coordinate();
