@@ -69,21 +69,21 @@ No error.
 Some error occurred, for example invalid coordinates or numbers were provided.
 .SH EXAMPLES
 .TP
-geocalc bear 60.393,5.324 51.53217,\-0.17786
+\fCgeocalc bear 60.393,5.324 51.53217,\-0.17786\fP
 Find the bearing towards Abbey Road Studios when standing in the middle of 
 Bergen, Norway.
 .TP
-geocalc bpos 40.80542,\-73.96546 188.7,4817.84
+\fCgeocalc bpos 40.80542,\-73.96546 188.7,4817.84\fP
 Determine the new position when traveling 4817.84 meters from the "Seinfeld 
 Café" along a bearing of 188.7 degrees, heading slightly southwest.
 .TP
-geocalc course 52.3731,4.891 35.681,139.767 1000
+\fCgeocalc course 52.3731,4.891 35.681,139.767 1000\fP
 Create 1000 intermediate points on a straight line from Amsterdam to Tokyo.
 .TP
-geocalc dist 90,0 \-90,0
+\fCgeocalc dist 90,0 \-90,0\fP
 Calculate the distance from the North Pole to the South Pole.
 .TP
-geocalc lpos 10,20 12,20 0.5
+\fCgeocalc lpos 10,20 12,20 0.5\fP
 Find halfway point between \fI10,20\fP and \fI12,20\fP.
 .SH AUTHOR
 Written by \[/O]yvind A. Holm <sunny@sunbase.org>
