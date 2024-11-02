@@ -207,6 +207,7 @@ tlok:
 		| perl -p \
 		  -e  's/.*failed (\d+) tests? of (\d+).*/$$1\/$$2 FAIL/;'; \
 	fi; \
+	[ -e $(EXEC) ] || echo FAIL; \
 	rm .make-tlok.tmp
 
 .PHONY: uninstall
