@@ -70,21 +70,29 @@ static int ok(const int i, const char *desc, ...)
 }
 
 /*
- * chk_coor() - Try to parse the coordinate in `s` with `parse_coordinate()`. 
- * If `parse_coordinate()` returns the expected value, it returns 0, otherwise 
- * it returns 1. In both cases the appropriate log line is written to stdout.
+ * chk_coor() - Try to parse the coordinate in `s` with `parse_coordinate()` 
+ * and test that `parse_coordinate()` returns the expected values.
+ * Returns the number of failed tests.
  */
 
-static int chk_coor(const char *s, int exp)
+static int chk_coor(const char *s, const int exp_ret,
+                    const double exp_lat, const double exp_lon)
 {
 	double lat, lon;
-	int result;
+	int result, r = 0;
 
-	result = (parse_coordinate(s, &lat, &lon) == exp) ? 0 : 1;
-	ok(result, "parse_coordinate(\"%s\"), expected to %s",
-	           s, exp ? "fail" : "succeed");
+	result = parse_coordinate(s, &lat, &lon);
+	r += ok(!(result == exp_ret),
+	        "parse_coordinate(\"%s\"), expected to %s",
+	        s, exp_ret ? "fail" : "succeed");
 
-	return result;
+	if (result)
+		return r;
+
+	r += ok(!(lat == exp_lat), "parse_coordinate(\"%s\"): lat is ok", s);
+	r += ok(!(lon == exp_lon), "parse_coordinate(\"%s\"): lon is ok", s);
+
+	return r;
 }
 
 /*
@@ -96,18 +104,18 @@ static int test_parse_coordinate(void) {
 	int r = 0;
 
 	diag("Test parse_coordinate()");
-	r += chk_coor("12.34,56.78", 0);
-	r += chk_coor("12.34", 1);
-	r += chk_coor("", 1);
-	r += chk_coor("995.456,,456.345", 1);
-	r += chk_coor("56,78", 0);
-	r += chk_coor("-56,-78", 0);
-	r += chk_coor("-56.234,-78.345", 0);
-	r += chk_coor(" -56.234,-78.345", 0);
-	r += chk_coor("-56.234, -78.345", 0);
-	r += chk_coor("56.2r4,-78.345", 1);
-	r += chk_coor("+56.24,-78.345", 0);
-	r += chk_coor(NULL, 1);
+	r += chk_coor("12.34,56.78", 0, 12.34, 56.78);
+	r += chk_coor("12.34", 1, 0, 0);
+	r += chk_coor("", 1, 0, 0);
+	r += chk_coor("995.456,,456.345", 1, 0, 0);
+	r += chk_coor("56,78", 0, 56, 78);
+	r += chk_coor("-56,-78", 0, -56, -78);
+	r += chk_coor("-56.234,-78.345", 0, -56.234, -78.345);
+	r += chk_coor(" -56.234,-78.345", 0, -56.234, -78.345);
+	r += chk_coor("-56.234, -78.345", 0, -56.234, -78.345);
+	r += chk_coor("56.2r4,-78.345", 1, 0, 0);
+	r += chk_coor("+56.24,-78.345", 0, 56.24, -78.345);
+	r += chk_coor(NULL, 1, 0, 0);
 
 	return r ? 1 : 0;
 }
