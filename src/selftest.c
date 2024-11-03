@@ -128,30 +128,30 @@ static int test_parse_coordinate(void) {
 
 int selftest(void)
 {
-	int errcount = 0;
+	int r = 0;
 
 	diag("Running tests for %s %s (%s)",
 	     progname, EXEC_VERSION, EXEC_DATE);
 
 	diag("Test selftest routines");
-	errcount += ok(!diag(NULL), "diag(NULL)");
-	errcount += ok(!ok(0, NULL), "ok(0, NULL)");
+	r += ok(!diag(NULL), "diag(NULL)");
+	r += ok(!ok(0, NULL), "ok(0, NULL)");
 
 	diag("Test myerror()");
 	errno = EACCES;
-	errcount += ok(!(myerror("errno is EACCES") > 37),
-	               "myerror(): errno is EACCES");
+	r += ok(!(myerror("errno is EACCES") > 37),
+	        "myerror(): errno is EACCES");
 	errno = 0;
 
 	diag("Test std_strerror()");
 	ok(!(std_strerror(0) != NULL), "std_strerror(0)");
 
-	errcount += test_parse_coordinate();
-	errcount += ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
+	r += test_parse_coordinate();
+	r += ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
 
-	diag("%d test%s failed.", errcount, (errcount == 1) ? "" : "s");
+	diag("%d test%s failed.", r, (r == 1) ? "" : "s");
 
-	return errcount ? EXIT_FAILURE : EXIT_SUCCESS;
+	return r ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
 /* vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 : */
