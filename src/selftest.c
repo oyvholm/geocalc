@@ -96,8 +96,8 @@ static int chk_coor(const char *s, const int exp_ret,
 }
 
 /*
- * test_parse_coordinate() - Various tests for `parse_coordinate()`. Returns 1 
- * if any test failed, otherwise 0.
+ * test_parse_coordinate() - Various tests for `parse_coordinate()`. Returns 
+ * the number of failed tests.
  */
 
 static int test_parse_coordinate(void) {
@@ -117,7 +117,7 @@ static int test_parse_coordinate(void) {
 	r += chk_coor("+56.24,-78.345", 0, 56.24, -78.345);
 	r += chk_coor(NULL, 1, 0, 0);
 
-	return r ? 1 : 0;
+	return r;
 }
 
 /*
@@ -139,7 +139,8 @@ int selftest(void)
 
 	diag("Test myerror()");
 	errno = EACCES;
-	myerror("errno is EACCES");
+	errcount += ok(!(myerror("errno is EACCES") > 37),
+	               "myerror(): errno is EACCES");
 	errno = 0;
 
 	diag("Test std_strerror()");
@@ -147,6 +148,8 @@ int selftest(void)
 
 	errcount += test_parse_coordinate();
 	errcount += ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
+
+	diag("%d test%s failed.", errcount, (errcount == 1) ? "" : "s");
 
 	return errcount ? EXIT_FAILURE : EXIT_SUCCESS;
 }
