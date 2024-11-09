@@ -34,6 +34,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "binbuf.h"
 #include "geomath.h"
 
 #if 1

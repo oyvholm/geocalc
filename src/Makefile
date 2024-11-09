@@ -11,6 +11,7 @@ CC = cc
 LD = cc
 
 CFILES  =
+CFILES += binbuf.c
 CFILES += cmds.c
 CFILES += geocalc.c
 CFILES += geomath.c
@@ -49,6 +50,7 @@ CFLAGS += -std=c99
 DEPS = version.h $(HFILES) Makefile
 GNCOV_STR = $$(test -n "$(GNCOV)" && echo "-g")
 HFILES  =
+HFILES += binbuf.h
 HFILES += geocalc.h
 HFILES += geomath.h
 HTMLFILE = $(EXEC).html
@@ -67,6 +69,7 @@ LIBS += -lm
 MANSRC = $(MANPAGE).man
 MAN_DATE = $$(grep EXEC_DATE version.h | cut -d '"' -f 2 | sed 's/-/\\\\-/g;')
 OBJS  =
+OBJS += binbuf.o
 OBJS += cmds.o
 OBJS += geocalc.o
 OBJS += geomath.o
@@ -100,6 +103,9 @@ $(PDFFILE): $(MANPAGE)
 
 version.h: Gen-version $(CFILES) $(HFILES) Makefile
 	./Gen-version
+
+binbuf.o: binbuf.c $(DEPS)
+	$(CC) $(CFLAGS) binbuf.c
 
 cmds.o: cmds.c $(DEPS)
 	$(CC) $(CFLAGS) cmds.c
