@@ -322,17 +322,15 @@ int selftest(void)
 	r += ok(!print_gotexp(NULL, "expected this"),
 	        "print_gotexp(): Arg is NULL");
 
+	diag("Test various routines");
 	diag("Test myerror()");
 	errno = EACCES;
 	r += ok(!(myerror("errno is EACCES") > 37),
 	        "myerror(): errno is EACCES");
 	errno = 0;
-
-	diag("Test std_strerror()");
-	ok(!(std_strerror(0) != NULL), "std_strerror(0)");
-
-	r += test_parse_coordinate();
+	r += ok(!(std_strerror(0) != NULL), "std_strerror(0)");
 	r += ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
+	r += test_parse_coordinate();
 
 	diag("%d test%s failed.", r, (r == 1) ? "" : "s");
 
