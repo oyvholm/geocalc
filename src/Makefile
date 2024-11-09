@@ -15,6 +15,7 @@ CFILES += binbuf.c
 CFILES += cmds.c
 CFILES += geocalc.c
 CFILES += geomath.c
+CFILES += io.c
 CFILES += selftest.c
 CFILES += string.c
 CFLAGS  =
@@ -73,6 +74,7 @@ OBJS += binbuf.o
 OBJS += cmds.o
 OBJS += geocalc.o
 OBJS += geomath.o
+OBJS += io.o
 OBJS += selftest.o
 OBJS += string.o
 PDFFILE = $(EXEC).pdf
@@ -115,6 +117,9 @@ geocalc.o: geocalc.c $(DEPS)
 
 geomath.o: geomath.c $(DEPS)
 	$(CC) $(CFLAGS) geomath.c
+
+io.o: io.c $(DEPS)
+	$(CC) $(CFLAGS) io.c
 
 selftest.o: selftest.c $(DEPS)
 	$(CC) $(CFLAGS) selftest.c

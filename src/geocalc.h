@@ -122,6 +122,9 @@ int msg(const VerboseLevel verbose, const char *format, ...);
 const char *std_strerror(const int errnum);
 int myerror(const char *format, ...);
 
+/* io.c */
+char *read_from_fp(FILE *fp, struct binbuf *dest);
+
 /* selftest.c */
 int selftest(void);
 
