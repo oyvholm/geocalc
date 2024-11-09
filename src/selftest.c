@@ -26,27 +26,6 @@
  */
 
 /*
- * diag() - Prints a diagnostic message prefixed with "# " to stdout. `printf` 
- * sequences can be used. No multiline support, and no `\n` should be added to 
- * the string. Returns 0 if successful, or 1 if `format` is NULL.
- */
-
-static int diag(const char *format, ...)
-{
-	va_list ap;
-
-	if (!format)
-		return 1;
-	va_start(ap, format);
-	printf("# ");
-	vprintf(format, ap);
-	puts("");
-	va_end(ap);
-
-	return 0;
-}
-
-/*
  * ok() - Print a log line to stdout. If `i` is 0, an "ok" line is printed, 
  * otherwise a "not ok" line is printed. `desc` is the test description and can 
  * use `printf` sequences. If `desc` is NULL, it returns 1. Otherwise, it 
@@ -67,6 +46,27 @@ static int ok(const int i, const char *desc, ...)
 	va_end(ap);
 
 	return i;
+}
+
+/*
+ * diag() - Prints a diagnostic message prefixed with "# " to stdout. `printf` 
+ * sequences can be used. No multiline support, and no `\n` should be added to 
+ * the string. Returns 0 if successful, or 1 if `format` is NULL.
+ */
+
+static int diag(const char *format, ...)
+{
+	va_list ap;
+
+	if (!format)
+		return 1;
+	va_start(ap, format);
+	printf("# ");
+	vprintf(format, ap);
+	puts("");
+	va_end(ap);
+
+	return 0;
 }
 
 /*
