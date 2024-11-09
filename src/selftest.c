@@ -45,6 +45,7 @@ static int ok(const int i, const char *desc, ...)
 	vprintf(desc, ap);
 	puts("");
 	va_end(ap);
+	fflush(stdout);
 
 	return i;
 }
