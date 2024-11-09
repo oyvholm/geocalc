@@ -135,7 +135,6 @@ clean:
 	rm -f *.gcda *.gcno *.gcov
 	rm -f gmon.out gmon.sum
 	rm -f version.h
-	cd t && $(MAKE) clean
 
 .PHONY: edit
 edit: tags
@@ -185,7 +184,7 @@ tags: $(CFILES) $(HFILES)
 
 .PHONY: test
 test: $(EXEC)
-	cd t && $(MAKE) test
+	./$(EXEC) --selftest
 
 .PHONY: testall
 testall:
@@ -225,8 +224,8 @@ uninstall:
 	rm -f $(INSTALL_TARGETS)
 
 .PHONY: valgrind
-valgrind:
-	cd t && $(MAKE) valgrind
+valgrind: $(EXEC)
+	./$(EXEC) --valgrind
 
 .PHONY: valgrindall
 valgrindall:

@@ -438,6 +438,19 @@ static int sc(char *cmd[], const char *exp_stdout, const char *exp_stderr,
 }
 
 /*
+ * tc() - Execute command `cmd` and verify that stdout, stderr and the return 
+ * value are identical to the expected values. The `exp_*` variables are 
+ * strings that must be identical to the actual output. Returns the number of 
+ * failed tests.
+ */
+
+static int tc(char *cmd[], const char *exp_stdout, const char *exp_stderr,
+              const int exp_retval, const char *desc)
+{
+	return test_command(1, cmd, exp_stdout, exp_stderr, exp_retval, desc);
+}
+
+/*
  * chk_coor() - Try to parse the coordinate in `s` with `parse_coordinate()` 
  * and test that `parse_coordinate()` returns the expected values.
  * Returns the number of failed tests.
@@ -533,6 +546,399 @@ static int test_parse_coordinate(void) {
 }
 
 /*
+ * test_standard_options() - Tests the various generic options available in 
+ * most programs. Returns the number of failed tests.
+ */
+
+static int test_standard_options(void) {
+	int r = 0;
+	char *s;
+
+	diag("Test -h/--help");
+	r += sc(chp{ progname, "-h", NULL },
+	        "  Show this help",
+	        "",
+	        EXIT_SUCCESS,
+	        "-h");
+	r += sc(chp{ progname, "--help", NULL },
+	        "  Show this help",
+	        "",
+	        EXIT_SUCCESS,
+	        "--help");
+
+	diag("Test -v/--verbose");
+	r += sc(chp{ progname, "-h", "--verbose", NULL },
+	        "  Show this help",
+	        "",
+	        EXIT_SUCCESS,
+	        "-hv: Help text is displayed");
+	r += sc(chp{ progname, "-hv", NULL },
+	        EXEC_VERSION,
+	        "",
+	        EXIT_SUCCESS,
+	        "-hv: Version number is printed along with the help text");
+	r += sc(chp{ progname, "-vvv", "--verbose", NULL },
+	        "",
+	        ": main(): Using verbose level 4\n",
+	        EXIT_FAILURE,
+	        "-vvv --verbose: Using correct verbose level");
+	r += sc(chp{ progname, "-vvvvq", "--verbose", "--verbose", NULL },
+	        "",
+	        ": main(): Using verbose level 5\n",
+	        EXIT_FAILURE,
+	        "--verbose: One -q reduces the verbosity level");
+
+	diag("Test --version");
+	s = allocstr("%s %s (%s)\n", progname, EXEC_VERSION, EXEC_DATE);
+	if (s) {
+		r += sc(chp{ progname, "--version", NULL },
+		        s,
+		        "",
+		        EXIT_SUCCESS,
+		        "--version");
+		free(s);
+	} else {
+		r += ok(1, "%s(): allocstr() 1 failed", __func__); /* gncov */
+	}
+	s = allocstr("%s\n", EXEC_VERSION);
+	if (s) {
+		r += tc(chp{ progname, "--version", "-q", NULL },
+		        s,
+		        "",
+		        EXIT_SUCCESS,
+		        "--version with -q shows only the version number");
+		free(s);
+	} else {
+		r += ok(1, "%s(): allocstr() 2 failed", __func__); /* gncov */
+	}
+
+	diag("Test --license");
+	r += sc(chp{ progname, "--license", NULL },
+	        "GNU General Public License",
+	        "",
+	        EXIT_SUCCESS,
+	        "--license: It's GPL");
+	r += sc(chp{ progname, "--license", NULL },
+	        "either version 2 of the License",
+	        "",
+	        EXIT_SUCCESS,
+	        "--license: It's version 2 of the GPL");
+
+	diag("Unknown option");
+	r += sc(chp{ progname, "--gurgle", NULL },
+	        "",
+	        ": Option error\n",
+	        EXIT_FAILURE,
+	        "\"Option error\" message is printed");
+	r += sc(chp{ progname, "--gurgle", NULL },
+	        "",
+	        " --help\" for help screen. Returning with value 1.\n",
+	        EXIT_FAILURE,
+	        "Unknown option mentions --help");
+
+	return r;
+}
+
+/*
+ * test_cmd_bpos() - Tests the `bpos` command. Returns the number of failed 
+ * tests.
+ */
+
+static int test_cmd_bpos(void)
+{
+	int r = 0;
+
+	diag("Test bpos command");
+	r += tc(chp{ progname, "bpos", "45,0", "45", "1000", NULL },
+	        "45.006359,0.008994\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "bpos 45,0 45 1000");
+	r += sc(chp{ progname, "bpos", "1,2", "r", "1000", NULL },
+	        "",
+	        ": Invalid number specified: Invalid argument\n",
+	        EXIT_FAILURE,
+	        "bpos: bearing is not a number");
+	r += sc(chp{ progname, "bpos", "1,2w", "3", "4", NULL },
+	        "",
+	        ": Invalid number specified: Invalid argument\n",
+	        EXIT_FAILURE,
+	        "bpos: lon has trailing letter");
+	r += sc(chp{ progname, "bpos", "90.0000000001,2", "3", "4", NULL },
+	        "",
+	        ": Value out of range\n",
+	        EXIT_FAILURE,
+	        "bpos: lat is out of range");
+	r += sc(chp{ progname, "bpos", "1,2", "3", "4", "5", NULL },
+	        "",
+	        ": Too many arguments\n",
+	        EXIT_FAILURE,
+	        "bpos: 1 extra argument");
+
+	return r;
+}
+
+/*
+ * test_cmd_course() - Tests the `course` command. Returns the number of failed 
+ * tests.
+ */
+
+static int test_cmd_course(void)
+{
+	int r = 0;
+
+	diag("Test course command");
+	r += tc(chp{ progname, "course", "45,0", "45,180", "1", NULL },
+	        "45.000000,0.000000\n"
+	        "90.000000,0.000000\n"
+	        "45.000000,180.000000\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "course: Across the North Pole");
+	r += tc(chp{ progname, "course", "0,0", "0,180", "7", NULL },
+	        "0.000000,0.000000\n"
+	        "0.000000,22.500000\n"
+	        "0.000000,45.000000\n"
+	        "0.000000,67.500000\n"
+	        "0.000000,90.000000\n"
+	        "0.000000,112.500000\n"
+	        "0.000000,135.000000\n"
+	        "0.000000,157.500000\n"
+	        "0.000000,180.000000\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "course 0,0 0,180 7");
+	r += tc(chp{ progname, "course", "60.39299,5.32415",
+	             "35.681389,139.766944", "9", NULL },
+	        "60.392990,5.324150\n"
+	        "66.169926,16.700678\n"
+	        "70.664233,33.818071\n"
+	        "72.834329,57.579125\n"
+	        "71.826607,82.903321\n"
+	        "68.075305,102.664288\n"
+	        "62.689678,115.951619\n"
+	        "56.449510,124.884500\n"
+	        "49.752575,131.215240\n"
+	        "42.795549,135.979229\n"
+	        "35.681389,139.766944\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "course: From Bergen to Tokyo");
+	r += sc(chp{ progname, "course", "1,2", "3,4", NULL },
+	        "",
+	        ": Missing arguments\n",
+	        EXIT_FAILURE,
+	        "course: Missing 1 argument");
+	r += sc(chp{ progname, "course", "1,2", "3,4", "5", "6", NULL },
+	        "",
+	        ": Too many arguments\n",
+	        EXIT_FAILURE,
+	        "course: 1 argument too much");
+	r += sc(chp{ progname, "course", "90.00001,0", "12,34", "1", NULL },
+	        "",
+	        ": Value out of range\n",
+	        EXIT_FAILURE,
+	        "course: lat1 is outside range");
+	r += sc(chp{ progname, "course", "17,0", "12,34", "-1", NULL },
+	        "",
+	        ": Value out of range\n",
+	        EXIT_FAILURE,
+	        "course: numpoints is -1");
+	r += sc(chp{ progname, "course", "17,6", "12,34", "-0.5", NULL },
+	        "",
+	        ": Value out of range\n",
+	        EXIT_FAILURE,
+	        "course: numpoints is -0.5");
+	r += tc(chp{ progname, "course", "22,33", "44,55", "0", NULL },
+	        "22.000000,33.000000\n"
+	        "44.000000,55.000000\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "course: numpoints is 0");
+	r += sc(chp{ progname, "course", "17,6%", "12,34", "-1", NULL },
+	        "",
+	        ": Invalid number specified: Invalid argument\n",
+	        EXIT_FAILURE,
+	        "course: lon1 is invalid number");
+
+	return r;
+}
+
+/*
+ * test_cmd_lpos() - Tests the `lpos` command. Returns the number of failed 
+ * tests.
+ */
+
+static int test_cmd_lpos(void)
+{
+	int r = 0;
+
+	diag("Test lpos command");
+	r += tc(chp{ progname, "lpos", "45,0", "45,180", "0.5", NULL },
+	        "90.000000,0.000000\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "lpos: At the North Pole");
+	r += sc(chp{ progname, "lpos", "1,2", "3,4", NULL },
+	        "",
+	        ": Missing arguments\n",
+	        EXIT_FAILURE,
+	        "lpos: Missing 1 argument");
+	r += sc(chp{ progname, "lpos", "1,2", "3,4", "5", "6", NULL },
+	        "",
+	        ": Too many arguments\n",
+	        EXIT_FAILURE,
+	        "lpos: 1 argument too much");
+	r += sc(chp{ progname, "lpos", "-90.00001,0", "12,34", "1", NULL },
+	        "",
+	        ": Value out of range\n",
+	        EXIT_FAILURE,
+	        "lpos: lat1 is outside range");
+	r += sc(chp{ progname, "lpos", "17,6%", "12,34", "-1", NULL },
+	        "",
+	        ": Invalid number specified: Invalid argument\n",
+	        EXIT_FAILURE,
+	        "lpos: lon1 is invalid number");
+	r += sc(chp{ progname, "lpos", "1,2", "3,4", "0", NULL },
+	        "1.000000,2.000000\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "lpos: fracdist is 0");
+	r += tc(chp{ progname, "lpos", "11.231,-34.55", "29.97777,47.311001",
+	             "1", NULL },
+	        "29.977770,47.311001\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "lpos: fracdist is 1");
+	r += sc(chp{ progname, "lpos", "1,2", "3,4", "INF", NULL },
+	        "",
+	        ": Invalid number specified: Numerical result out of range\n",
+	        EXIT_FAILURE,
+	        "lpos: fracdist is INF");
+
+	return r;
+}
+
+/*
+ * test_multiple() - Tests the `bear` or `dist` command. Returns the number of 
+ * failed tests.
+ */
+
+static int test_multiple(char *cmd)
+{
+	int r = 0;
+	char *p1, *p2;
+
+	assert(cmd);
+	if (!cmd)
+		return ok(1, "%s(): cmd is NULL", __func__); /* gncov */
+
+	diag("Test %s command", !strcmp(cmd, "bear") ? "bear" : "dist");
+	r += sc(chp{ progname, "-vv", cmd, NULL },
+	        "",
+	        ": Missing arguments\n",
+	        EXIT_FAILURE,
+	        (p1 = allocstr("%s with no arguments", cmd)));
+	free(p1);
+	r += sc(chp{ progname, cmd, "1,2", "3", NULL },
+	        "",
+	        ": Invalid number specified\n",
+	        EXIT_FAILURE,
+	        (p1 = allocstr("%s: Argument 2 is not a coordinate", cmd)));
+	free(p1);
+	r += sc(chp{ progname, cmd, "1,2", "3,4", NULL },
+	        (p2 = allocstr("%s\n",
+	                       !strcmp(cmd, "bear") ? "44.951998"
+	                                            : "314402.951024")),
+	        "",
+	        EXIT_SUCCESS,
+	        (p1 = allocstr("%s 1,2 3,4", cmd)));
+	free(p1);
+	free(p2);
+	r += sc(chp{ progname, cmd, "1,2", "3,4", "5", NULL },
+	        "",
+	        ": Too many arguments\n",
+	        EXIT_FAILURE,
+	        (p1 = allocstr("%s with 1 argument too much", cmd)));
+	free(p1);
+	r += sc(chp{ progname, cmd, "1,2", "3,1e+900", NULL },
+	        "",
+	        ": Invalid number specified:"
+	        " Numerical result out of range\n",
+	        EXIT_FAILURE,
+	        (p1 = allocstr("%s with 1 number too large", cmd)));
+	free(p1);
+	r += sc(chp{ progname, cmd, "1,2", "urgh,4", NULL },
+	        "",
+	        ": Invalid number specified:"
+	        " Invalid argument\n",
+	        EXIT_FAILURE,
+	        (p1 = allocstr("%s with 1 non-number", cmd)));
+	free(p1);
+	r += sc(chp{ progname, cmd, "1,2.9y", "3,4", NULL },
+	        "",
+	        ": Invalid number specified:"
+	        " Invalid argument\n",
+	        EXIT_FAILURE,
+	        (p1 = allocstr("%s with non-digit after number", cmd)));
+	free(p1);
+	r += sc(chp{ progname, cmd, "1,2 g", "3,4", NULL },
+	        "",
+	        ": Invalid number specified:"
+	        " Invalid argument\n",
+	        EXIT_FAILURE,
+	        (p1 = allocstr("%s with whitespace and non-digit after number",
+	                       cmd)));
+	free(p1);
+	r += sc(chp{ progname, cmd, "10,2,", "3,4", NULL },
+	        (p2 = allocstr("%s\n",
+	                       !strcmp(cmd, "bear") ? "164.027619"
+	                                            : "809080.682265")),
+	        "",
+	        EXIT_SUCCESS,
+	        (p1 = allocstr("%s with comma after number", cmd)));
+	free(p1);
+	free(p2);
+	r += sc(chp{ progname, cmd, "1,2", "3,NAN", NULL },
+	        "",
+	        ": Invalid number specified:"
+	        " Invalid argument\n",
+	        EXIT_FAILURE,
+	        (p1 = allocstr("%s with NAN", cmd)));
+	free(p1);
+	r += sc(chp{ progname, cmd, "1,2", "3,INF", NULL },
+	        "",
+	        ": Invalid number specified:"
+	        " Numerical result out of range\n",
+	        EXIT_FAILURE,
+	        (p1 = allocstr("%s with INF", cmd)));
+	free(p1);
+	r += sc(chp{ progname, cmd, "1,2", "", NULL },
+	        "",
+	        ": Invalid number specified\n",
+	        EXIT_FAILURE,
+	        (p1 = allocstr("%s with empty argument", cmd)));
+	free(p1);
+	r += sc(chp{ progname, cmd, "1,180.001", "3,4", NULL },
+	        "",
+	        ": Value out of range\n",
+	        EXIT_FAILURE,
+	        (p1 = allocstr("%s: lon1 out of range", cmd)));
+	free(p1);
+	r += sc(chp{ progname, cmd, "90,0", "-90,0", NULL },
+	        (p2 = allocstr("%s\n",
+	                       !strcmp(cmd, "bear") ? "180.000000"
+	                                            : "20015086.796021")),
+	        "",
+	        EXIT_SUCCESS,
+	        (p1 = allocstr("%s 90,0 -90,0", cmd)));
+	free(p1);
+	free(p2);
+
+	return r;
+}
+
+/*
  * test_executable() - Run various tests with the executable and verify that 
  * stdout, stderr and the return value are as expected. Returns the number of 
  * failed tests.
@@ -554,6 +960,12 @@ static int test_executable(void)
 	        "",
 	        EXIT_SUCCESS,
 	        "--valgrind -h");
+	r += test_standard_options();
+	r += test_cmd_bpos();
+	r += test_cmd_course();
+	r += test_cmd_lpos();
+	r += test_multiple("bear");
+	r += test_multiple("dist");
 
 	return r;
 }
