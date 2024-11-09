@@ -114,7 +114,37 @@ int streams_exec(struct streams *dest, char *cmd[])
 		close(errfd[0]);
 		close(errfd[1]);
 
-		execvp(cmd[0], cmd); /* gncov */
+		if (opt.valgrind) { /* gncov */
+			size_t cmd_len = 0; /* gncov */
+			const size_t argnum = 5; /* gncov */
+
+			while (cmd[cmd_len]) /* gncov */
+				cmd_len++; /* gncov */
+			char **valgrind_cmd
+			     = malloc((cmd_len + argnum + 1) /* gncov */
+			              * sizeof(char *));
+			if (!valgrind_cmd) { /* gncov */
+				myerror("%s(): malloc() failed", /* gncov */
+				        __func__);
+				return 1; /* gncov */
+			}
+
+			/* If the element count changes, update argnum. */
+			valgrind_cmd[0] = "valgrind"; /* gncov */
+			valgrind_cmd[1] = "-q"; /* gncov */
+			valgrind_cmd[2] = "--leak-check=full"; /* gncov */
+			valgrind_cmd[3] = "--show-leak-kinds=all"; /* gncov */
+			valgrind_cmd[4] = "--"; /* gncov */
+
+			for (size_t i = 0; i < cmd_len; i++) /* gncov */
+				valgrind_cmd[i + argnum] = cmd[i]; /* gncov */
+			valgrind_cmd[cmd_len + argnum] = NULL; /* gncov */
+
+			execvp(valgrind_cmd[0], valgrind_cmd); /* gncov */
+			free(valgrind_cmd); /* gncov */
+		} else {
+			execvp(cmd[0], cmd); /* gncov */
+		}
 		myerror("%s(): execvp() failed", __func__); /* gncov */
 
 		return 1; /* gncov */

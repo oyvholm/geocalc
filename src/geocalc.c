@@ -252,6 +252,8 @@ static int usage(const int retval)
 	       "    Increase level of verbosity. Can be repeated.\n");
 	printf("  --selftest\n"
 	       "    Run the built-in test suite.\n");
+	printf("  --valgrind\n"
+	       "    Run the built-in test suite with Valgrind checking.\n");
 	printf("  --version\n"
 	       "    Print version information.\n");
 	printf("\n");
@@ -277,6 +279,8 @@ static int choose_opt_action(const int c, const struct option *opts)
 			opt.license = true;
 		else if (!strcmp(opts->name, "selftest"))
 			opt.selftest = true;
+		else if (!strcmp(opts->name, "valgrind"))
+			opt.valgrind = opt.selftest = true;
 		else if (!strcmp(opts->name, "version"))
 			opt.version = true;
 		break;
@@ -314,6 +318,7 @@ static int parse_options(const int argc, char * const argv[])
 	opt.help = false;
 	opt.license = false;
 	opt.selftest = false;
+	opt.valgrind = false;
 	opt.verbose = 0;
 	opt.version = false;
 
@@ -325,6 +330,7 @@ static int parse_options(const int argc, char * const argv[])
 			{"license", no_argument, NULL, 0},
 			{"quiet", no_argument, NULL, 'q'},
 			{"selftest", no_argument, NULL, 0},
+			{"valgrind", no_argument, NULL, 0},
 			{"verbose", no_argument, NULL, 'v'},
 			{"version", no_argument, NULL, 0},
 			{0, 0, 0, 0}

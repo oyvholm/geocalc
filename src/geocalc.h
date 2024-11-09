@@ -106,6 +106,7 @@ struct Options {
 	bool help;
 	bool license;
 	bool selftest;
+	bool valgrind;
 	VerboseLevel verbose;
 	bool version;
 };
