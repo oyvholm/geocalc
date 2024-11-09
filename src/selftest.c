@@ -25,6 +25,8 @@
  * in Perl 5 as far as possible.
  */
 
+static int testnum = 0;
+
 /*
  * ok() - Print a log line to stdout. If `i` is 0, an "ok" line is printed, 
  * otherwise a "not ok" line is printed. `desc` is the test description and can 
@@ -34,7 +36,6 @@
 
 static int ok(const int i, const char *desc, ...)
 {
-	static int testnum = 0;
 	va_list ap;
 
 	if (!desc)
@@ -332,7 +333,10 @@ int selftest(void)
 	r += ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
 	r += test_parse_coordinate();
 
-	diag("%d test%s failed.", r, (r == 1) ? "" : "s");
+	printf("1..%d\n", testnum);
+	if (r)
+		diag("Looks like you failed %d test%s of %d.", /* gncov */
+		     r, (r == 1) ? "" : "s", testnum);
 
 	return r ? EXIT_FAILURE : EXIT_SUCCESS;
 }
