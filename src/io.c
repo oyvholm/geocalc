@@ -21,6 +21,31 @@
 #include "geocalc.h"
 
 /*
+ * streams_init() - Initialize a `struct streams` struct. Returns nothing.
+ */
+
+void streams_init(struct streams *dest)
+{
+	binbuf_init(&dest->in);
+	binbuf_init(&dest->out);
+	binbuf_init(&dest->err);
+	dest->ret = 0;
+}
+
+/*
+ * streams_free() - Deallocate and set a `struct streams` struct to default 
+ * values. Returns nothing.
+ */
+
+void streams_free(struct streams *dest)
+{
+	binbuf_free(&dest->in);
+	binbuf_free(&dest->out);
+	binbuf_free(&dest->err);
+	streams_init(dest);
+}
+
+/*
  * read_from_fp() - Read data from fp into an allocated buffer and return a 
  * pointer to the allocated memory or NULL if something failed.
  */

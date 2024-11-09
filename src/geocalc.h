@@ -134,6 +134,8 @@ const char *std_strerror(const int errnum);
 int myerror(const char *format, ...);
 
 /* io.c */
+void streams_init(struct streams *dest);
+void streams_free(struct streams *dest);
 char *read_from_fp(FILE *fp, struct binbuf *dest);
 int streams_exec(struct streams *dest, char *cmd[]);
 
@@ -150,7 +152,7 @@ int parse_coordinate(const char *s, double *dest_lat, double *dest_lon);
  * Global variables
  */
 
-extern const char *progname;
+extern char *progname;
 extern struct Options opt;
 
 #endif /* ifndef _GEOCALC_H */
