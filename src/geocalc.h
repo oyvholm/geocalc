@@ -33,6 +33,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <unistd.h>
 
 #include "binbuf.h"
 #include "geomath.h"
@@ -107,6 +110,13 @@ struct Options {
 	bool version;
 };
 
+struct streams {
+	struct binbuf in;
+	struct binbuf out;
+	struct binbuf err;
+	int ret;
+};
+
 /*
  * Public function prototypes
  */
@@ -124,6 +134,7 @@ int myerror(const char *format, ...);
 
 /* io.c */
 char *read_from_fp(FILE *fp, struct binbuf *dest);
+int streams_exec(struct streams *dest, char *cmd[]);
 
 /* selftest.c */
 int selftest(void);

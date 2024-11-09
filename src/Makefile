@@ -47,7 +47,6 @@ CFLAGS += -fstack-protector-strong
 CFLAGS += -fwrapv
 CFLAGS += -g3
 CFLAGS += -pedantic
-CFLAGS += -std=c99
 DEPS = version.h $(HFILES) Makefile
 GNCOV_STR = $$(test -n "$(GNCOV)" && echo "-g")
 HFILES  =

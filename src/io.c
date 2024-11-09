@@ -64,4 +64,97 @@ char *read_from_fp(FILE *fp, struct binbuf *dest)
 	return buf.buf;
 }
 
+/*
+ * streams_exec() - Execute a command and store stdout, stderr and the return 
+ * value into `dest`. `cmd` is an array of arguments, and the last element must 
+ * be NULL. The return value is somewhat undefined at this point in time.
+ */
+
+int streams_exec(struct streams *dest, char *cmd[])
+{
+	int retval = 1;
+	int infd[2];
+	int outfd[2];
+	int errfd[2];
+	pid_t pid;
+
+	assert(cmd);
+	if (opt.verbose >= 10) {
+		int i = -1; /* gncov */
+
+		fprintf(stderr, "# %s(", __func__); /* gncov */
+		while (cmd[++i]) /* gncov */
+			fprintf(stderr, "%s\"%s\"", /* gncov */
+			                i ? ", " : "", cmd[i]); /* gncov */
+		fprintf(stderr, ")\n"); /* gncov */
+	}
+
+	if (pipe(infd) == -1
+	    || pipe(outfd) == -1
+	    || pipe(errfd) == -1) {
+		myerror("%s(): pipe() failed", __func__); /* gncov */
+		goto out; /* gncov */
+	}
+	if ((pid = fork()) == -1) {
+		myerror("%s(): fork() failed", __func__); /* gncov */
+		goto out; /* gncov */
+	}
+	if (!pid) {
+		/* child */
+		close(STDIN_FILENO);
+		close(STDOUT_FILENO);
+		close(STDERR_FILENO);
+		dup2(infd[0], STDIN_FILENO);
+		dup2(outfd[1], STDOUT_FILENO);
+		dup2(errfd[1], STDERR_FILENO);
+		close(infd[0]);
+		close(infd[1]);
+		close(outfd[0]);
+		close(outfd[1]);
+		close(errfd[0]);
+		close(errfd[1]);
+
+		execvp(cmd[0], cmd); /* gncov */
+		myerror("%s(): execvp() failed", __func__); /* gncov */
+
+		return 1; /* gncov */
+	} else {
+		/* parent */
+		FILE *infp, *outfp, *errfp;
+
+		close(infd[0]);
+		close(errfd[1]);
+		close(outfd[1]);
+		if (!dest) {
+			wait(&retval); /* gncov */
+			goto out; /* gncov */
+		}
+		infp = fdopen(infd[1], "w");
+		outfp = fdopen(outfd[0], "r");
+		errfp = fdopen(errfd[0], "r");
+		if (infp && outfp && errfp) {
+			if (dest->in.buf && dest->in.len)
+				fwrite(dest->in.buf, 1, /* gncov */
+				       dest->in.len, infp);
+			read_from_fp(errfp, &dest->err);
+			read_from_fp(outfp, &dest->out);
+			msg(10, "%s(): %d: dest->out.buf = \"%s\"",
+			        __func__, __LINE__, dest->out.buf);
+			msg(10, "%s(): %d: dest->err.buf = \"%s\"",
+			        __func__, __LINE__, dest->err.buf);
+		} else {
+			myerror("%s(): fdopen() failed", __func__); /* gncov */
+		}
+		fclose(errfp);
+		fclose(outfp);
+		fclose(infp);
+		wait(&dest->ret);
+		dest->ret = dest->ret >> 8;
+		retval = dest->ret;
+	}
+
+out:
+	return retval;
+}
+
 /* vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 : */
