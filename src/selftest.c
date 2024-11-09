@@ -277,6 +277,50 @@ static int chk_coor(const char *s, const int exp_ret,
 }
 
 /*
+ * test_allocstr() - Tests the allocstr() function. Returns the number of 
+ * failed tests.
+ */
+
+static int test_allocstr(void)
+{
+	const size_t bufsize = BUFSIZ * 2 + 1;
+	char *p, *p2, *p3;
+	int r = 0;
+	size_t alen;
+
+	p = malloc(bufsize);
+	if (!p) {
+		r += ok(1, "%s(): malloc() failed", __func__); /* gncov */
+		return r; /* gncov */
+	}
+	memset(p, 'a', bufsize - 1);
+	p[bufsize - 1] = '\0';
+	p2 = allocstr("%s", p);
+	if (!p2) {
+		r += ok(1, "%s(): allocstr() failed" /* gncov */
+		           " with BUFSIZ * 2",
+		           __func__);
+		goto free_p; /* gncov */
+	}
+	alen = strlen(p2);
+	r += ok(!(alen == BUFSIZ * 2), "allocstr(): strlen is correct");
+	p3 = p2;
+	while (*p3) {
+		if (*p3 != 'a') {
+			p3 = NULL; /* gncov */
+			break; /* gncov */
+		}
+		p3++;
+	}
+	r += ok(!(p3 != NULL), "allocstr(): Content of string is correct");
+	free(p2);
+free_p:
+	free(p);
+
+	return r;
+}
+
+/*
  * test_parse_coordinate() - Various tests for `parse_coordinate()`. Returns 
  * the number of failed tests.
  */
@@ -332,6 +376,7 @@ int selftest(void)
 	errno = 0;
 	r += ok(!(std_strerror(0) != NULL), "std_strerror(0)");
 	r += ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
+	r += test_allocstr();
 	r += test_parse_coordinate();
 
 	printf("1..%d\n", testnum);
