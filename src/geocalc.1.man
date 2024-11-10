@@ -1,14 +1,30 @@
 .\" geocalc.1.man
 .\" File ID: f97aa59c-92bb-11ef-95a5-83850402c3ce
-.TH geocalc 1 "RPL_DATE" "geocalc\-RPL_VERSION"
+.TH GEOCALC 1 "RPL_DATE" "geocalc\-RPL_VERSION"
 .SH NAME
 geocalc \- Calculate various geographic data
 .SH SYNOPSIS
 .B geocalc
 [\fIOPTIONS\fP] <\fICOMMAND\fP> [\fIARGS\fP]
 .SH DESCRIPTION
-Calculates various geographic data. Input values are provided through command 
-line arguments, and the result is printed to standard output.
+geocalc is a program that calculates various geographic data. It receives 
+parameters and values via the command line, and prints strict, stripped-down 
+values to standard output. This makes it suitable for use in scripts and quick 
+manual calculations.
+.SS Features
+.IP \[bu] 2
+Distance calculations between coordinates
+.IP \[bu] 2
+Bearing calculations
+.IP \[bu] 2
+Plot shortest route between points
+.IP \[bu] 2
+Minimal dependencies, no extra C libraries needed
+.IP \[bu] 2
+Platform independent
+.IP \[bu] 2
+Built-in test suite for all functionality
+.SH OPTIONS
 .TP
 \fB\-h\fP, \fB\-\-help\fP
 Show a help summary.
@@ -23,10 +39,10 @@ Be more quiet. Can be repeated to increase silence.
 Increase level of verbosity. Can be repeated.
 .TP
 \fB\-\-selftest\fP
-Run the built\-in test suite.
+Run the built-in test suite.
 .TP
 \fB\-\-valgrind\fP
-Run the built\-in test suite and use additional Valgrind checking.
+Run the built-in test suite and use additional Valgrind checking.
 .TP
 \fB\-\-version\fP
 Print version information.
@@ -40,7 +56,7 @@ Some arguments are specified as a coordinate. One format is allowed:
 and \-180..180, separated by a comma. The decimal comma must be a period, '.'.
 .TP
 \fBbear\fP <\fIcoor1\fP> <\fIcoor2\fP>
-Print initial compass bearing (0\-360) between two points.
+Prints initial compass bearing (0\-360) between two points.
 .TP
 \fBbpos\fP <\fIcoor\fP> <\fIbearing\fP> <\fIdistance\fP>
 Calculates the new geographic position after moving \fIdistance\fP meters from 
@@ -49,12 +65,12 @@ the position \fIcoor\fP in direction \fIbearing\fP. Negative values for
 opposite direction of \fIbearing\fP.
 .TP
 \fBcourse\fP <\fIcoor1\fP> <\fIcoor2\fP> <\fInum\fP>
-Generate a list of \fInum\fP intermediate points on a direct line between two 
+Generates a list of \fInum\fP intermediate points on a direct line between two 
 locations. If a value of 0 is specified, only the begin and end positions are 
 printed.
 .TP
 \fBdist\fP <\fIcoor1\fP> <\fIcoor2\fP>
-Calculate the distance between two geographic points, using the Haversine 
+Calculates the distance between two geographic points, using the Haversine 
 formula. The result (in meters) is printed to standard output.
 .TP
 \fBlpos\fP <\fIcoor1\fP> <\fIcoor2\fP> <\fIfracdist\fP>
@@ -63,7 +79,7 @@ Prints the position of a point on a straight line between the locations, where
 is. 0 = start position, 1 = end position. \fIfracdist\fP can also take values 
 below 0 or above 1 to calculate positions beyond \fIcoor2\fP or in the opposite 
 direction from \fIcoor1\fP.
-.SS Exit status:
+.SH EXIT STATUS
 .TP
 0
 No error.
@@ -86,12 +102,13 @@ Create 1000 intermediate points on a straight line from Amsterdam to Tokyo.
 \fCgeocalc dist 90,0 \-90,0\fP
 Calculate the distance from the North Pole to the South Pole.
 .TP
-\fCgeocalc lpos 10,20 12,20 0.5\fP
-Find halfway point between \fI10,20\fP and \fI12,20\fP.
+\fCgeocalc lpos \-11.952039,49.245985 \-25.606629,45.167246 0.5\fP
+Find center point on Madagascar, measured from the points furthest north and 
+south.
 .SH AUTHOR
-Written by \[/O]yvind A. Holm <sunny@sunbase.org>
+Written by \[/O]yvind A.\& Holm <sunny@sunbase.org>
 .SH COPYRIGHT
-(C)opyleft 2024\- \[/O]yvind A. Holm <sunny@sunbase.org>
+(C)opyleft 2024\- \[/O]yvind A.\& Holm <sunny@sunbase.org>
 .PP
 This program is free software; you can redistribute it and/or modify it under 
 the terms of the GNU General Public License as published by the Free Software 

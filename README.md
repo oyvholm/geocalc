@@ -1,27 +1,63 @@
-# README for geocalc.git
+# geocalc
+
+A command-line utility for geographic calculations using decimal 
+degrees.
+
+## Overview
+
+**geocalc** is a program that calculates various geographic data. It 
+receives parameters and values via the command line, and prints accurate 
+and strict values to standard output. This makes it suitable for use in 
+scripts and quick manual calculations.
+
+## Features
+
+- Distance calculations between coordinates
+- Bearing calculations
+- Plot shortest route between points
+- Minimal dependencies, no extra C libraries needed
+- Platform independent
+- Built-in test suite for all functionality
 
 ## Status
 
 Contains the following commands:
 
-  - **`bear`**
-    - Print initial compass bearing (0-360) between two points.
-  - **`bpos`**
-    - Calculates the new geographic position after moving a certain 
-      amount of meters from the start position in a specific direction. 
-      Negative values for the length are allowed, to make it possible to 
-      calculate positions in the opposite direction of the bearing.
-  - **`course`**
-    - Generate a list of intermediate points on a direct line between 
-      two locations.
-  - **`dist`**
-    - Calculate the distance between two geographic coordinates, using 
-      the Haversine formula. The result (in meters) is printed to 
-      stdout.
-  - **`lpos`**
-    - Prints the position of a point on a straight line between the 
-      positions, where `fracdist` is a fraction that specifies how far 
-      along the line the point is.
+- **`bear`**\
+  Prints initial compass bearing (0-360) between two points.
+- **`bpos`**\
+  Calculates the new geographic position after moving a certain amount 
+  of meters from the start position in a specific direction. Negative 
+  values for the length are allowed, to make it possible to calculate 
+  positions in the opposite direction of the bearing.
+- **`course`**\
+  Generates a list of intermediate points on a direct line between two 
+  locations.
+- **`dist`**\
+  Calculates the distance between two geographic coordinates, using the 
+  Haversine formula. The result (in meters) is printed to stdout.
+- **`lpos`**\
+  Prints the position of a point on a straight line between the 
+  positions, where `fracdist` is a fraction that specifies how far along 
+  the line the point is.
+
+## Examples
+
+- `geocalc bear 60.393,5.324 51.53217,-0.17786`\
+  Find the bearing towards Abbey Road Studios when standing in the 
+  middle of Bergen, Norway.
+- `geocalc bpos 40.80542,-73.96546 188.7 4817.84`\
+  Determine the new position when traveling 4817.84 meters from the 
+  "Seinfeld Café" along a bearing of 188.7 degrees, heading slightly 
+  southwest.
+- `geocalc course 52.3731,4.891 35.681,139.767 1000`\
+  Create 1000 intermediate points on a straight line from Amsterdam to 
+  Tokyo.
+- `geocalc dist 90,0 -90,0`\
+  Calculate the distance from the North Pole to the South Pole.
+- `geocalc lpos -11.952039,49.245985 -25.606629,45.167246 0.5`\
+  Find center point on Madagascar, measured from the points furthest 
+  north and south.
 
 ## Development
 
@@ -35,13 +71,13 @@ To ensure compatibility between versions, the program follows the
 Semantic Versioning Specification described at <http://semver.org>. 
 Using the version number `X.Y.Z` as an example:
 
-  - `X` is the *major version*.
-    This number is only incremented when backwards-incompatible changes 
-    are introduced.
-  - `Y` is the *minor version*.
-    Increased when new backwards-compatible features are added.
-  - `Z` is the *patch level*.
-    Increased when new backwards-compatible bugfixes are added.
+- `X` is the *major version*.
+  This number is only incremented when backwards-incompatible changes 
+  are introduced.
+- `Y` is the *minor version*.
+  Increased when new backwards-compatible features are added.
+- `Z` is the *patch level*.
+  Increased when new backwards-compatible bugfixes are added.
 
 ## `make` commands
 
@@ -125,9 +161,9 @@ stored as `geocalc.html` or `geocalc.pdf`.
 
 The main Git repository is stored at GitLab:
 
-  - URL: <https://gitlab.com/oyvholm/geocalc>
-  - SSH clone: git@gitlab.com:oyvholm/geocalc.git
-  - https clone: <https://gitlab.com/oyvholm/geocalc.git>
+- URL: <https://gitlab.com/oyvholm/geocalc>
+- SSH clone: git@gitlab.com:oyvholm/geocalc.git
+- https clone: <https://gitlab.com/oyvholm/geocalc.git>
 
 ## License
 
