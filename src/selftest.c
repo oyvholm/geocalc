@@ -939,6 +939,40 @@ static int test_multiple(char *cmd)
 }
 
 /*
+ * test_functions() - Tests various functions directly. Returns the number of 
+ * failed tests.
+ */
+
+static int test_functions(void)
+{
+	int r = 0;
+
+	diag("Test selftest routines");
+	r += ok(!ok(0, NULL), "ok(0, NULL)");
+	r += test_diag();
+	r += test_valgrind_lines();
+
+	diag("Test print_gotexp()");
+	r += ok(print_gotexp("got this", "expected this"),
+	        "print_gotexp() demo");
+	r += ok(!print_gotexp(NULL, "expected this"),
+	        "print_gotexp(): Arg is NULL");
+
+	diag("Test various routines");
+	diag("Test myerror()");
+	errno = EACCES;
+	r += ok(!(myerror("errno is EACCES") > 37),
+	        "myerror(): errno is EACCES");
+	errno = 0;
+	r += ok(!(std_strerror(0) != NULL), "std_strerror(0)");
+	r += ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
+	r += test_allocstr();
+	r += test_parse_coordinate();
+
+	return r;
+}
+
+/*
  * test_executable() - Run various tests with the executable and verify that 
  * stdout, stderr and the return value are as expected. Returns the number of 
  * failed tests.
@@ -983,28 +1017,7 @@ int selftest(void)
 	diag("Running tests for %s %s (%s)",
 	     progname, EXEC_VERSION, EXEC_DATE);
 
-	diag("Test selftest routines");
-	r += ok(!ok(0, NULL), "ok(0, NULL)");
-	r += test_diag();
-	r += test_valgrind_lines();
-
-	diag("Test print_gotexp()");
-	r += ok(print_gotexp("got this", "expected this"),
-	        "print_gotexp() demo");
-	r += ok(!print_gotexp(NULL, "expected this"),
-	        "print_gotexp(): Arg is NULL");
-
-	diag("Test various routines");
-	diag("Test myerror()");
-	errno = EACCES;
-	r += ok(!(myerror("errno is EACCES") > 37),
-	        "myerror(): errno is EACCES");
-	errno = 0;
-	r += ok(!(std_strerror(0) != NULL), "std_strerror(0)");
-	r += ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
-	r += test_allocstr();
-	r += test_parse_coordinate();
-
+	r += test_functions();
 	r += test_executable();
 
 	printf("1..%d\n", testnum);
