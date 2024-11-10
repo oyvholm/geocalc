@@ -799,7 +799,7 @@ static int test_cmd_lpos(void)
 	        ": Invalid number specified: Invalid argument\n",
 	        EXIT_FAILURE,
 	        "lpos: lon1 is invalid number");
-	r += sc(chp{ progname, "lpos", "1,2", "3,4", "0", NULL },
+	r += tc(chp{ progname, "lpos", "1,2", "3,4", "0", NULL },
 	        "1.000000,2.000000\n",
 	        "",
 	        EXIT_SUCCESS,
@@ -846,7 +846,7 @@ static int test_multiple(char *cmd)
 	        EXIT_FAILURE,
 	        (p1 = allocstr("%s: Argument 2 is not a coordinate", cmd)));
 	free(p1);
-	r += sc(chp{ progname, cmd, "1,2", "3,4", NULL },
+	r += tc(chp{ progname, cmd, "1,2", "3,4", NULL },
 	        (p2 = allocstr("%s\n",
 	                       !strcmp(cmd, "bear") ? "44.951998"
 	                                            : "314402.951024")),
@@ -890,7 +890,7 @@ static int test_multiple(char *cmd)
 	        (p1 = allocstr("%s with whitespace and non-digit after number",
 	                       cmd)));
 	free(p1);
-	r += sc(chp{ progname, cmd, "10,2,", "3,4", NULL },
+	r += tc(chp{ progname, cmd, "10,2,", "3,4", NULL },
 	        (p2 = allocstr("%s\n",
 	                       !strcmp(cmd, "bear") ? "164.027619"
 	                                            : "809080.682265")),
@@ -925,7 +925,7 @@ static int test_multiple(char *cmd)
 	        EXIT_FAILURE,
 	        (p1 = allocstr("%s: lon1 out of range", cmd)));
 	free(p1);
-	r += sc(chp{ progname, cmd, "90,0", "-90,0", NULL },
+	r += tc(chp{ progname, cmd, "90,0", "-90,0", NULL },
 	        (p2 = allocstr("%s\n",
 	                       !strcmp(cmd, "bear") ? "180.000000"
 	                                            : "20015086.796021")),
