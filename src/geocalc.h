@@ -104,6 +104,7 @@ typedef enum {
 
 struct Options {
 	bool help;
+	bool km;
 	bool license;
 	bool selftest;
 	bool valgrind;

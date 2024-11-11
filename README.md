@@ -27,15 +27,17 @@ Contains the following commands:
   Prints initial compass bearing (0-360) between two points.
 - **`bpos`**\
   Calculates the new geographic position after moving a certain amount 
-  of meters from the start position in a specific direction. Negative 
-  values for the length are allowed, to make it possible to calculate 
-  positions in the opposite direction of the bearing.
+  of meters or kilometers from the start position in a specific 
+  direction. Negative values for the length are allowed, to make it 
+  possible to calculate positions in the opposite direction of the 
+  bearing.
 - **`course`**\
   Generates a list of intermediate points on a direct line between two 
   locations.
 - **`dist`**\
   Calculates the distance between two geographic coordinates, using the 
-  Haversine formula. The result (in meters) is printed to stdout.
+  Haversine formula. The result (in meters or kilometers) is printed to 
+  stdout.
 - **`lpos`**\
   Prints the position of a point on a straight line between the 
   positions, where `fracdist` is a fraction that specifies how far along 

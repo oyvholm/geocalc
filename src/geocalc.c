@@ -244,6 +244,9 @@ static int usage(const int retval)
 	printf("\n");
 	printf("  -h, --help\n"
 	       "    Show this help.\n");
+	printf("  --km\n"
+	       "    Use kilometers instead of meters in the input and"
+	       " output.\n");
 	printf("  --license\n"
 	       "    Print the software license.\n");
 	printf("  -q, --quiet\n"
@@ -275,7 +278,9 @@ static int choose_opt_action(const int c, const struct option *opts)
 
 	switch (c) {
 	case 0:
-		if (!strcmp(opts->name, "license"))
+		if (!strcmp(opts->name, "km"))
+			opt.km = true;
+		else if (!strcmp(opts->name, "license"))
 			opt.license = true;
 		else if (!strcmp(opts->name, "selftest"))
 			opt.selftest = true;
@@ -316,6 +321,7 @@ static int parse_options(const int argc, char * const argv[])
 	assert(argv);
 
 	opt.help = false;
+	opt.km = false;
 	opt.license = false;
 	opt.selftest = false;
 	opt.valgrind = false;
@@ -327,6 +333,7 @@ static int parse_options(const int argc, char * const argv[])
 		int option_index = 0;
 		static const struct option long_options[] = {
 			{"help", no_argument, NULL, 'h'},
+			{"km", no_argument, NULL, 0},
 			{"license", no_argument, NULL, 0},
 			{"quiet", no_argument, NULL, 'q'},
 			{"selftest", no_argument, NULL, 0},

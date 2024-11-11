@@ -49,6 +49,8 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 		myerror("Value out of range");
 		return EXIT_FAILURE;
 	}
+	if (opt.km && !strcmp(cmd, "dist"))
+		result /= 1000.0;
 	printf("%f\n", result);
 
 	return EXIT_SUCCESS;
@@ -73,6 +75,8 @@ int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
 		myerror("Invalid number specified");
 		return EXIT_FAILURE;
 	}
+	if (opt.km)
+		dist *= 1000.0;
 	result = bearing_position(lat, lon, bearing, dist, &nlat, &nlon);
 	if (result) {
 		myerror("Value out of range");

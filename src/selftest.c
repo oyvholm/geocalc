@@ -724,6 +724,11 @@ static int test_cmd_bpos(void)
 	        "",
 	        EXIT_SUCCESS,
 	        "bpos 45,0 45 1000");
+	r += tc(chp{ progname, "--km", "bpos", "45,0", "45", "1", NULL },
+	        "45.006359,0.008994\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "--km bpos 45,0 45 1");
 	r += sc(chp{ progname, "bpos", "1,2", "r", "1000", NULL },
 	        "",
 	        ": Invalid number specified: Invalid argument\n",
@@ -756,6 +761,7 @@ static int test_cmd_bpos(void)
 static int test_cmd_course(void)
 {
 	int r = 0;
+	const char *exp_stdout;
 
 	diag("Test course command");
 	r += tc(chp{ progname, "course", "45,0", "45,180", "1", NULL },
@@ -778,22 +784,29 @@ static int test_cmd_course(void)
 	        "",
 	        EXIT_SUCCESS,
 	        "course 0,0 0,180 7");
+	exp_stdout = "60.392990,5.324150\n"
+	             "66.169926,16.700678\n"
+	             "70.664233,33.818071\n"
+	             "72.834329,57.579125\n"
+	             "71.826607,82.903321\n"
+	             "68.075305,102.664288\n"
+	             "62.689678,115.951619\n"
+	             "56.449510,124.884500\n"
+	             "49.752575,131.215240\n"
+	             "42.795549,135.979229\n"
+	             "35.681389,139.766944\n";
 	r += tc(chp{ progname, "course", "60.39299,5.32415",
 	             "35.681389,139.766944", "9", NULL },
-	        "60.392990,5.324150\n"
-	        "66.169926,16.700678\n"
-	        "70.664233,33.818071\n"
-	        "72.834329,57.579125\n"
-	        "71.826607,82.903321\n"
-	        "68.075305,102.664288\n"
-	        "62.689678,115.951619\n"
-	        "56.449510,124.884500\n"
-	        "49.752575,131.215240\n"
-	        "42.795549,135.979229\n"
-	        "35.681389,139.766944\n",
+	        exp_stdout,
 	        "",
 	        EXIT_SUCCESS,
 	        "course: From Bergen to Tokyo");
+	r += tc(chp{ progname, "--km", "course", "60.39299,5.32415",
+	             "35.681389,139.766944", "9", NULL },
+	        exp_stdout,
+	        "",
+	        EXIT_SUCCESS,
+	        "--km course: From Bergen to Tokyo");
 	r += sc(chp{ progname, "course", "1,2", "3,4", NULL },
 	        "",
 	        ": Missing arguments\n",
@@ -849,6 +862,11 @@ static int test_cmd_lpos(void)
 	        "",
 	        EXIT_SUCCESS,
 	        "lpos: At the North Pole");
+	r += tc(chp{ progname, "--km", "lpos", "45,0", "45,180", "0.5", NULL },
+	        "90.000000,0.000000\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "--km lpos: At the North Pole");
 	r += sc(chp{ progname, "lpos", "1,2", "3,4", NULL },
 	        "",
 	        ": Missing arguments\n",
@@ -880,6 +898,12 @@ static int test_cmd_lpos(void)
 	        "",
 	        EXIT_SUCCESS,
 	        "lpos: fracdist is 1");
+	r += tc(chp{ progname, "--km", "lpos", "11.231,-34.55",
+	             "29.97777,47.311001", "1", NULL },
+	        "29.977770,47.311001\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "--km lpos: fracdist is 1");
 	r += sc(chp{ progname, "lpos", "1,2", "3,4", "INF", NULL },
 	        "",
 	        ": Invalid number specified: Numerical result out of range\n",
@@ -1004,6 +1028,12 @@ static int test_multiple(char *cmd)
 	        (p1 = allocstr("%s 90,0 -90,0", cmd)));
 	free(p1);
 	free(p2);
+	r += tc(chp{ progname, "--km", cmd, "90,0", "-90,0", NULL },
+	        !strcmp(cmd, "bear") ? "180.000000\n" : "20015.086796\n",
+	        "",
+	        EXIT_SUCCESS,
+	        (p1 = allocstr("--km %s 90,0 -90,0", cmd)));
+	free(p1);
 
 	return r;
 }

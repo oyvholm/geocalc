@@ -10,6 +10,7 @@ repositories mentioned in `README.md`.
 v0.x.x - 202x-xx-xx
 -------------------
 
+- Add the `--km` option.
 - Clean up stderr when the tests are executed, remove "got/expected" 
   output.
 
