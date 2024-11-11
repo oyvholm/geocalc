@@ -7,6 +7,12 @@ Summary of changes in Geocalc
 For a complete log of changes, please refer to the Git commit log in the 
 repositories mentioned in `README.md`.
 
+v0.x.x - 202x-xx-xx
+-------------------
+
+- Clean up stderr when the tests are executed, remove "got/expected" 
+  output.
+
 v0.1.0 - 2024-11-10
 -------------------
 
