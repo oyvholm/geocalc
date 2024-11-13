@@ -21,6 +21,40 @@
 #include "geocalc.h"
 
 /*
+ * print_eor_coor() - Prints "end of run" coordinate. All commands use this 
+ * function if the final result is only a coordinate, so the proper output 
+ * format can be used. Returns 1 if allocations failed, or an unknown value is 
+ * stored in `opt.outpformat`. Otherwise it returns 0.
+ */
+
+static int print_eor_coor(const double lat, const double lon, const char *cmd,
+                          const char *par1, const char *par2, const char *par3)
+{
+	if (cmd || par1 || par2 || par3) { } /* Temporary, avoid warnings */
+	switch (opt.outpformat) {
+	case OF_DEFAULT:
+		printf("%f,%f\n", lat, lon);
+		break;
+	default: /* gncov */
+		return 1; /* gncov */
+	}
+
+	return 0;
+}
+
+/*
+ * print_eor_number() - Prints "end of run" number. Same philosophy as 
+ * print_eor_coor(). Returns only 0 for now.
+ */
+
+static int print_eor_number(const double num)
+{
+	printf("%f\n", num);
+
+	return 0;
+}
+
+/*
  * cmd_bear_dist() - Executes the `bear` or `dist` commands, specified in 
  * `cmd`. Returns `EXIT_SUCCESS` or `EXIT_FAILURE`.
  */
@@ -51,9 +85,8 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 	}
 	if (opt.km && !strcmp(cmd, "dist"))
 		result /= 1000.0;
-	printf("%f\n", result);
 
-	return EXIT_SUCCESS;
+	return print_eor_number(result) ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
 /*
@@ -82,9 +115,8 @@ int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
 		myerror("Value out of range");
 		return EXIT_FAILURE;
 	}
-	printf("%f,%f\n", nlat, nlon);
-
-	return EXIT_SUCCESS;
+	return print_eor_coor(nlat, nlon, "bpos", coor, bearing_s, dist_s)
+	       ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
 /*
@@ -95,7 +127,7 @@ int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
 int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 {
 	double lat1, lon1, lat2, lon2, numpoints, nlat, nlon;
-	int i, result;
+	int i, result, retval = EXIT_SUCCESS;
 
 	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\")",
 	    __func__, coor1, coor2, numpoints_s);
@@ -114,14 +146,21 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 		result = routepoint(lat1, lon1, lat2, lon2,
 		                    1.0 * i / numpoints, &nlat, &nlon);
 		if (!result) {
-			printf("%f,%f\n", nlat, nlon);
+			switch(opt.outpformat) {
+			case OF_DEFAULT:
+				printf("%f,%f\n", nlat, nlon);
+				break;
+			default: /* gncov */
+				break; /* gncov */
+			}
 		} else {
 			myerror("Value out of range");
-			return EXIT_FAILURE;
+			retval = EXIT_FAILURE;
+			break;
 		}
 	}
 
-	return EXIT_SUCCESS;
+	return retval;
 }
 
 /*
@@ -142,14 +181,13 @@ int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s)
 		myerror("Invalid number specified");
 		return EXIT_FAILURE;
 	}
-	if (!routepoint(lat1, lon1, lat2, lon2, fracdist, &nlat, &nlon)) {
-		printf("%f,%f\n", nlat, nlon);
-	} else {
+	if (routepoint(lat1, lon1, lat2, lon2, fracdist, &nlat, &nlon)) {
 		myerror("Value out of range");
 		return EXIT_FAILURE;
 	}
 
-	return EXIT_SUCCESS;
+	return print_eor_coor(nlat, nlon, "lpos", coor1, coor2, fracdist_s)
+	       ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
 /* vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 : */

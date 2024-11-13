@@ -102,6 +102,10 @@ typedef enum {
 	VERBOSE_TRACE
 } VerboseLevel;
 
+typedef enum {
+	OF_DEFAULT = 0
+} OutputFormat;
+
 struct Options {
 	bool help;
 	bool km;
@@ -110,6 +114,7 @@ struct Options {
 	bool valgrind;
 	VerboseLevel verbose;
 	bool version;
+	OutputFormat outpformat;
 };
 
 struct streams {
