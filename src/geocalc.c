@@ -242,6 +242,9 @@ static int usage(const int retval)
 	printf("\n");
 	printf("Options:\n");
 	printf("\n");
+	printf("  -F <format>, --format <format>\n"
+	       "    Output in a specific format. Available format:"
+	       " default.\n");
 	printf("  -h, --help\n"
 	       "    Show this help.\n");
 	printf("  --km\n"
@@ -289,6 +292,9 @@ static int choose_opt_action(const int c, const struct option *opts)
 		else if (!strcmp(opts->name, "version"))
 			opt.version = true;
 		break;
+	case 'F':
+		opt.format = optarg;
+		break;
 	case 'h':
 		opt.help = true;
 		break;
@@ -320,9 +326,11 @@ static int parse_options(const int argc, char * const argv[])
 
 	assert(argv);
 
+	opt.format = NULL;
 	opt.help = false;
 	opt.km = false;
 	opt.license = false;
+	opt.outpformat = OF_DEFAULT;
 	opt.selftest = false;
 	opt.valgrind = false;
 	opt.verbose = 0;
@@ -332,6 +340,7 @@ static int parse_options(const int argc, char * const argv[])
 		int c;
 		int option_index = 0;
 		static const struct option long_options[] = {
+			{"format", required_argument, NULL, 'F'},
 			{"help", no_argument, NULL, 'h'},
 			{"km", no_argument, NULL, 0},
 			{"license", no_argument, NULL, 0},
@@ -345,6 +354,7 @@ static int parse_options(const int argc, char * const argv[])
 
 		c = getopt_long(argc, argv,
 		                "+"  /* Stop parsing after first non-option */
+		                "F:" /* --format */
 		                "h"  /* --help */
 		                "q"  /* --quiet */
 		                "v"  /* --verbose */
@@ -416,6 +426,28 @@ static int process_args(int argc, char *argv[])
 }
 
 /*
+ * setup_options() - Do necessary changes to `o` based on the user input. For 
+ * now, it sets `o->outpformat` to the corresponding integer value of the 
+ * -F/--format argument. Returns 0 if everything is ok, otherwise it returns 1.
+ */
+
+static int setup_options(struct Options *o)
+{
+	if (o->format) {
+		msg(VERBOSE_DEBUG, "%s(): o.format = \"%s\"",
+		                   __func__, o->format);
+		if (!strlen(o->format) || !strcmp(o->format, "default")) {
+			o->outpformat = OF_DEFAULT;
+		} else {
+			myerror("%s: Unknown output format", o->format);
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+/*
  * main()
  */
 
@@ -435,6 +467,9 @@ int main(int argc, char *argv[])
 	    __func__, opt.verbose);
 	msg(VERBOSE_DEBUG, "%s(): argc = %d, optind = %d",
 	    __func__, argc, optind);
+
+	if (setup_options(&opt))
+		return EXIT_FAILURE;
 
 	if (opt.help)
 		return usage(EXIT_SUCCESS);

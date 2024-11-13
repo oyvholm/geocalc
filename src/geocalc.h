@@ -110,6 +110,7 @@ struct Options {
 	bool help;
 	bool km;
 	bool license;
+	char *format;
 	bool selftest;
 	bool valgrind;
 	VerboseLevel verbose;

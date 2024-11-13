@@ -26,6 +26,9 @@ Platform independent
 Built-in test suite for all functionality
 .SH OPTIONS
 .TP
+\fB\-F\fP \fIFORMAT\fP, \fB\-\-format\fP \fIFORMAT\fP
+Create output of type \fIFORMAT\fP. Available format: \fBdefault\fP.
+.TP
 \fB\-h\fP, \fB\-\-help\fP
 Show a help summary.
 .TP

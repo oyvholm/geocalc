@@ -11,6 +11,7 @@ v0.x.x - 202x-xx-xx
 -------------------
 
 - Add the `--km` option.
+- Add the `-F`/`--format` option. Supports `default`.
 - Clean up stderr when the tests are executed, remove "got/expected" 
   output.
 

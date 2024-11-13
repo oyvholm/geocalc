@@ -710,6 +710,41 @@ static int test_standard_options(void) {
 }
 
 /*
+ * test_format_option() - Tests the -F/--format option. Returns the number of 
+ * failed tests.
+ */
+
+static int test_format_option(void)
+{
+	int r = 0;
+
+	diag("Test -F/--format");
+	r += sc(chp{progname, "-vvvv", "-F", "FoRmAt", NULL},
+	        "",
+	        ": setup_options(): o.format = \"FoRmAt\"\n",
+	        EXIT_FAILURE,
+	        "-vvvv --format FoRmAt");
+	r += sc(chp{progname, "-vvvv", "-F", "FoRmAt", NULL},
+	        NULL,
+	        ": FoRmAt: Unknown output format\n",
+	        EXIT_FAILURE,
+	        "-vvvv --format FoRmAt: It says it's unknown");
+	r += sc(chp{progname, "-vvvv", "--format", "FoRmAt", NULL},
+	        "",
+	        ": setup_options(): o.format = \"FoRmAt\"\n",
+	        EXIT_FAILURE,
+	        "-vvvv --format FoRmAt");
+	r += tc(chp{progname, "-vvvv", "-F", "", "lpos", "54,7", "12,22",
+	            "0.23", NULL},
+	        "44.531328,12.145870\n",
+	        NULL,
+	        EXIT_SUCCESS,
+	        "-F with an empty argument");
+
+	return r;
+}
+
+/*
  * test_cmd_bpos() - Tests the `bpos` command. Returns the number of failed 
  * tests.
  */
@@ -749,6 +784,12 @@ static int test_cmd_bpos(void)
 	        ": Too many arguments\n",
 	        EXIT_FAILURE,
 	        "bpos: 1 extra argument");
+	r += tc(chp{ progname, "-F", "default", "bpos", "40.80542,-73.96546",
+	             "188.7", "4817.84", NULL },
+	        "40.762590,-73.974113\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "-F default bpos");
 
 	return r;
 }
@@ -843,6 +884,18 @@ static int test_cmd_course(void)
 	        ": Invalid number specified: Invalid argument\n",
 	        EXIT_FAILURE,
 	        "course: lon1 is invalid number");
+	r += tc(chp{progname, "-F", "default", "course",
+	            "52.3731,4.891", "35.681,139.767", "5", NULL},
+	        "52.373100,4.891000\n"
+	        "62.685860,22.579780\n"
+	        "68.869393,53.549146\n"
+	        "67.245712,91.173953\n"
+	        "59.021383,116.487394\n"
+	        "47.913547,130.771879\n"
+	        "35.681000,139.767000\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "-F default course, Amsterdam to Tokyo");
 
 	return r;
 }
@@ -1034,6 +1087,12 @@ static int test_multiple(char *cmd)
 	        EXIT_SUCCESS,
 	        (p1 = allocstr("--km %s 90,0 -90,0", cmd)));
 	free(p1);
+	r += tc(chp{ progname, "-F", "default", cmd, "34,56", "-78,9", NULL },
+	        !strcmp(cmd, "bear") ? "189.693136\n" : "12835310.777042\n",
+	        "",
+	        EXIT_SUCCESS,
+	        (p1 = allocstr("-F default %s", cmd)));
+	free(p1);
 
 	return r;
 }
@@ -1090,6 +1149,7 @@ static int test_executable(void)
 	        EXIT_SUCCESS,
 	        "--valgrind -h");
 	r += test_standard_options();
+	r += test_format_option();
 	r += test_cmd_bpos();
 	r += test_cmd_course();
 	r += test_cmd_lpos();
