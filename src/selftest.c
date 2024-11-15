@@ -799,6 +799,36 @@ static int test_gpx_wpt(void)
 	return r;
 }
 
+static int test_valgrind_option(void)
+{
+	int r = 0;
+	struct streams ss;
+
+	diag("Test --valgrind");
+
+	if (opt.valgrind) {
+		streams_init(&ss); /* gncov */
+		streams_exec(&ss, chp{"valgrind", "--version", /* gncov */
+		                      NULL});
+		if (!strstr(ss.err.buf, ": You cannot run")) { /* gncov */
+			diag("NOTICE: Valgrind is not installed," /* gncov */
+			     " disabling Valgrind checks.");
+			opt.valgrind = false; /* gncov */
+		} else {
+			ok(0, "Valgrind is installed"); /* gncov */
+		}
+		streams_free(&ss); /* gncov */
+	}
+
+	r += sc(chp{progname, "--valgrind", "-h", NULL},
+	        "Show this",
+	        "",
+	        EXIT_SUCCESS,
+	        "--valgrind -h");
+
+	return r;
+}
+
 /*
  * test_standard_options() - Tests the various generic options available in 
  * most programs. Returns the number of failed tests.
@@ -1384,17 +1414,12 @@ static int test_executable(void)
 	int r = 0;
 
 	diag("Test the executable");
+	r += test_valgrind_option();
 	r += sc(chp{ progname, "abc", NULL },
 	        "",
 	        ": Unknown command: abc\n",
 	        EXIT_FAILURE,
 	        "Unknown command");
-	diag("Test --valgrind");
-	r += sc(chp{progname, "--valgrind", "-h", NULL},
-	        "Show this",
-	        "",
-	        EXIT_SUCCESS,
-	        "--valgrind -h");
 	r += test_standard_options();
 	r += test_format_option();
 	r += test_cmd_bpos();

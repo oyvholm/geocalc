@@ -12,6 +12,7 @@ v0.x.x - 202x-xx-xx
 
 - Add the `--km` option.
 - Add the `-F`/`--format` option. Supports `default` and `gpx`.
+- `--valgrind`: Verify that Valgrind is installed on the system.
 - Clean up stderr when the tests are executed, remove "got/expected" 
   output.
 
