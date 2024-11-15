@@ -15,6 +15,7 @@ scripts and quick manual calculations.
 - Distance calculations between coordinates
 - Bearing calculations
 - Plot shortest route between points
+- Output in various formats
 - Minimal dependencies, no extra C libraries needed
 - Platform independent
 - Built-in test suite for all functionality
@@ -52,14 +53,14 @@ Contains the following commands:
   Determine the new position when traveling 4817.84 meters from the 
   "Seinfeld Café" along a bearing of 188.7 degrees, heading slightly 
   southwest.
-- `geocalc course 52.3731,4.891 35.681,139.767 1000`\
+- `geocalc -F gpx course 52.3731,4.891 35.681,139.767 1000`\
   Create 1000 intermediate points on a straight line from Amsterdam to 
-  Tokyo.
+  Tokyo in GPX format.
 - `geocalc dist 90,0 -90,0`\
   Calculate the distance from the North Pole to the South Pole.
-- `geocalc lpos -11.952039,49.245985 -25.606629,45.167246 0.5`\
+- `geocalc -F gpx lpos -11.952039,49.245985 -25.606629,45.167246 0.5`\
   Find center point on Madagascar, measured from the points furthest 
-  north and south.
+  north and south. Print the result as a GPX waypoint.
 
 ## Development
 

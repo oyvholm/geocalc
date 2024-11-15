@@ -40,6 +40,9 @@
 #include "binbuf.h"
 #include "geomath.h"
 
+#define PROJ_NAME  "Geocalc"
+#define PROJ_URL  "https://gitlab.com/oyvholm/geocalc"
+
 #if 1
 #  define DEBL  msg(VERBOSE_TRACE, "DEBL: %s, line %u in %s()", \
                                    __FILE__, __LINE__, __func__)
@@ -103,7 +106,8 @@ typedef enum {
 } VerboseLevel;
 
 typedef enum {
-	OF_DEFAULT = 0
+	OF_DEFAULT = 0,
+	OF_GPX
 } OutputFormat;
 
 struct Options {
@@ -139,6 +143,12 @@ int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s);
 int msg(const VerboseLevel verbose, const char *format, ...);
 const char *std_strerror(const int errnum);
 int myerror(const char *format, ...);
+
+/* gpx.c */
+extern const char *gpx_header;
+char *xml_escape_string(const char *text);
+char *gpx_wpt(const double lat, const double lon,
+              const char *name, const char *cmt);
 
 /* io.c */
 void streams_init(struct streams *dest);

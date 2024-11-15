@@ -19,6 +19,8 @@ Bearing calculations
 .IP \[bu] 2
 Plot shortest route between points
 .IP \[bu] 2
+Output in various formats
+.IP \[bu] 2
 Minimal dependencies, no extra C libraries needed
 .IP \[bu] 2
 Platform independent
@@ -27,7 +29,8 @@ Built-in test suite for all functionality
 .SH OPTIONS
 .TP
 \fB\-F\fP \fIFORMAT\fP, \fB\-\-format\fP \fIFORMAT\fP
-Create output of type \fIFORMAT\fP. Available format: \fBdefault\fP.
+Create output of type \fIFORMAT\fP. Available formats: \fBdefault\fP,\& 
+\fBgpx\fP.
 .TP
 \fB\-h\fP, \fB\-\-help\fP
 Show a help summary.
@@ -103,16 +106,17 @@ Bergen, Norway.
 Determine the new position when traveling 4817.84 meters from the "Seinfeld 
 Café" along a bearing of 188.7 degrees, heading slightly southwest.
 .TP
-\fCgeocalc course 52.3731,4.891 35.681,139.767 1000\fP
-Create 1000 intermediate points on a straight line from Amsterdam to Tokyo.
+\fCgeocalc \-F gpx course 52.3731,4.891 35.681,139.767 1000\fP
+Create 1000 intermediate points on a straight line from Amsterdam to Tokyo in 
+GPX format.
 .TP
 \fCgeocalc \-\-km dist 90,0 \-90,0\fP
 Calculate the distance from the North Pole to the South Pole and use kilometers 
 in the result.
 .TP
-\fCgeocalc lpos \-11.952039,49.245985 \-25.606629,45.167246 0.5\fP
+\fCgeocalc \-F gpx lpos \-11.952039,49.245985 \-25.606629,45.167246 0.5\fP
 Find center point on Madagascar, measured from the points furthest north and 
-south.
+south. Print the result as a GPX waypoint.
 .SH AUTHOR
 Written by \[/O]yvind A.\& Holm <sunny@sunbase.org>
 .SH COPYRIGHT

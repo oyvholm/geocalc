@@ -15,6 +15,7 @@ CFILES += binbuf.c
 CFILES += cmds.c
 CFILES += geocalc.c
 CFILES += geomath.c
+CFILES += gpx.c
 CFILES += io.c
 CFILES += selftest.c
 CFILES += string.c
@@ -73,6 +74,7 @@ OBJS += binbuf.o
 OBJS += cmds.o
 OBJS += geocalc.o
 OBJS += geomath.o
+OBJS += gpx.o
 OBJS += io.o
 OBJS += selftest.o
 OBJS += string.o
@@ -116,6 +118,9 @@ geocalc.o: geocalc.c $(DEPS)
 
 geomath.o: geomath.c $(DEPS)
 	$(CC) $(CFLAGS) geomath.c
+
+gpx.o: gpx.c $(DEPS)
+	$(CC) $(CFLAGS) gpx.c
 
 io.o: io.c $(DEPS)
 	$(CC) $(CFLAGS) io.c

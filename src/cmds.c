@@ -30,10 +30,24 @@
 static int print_eor_coor(const double lat, const double lon, const char *cmd,
                           const char *par1, const char *par2, const char *par3)
 {
-	if (cmd || par1 || par2 || par3) { } /* Temporary, avoid warnings */
+	char *cmt, *s;
+
 	switch (opt.outpformat) {
 	case OF_DEFAULT:
 		printf("%f,%f\n", lat, lon);
+		break;
+	case OF_GPX:
+		cmt = allocstr("%s %s %s %s", cmd, par1, par2, par3);
+		if (!cmt)
+			return 1; /* gncov */
+		s = gpx_wpt(lat, lon, cmd, cmt);
+		if (!s) {
+			free(cmt); /* gncov */
+			return 1; /* gncov */
+		}
+		printf("%s%s</gpx>\n", gpx_header, s);
+		free(s);
+		free(cmt);
 		break;
 	default: /* gncov */
 		return 1; /* gncov */
@@ -44,11 +58,16 @@ static int print_eor_coor(const double lat, const double lon, const char *cmd,
 
 /*
  * print_eor_number() - Prints "end of run" number. Same philosophy as 
- * print_eor_coor(). Returns only 0 for now.
+ * print_eor_coor(). Returns 1 if the output format is gpx, otherwise it 
+ * returns 0.
  */
 
 static int print_eor_number(const double num)
 {
+	if (opt.outpformat == OF_GPX) {
+		myerror("No way to display this info in GPX format");
+		return 1;
+	}
 	printf("%f\n", num);
 
 	return 0;
@@ -142,6 +161,10 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 		myerror("Value out of range");
 		return EXIT_FAILURE;
 	}
+	if (opt.outpformat == OF_GPX) {
+		fputs(gpx_header, stdout);
+		puts("  <rte>");
+	}
 	for (i = 0; i <= numpoints; i++) {
 		result = routepoint(lat1, lon1, lat2, lon2,
 		                    1.0 * i / numpoints, &nlat, &nlon);
@@ -150,14 +173,20 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 			case OF_DEFAULT:
 				printf("%f,%f\n", nlat, nlon);
 				break;
-			default: /* gncov */
-				break; /* gncov */
+			case OF_GPX:
+				printf("    <rtept lat=\"%f\" lon=\"%f\">\n"
+				       "    </rtept>\n", nlat, nlon);
+				break;
 			}
 		} else {
 			myerror("Value out of range");
 			retval = EXIT_FAILURE;
 			break;
 		}
+	}
+	if (opt.outpformat == OF_GPX) {
+		puts("  </rte>");
+		puts("</gpx>");
 	}
 
 	return retval;

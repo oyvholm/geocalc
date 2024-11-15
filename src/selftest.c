@@ -208,6 +208,41 @@ static int print_gotexp(const char *got, const char *exp)
 }
 
 /*
+ * verify_definitions() - Check that certain constants are unmodified. Some of 
+ * these constants are used in the tests themselves, so the tests will be 
+ * automatically updated to match the new text or value. This function contains 
+ * hardcoded versions of the expected output or return values. Returns the 
+ * number of failed tests.
+ */
+
+static int verify_definitions(void)
+{
+	int r = 0;
+	const char *e;
+
+	diag("Verify format definitions");
+
+	e = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+	    "<gpx"
+	    " xmlns=\"http://www.topografix.com/GPX/1/1\""
+	    " version=\"1.1\""
+	    " creator=\"Geocalc - https://gitlab.com/oyvholm/geocalc\""
+	    ">\n";
+	r += ok(strcmp(gpx_header, e) ? 1 : 0, "gpx_header is correct");
+	print_gotexp(gpx_header, e);
+
+	e = "Geocalc";
+	r += ok(strcmp(PROJ_NAME, e) ? 1 : 0, "PROJ_NAME is correct");
+	print_gotexp(PROJ_NAME, e);
+
+	e = "https://gitlab.com/oyvholm/geocalc";
+	r += ok(strcmp(PROJ_URL, e) ? 1 : 0, "PROJ_URL is correct");
+	print_gotexp(PROJ_URL, e);
+
+	return r;
+}
+
+/*
  * test_gotexp_output() - Tests the gotexp_output() function. print_gotexp() 
  * can't be tested directly because it would pollute stderr. Returns the number 
  * of failed tests.
@@ -616,6 +651,155 @@ static int test_parse_coordinate(void) {
 }
 
 /*
+ * chk_xmlesc() - Helper function used by test_xml_escape_string(). `s` is the 
+ * string to test, and `exp` is the expected outcome. Returns the number of 
+ * failed tests.
+ */
+
+static int chk_xmlesc(const char *s, const char *exp)
+{
+	int r = 0;
+	char *got;
+
+	assert(s);
+	assert(exp);
+	if (!s || !exp)
+		return ok(1, "%s() received NULL", __func__); /* gncov */
+
+	got = xml_escape_string(s);
+	if (!got)
+		return ok(1, "xml_escape_string() failed"); /* gncov */
+	r += ok(strcmp(got, exp) ? 1 : 0, "xml escape: \"%s\"", s);
+	free(got);
+
+	return r;
+}
+
+/*
+ * test_xml_escape_string() - Tests the xml_escape_string() function. Returns 
+ * the number of failed tests.
+ */
+
+static int test_xml_escape_string(void)
+{
+	int r = 0;
+
+	r += chk_xmlesc("", "");
+	r += chk_xmlesc("&", "&amp;");
+	r += chk_xmlesc("<", "&lt;");
+	r += chk_xmlesc(">", "&gt;");
+	r += chk_xmlesc("\\", "\\");
+	r += chk_xmlesc("a&c", "a&amp;c");
+	r += chk_xmlesc("a<c", "a&lt;c");
+	r += chk_xmlesc("a>c", "a&gt;c");
+	r += chk_xmlesc("abc", "abc");
+	r += ok(xml_escape_string(NULL) ? 1 : 0, "xml_escape_string(NULL)");
+
+	return r;
+}
+
+/*
+ * test_gpx_wpt() - Tests the gpx_wpt() function. Returns the number of failed 
+ * tests.
+ */
+
+static int test_gpx_wpt(void)
+{
+	int r = 0;
+	char *p, /* String sent to gpx_wpt() */
+	     *c, /* Converted version of `p` */
+	     *e, /* Expected string from gpx_wpt() */
+	     *s; /* Result from gpx_wpt() */
+
+	e = "  <wpt lat=\"12.340000\" lon=\"56.780000\">\n"
+	    "    <name>abc def</name>\n"
+	    "    <cmt>ghi jkl MN</cmt>\n"
+	    "  </wpt>\n";
+	s = gpx_wpt(12.34, 56.78, "abc def", "ghi jkl MN");
+	r += ok((s ? (strcmp(s, e) ? 1 : 0) : 1),
+	        "gpx_wpt() without special chars");
+	print_gotexp(s, e);
+	free(s);
+
+	e = "  <wpt lat=\"12.340000\" lon=\"56.780000\">\n"
+	    "    <name>&amp;</name>\n"
+	    "    <cmt>&amp;</cmt>\n"
+	    "  </wpt>\n";
+	s = gpx_wpt(12.34, 56.78, "&", "&");
+	r += ok((s ? (strcmp(s, e) ? 1 : 0) : 1),
+	        "gpx_wpt() with ampersand");
+	print_gotexp(s, e);
+	free(s);
+
+	e = "  <wpt lat=\"12.340000\" lon=\"56.780000\">\n"
+	    "    <name>&lt;</name>\n"
+	    "    <cmt>&lt;</cmt>\n"
+	    "  </wpt>\n";
+	s = gpx_wpt(12.34, 56.78, "<", "<");
+	r += ok((s ? (strcmp(s, e) ? 1 : 0) : 1),
+	        "gpx_wpt() with lt");
+	print_gotexp(s, e);
+	free(s);
+
+	e = "  <wpt lat=\"12.340000\" lon=\"56.780000\">\n"
+	    "    <name>&gt;</name>\n"
+	    "    <cmt>&gt;</cmt>\n"
+	    "  </wpt>\n";
+	s = gpx_wpt(12.34, 56.78, ">", ">");
+	r += ok((s ? (strcmp(s, e) ? 1 : 0) : 1),
+	        "gpx_wpt() with gt");
+	print_gotexp(s, e);
+	free(s);
+
+	p = "asdf < & > <\" &&lt; < & abc\n"
+	    " >;;;&lt;;;åæø;abc🤘def\n"
+	    "def>/<€>;&amp;&<&gt;>&\n"
+	    "\\$e=19;\n";
+	c = "asdf &lt; &amp; &gt; &lt;\" &amp;&amp;lt; &lt; &amp; abc\n"
+	    " &gt;;;;&amp;lt;;;åæø;abc🤘def\n"
+	    "def&gt;/&lt;€&gt;;&amp;amp;&amp;&lt;&amp;gt;&gt;&amp;\n"
+	    "\\$e=19;\n";
+	e = allocstr("  <wpt lat=\"12.340000\" lon=\"56.780000\">\n"
+	             "    <name>%s</name>\n"
+	             "    <cmt>%s</cmt>\n"
+	             "  </wpt>\n", c, c);
+	s = gpx_wpt(12.34, 56.78, p, p);
+	r += ok((s ? (strcmp(s, e) ? 1 : 0) : 1),
+	        "gpx_wpt() with amp, gt, lt, and more");
+	print_gotexp(s, e);
+	free(s);
+	free(e);
+
+	p = NULL;
+	e = NULL;
+	s = gpx_wpt(12.34, 56.78, p, p);
+	r += ok(s ? 1 : 0, "gpx_wpt() with NULL in name and cmt");
+	print_gotexp(s, e);
+	if (s) {
+		ok(1, "%s():%d: `s` was allocated", /* gncov */
+		      __func__, __LINE__);
+		free(s); /* gncov */
+	}
+
+	p = NULL;
+	e = NULL;
+	s = gpx_wpt(12.34, 56.78, p, "def");
+	r += ok(s ? 1 : 0, "gpx_wpt() with NULL in name");
+	print_gotexp(s, e);
+	if (s) {
+		ok(1, "%s():%d: `s` was allocated", /* gncov */
+		      __func__, __LINE__);
+		free(s); /* gncov */
+	}
+
+	s = gpx_wpt(12.34, 56.78, "abc", NULL);
+	r += ok(s ? 0 : 1, "gpx_wpt() with NULL in cmt");
+	free(s);
+
+	return r;
+}
+
+/*
  * test_standard_options() - Tests the various generic options available in 
  * most programs. Returns the number of failed tests.
  */
@@ -752,6 +936,7 @@ static int test_format_option(void)
 static int test_cmd_bpos(void)
 {
 	int r = 0;
+	char *p1;
 
 	diag("Test bpos command");
 	r += tc(chp{ progname, "bpos", "45,0", "45", "1000", NULL },
@@ -790,6 +975,19 @@ static int test_cmd_bpos(void)
 	        "",
 	        EXIT_SUCCESS,
 	        "-F default bpos");
+	r += tc(chp{ progname, "--format", "gpx", "bpos", "40.80542,-73.96546",
+	             "188.7", "4817.84", NULL },
+	        (p1 = allocstr(
+	              "%s"
+	              "  <wpt lat=\"40.762590\" lon=\"-73.974113\">\n"
+	              "    <name>bpos</name>\n"
+	              "    <cmt>bpos 40.80542,-73.96546 188.7 4817.84</cmt>\n"
+	              "  </wpt>\n"
+	              "</gpx>\n", gpx_header)),
+	        "",
+	        EXIT_SUCCESS,
+	        "--format gpx bpos");
+	free(p1);
 
 	return r;
 }
@@ -802,7 +1000,7 @@ static int test_cmd_bpos(void)
 static int test_cmd_course(void)
 {
 	int r = 0;
-	const char *exp_stdout;
+	char *exp_stdout;
 
 	diag("Test course command");
 	r += tc(chp{ progname, "course", "45,0", "45,180", "1", NULL },
@@ -896,6 +1094,31 @@ static int test_cmd_course(void)
 	        "",
 	        EXIT_SUCCESS,
 	        "-F default course, Amsterdam to Tokyo");
+	r += tc(chp{progname, "-F", "gpx", "course",
+	            "52.3731,4.891", "35.681,139.767", "5", NULL},
+	        (exp_stdout = allocstr(
+	        "%s"
+	        "  <rte>\n"
+	        "    <rtept lat=\"52.373100\" lon=\"4.891000\">\n"
+	        "    </rtept>\n"
+	        "    <rtept lat=\"62.685860\" lon=\"22.579780\">\n"
+	        "    </rtept>\n"
+	        "    <rtept lat=\"68.869393\" lon=\"53.549146\">\n"
+	        "    </rtept>\n"
+	        "    <rtept lat=\"67.245712\" lon=\"91.173953\">\n"
+	        "    </rtept>\n"
+	        "    <rtept lat=\"59.021383\" lon=\"116.487394\">\n"
+	        "    </rtept>\n"
+	        "    <rtept lat=\"47.913547\" lon=\"130.771879\">\n"
+	        "    </rtept>\n"
+	        "    <rtept lat=\"35.681000\" lon=\"139.767000\">\n"
+	        "    </rtept>\n"
+	        "  </rte>\n"
+	        "</gpx>\n", gpx_header)),
+	        "",
+	        EXIT_SUCCESS,
+	        "-F gpx course, Amsterdam to Tokyo");
+	free(exp_stdout);
 
 	return r;
 }
@@ -908,6 +1131,7 @@ static int test_cmd_course(void)
 static int test_cmd_lpos(void)
 {
 	int r = 0;
+	char *p;
 
 	diag("Test lpos command");
 	r += tc(chp{ progname, "lpos", "45,0", "45,180", "0.5", NULL },
@@ -920,6 +1144,19 @@ static int test_cmd_lpos(void)
 	        "",
 	        EXIT_SUCCESS,
 	        "--km lpos: At the North Pole");
+	r += tc(chp{ progname, "--format", "gpx", "lpos", "45,0", "45,180",
+	             "0.5", NULL },
+	             (p = allocstr(
+	                  "%s"
+	                  "  <wpt lat=\"90.000000\" lon=\"0.000000\">\n"
+	                  "    <name>lpos</name>\n"
+	                  "    <cmt>lpos 45,0 45,180 0.5</cmt>\n"
+	                  "  </wpt>\n"
+	                  "</gpx>\n", gpx_header)),
+	        "",
+	        EXIT_SUCCESS,
+	        "--format gpx lpos: At the North Pole");
+	free(p);
 	r += sc(chp{ progname, "lpos", "1,2", "3,4", NULL },
 	        "",
 	        ": Missing arguments\n",
@@ -1093,6 +1330,13 @@ static int test_multiple(char *cmd)
 	        EXIT_SUCCESS,
 	        (p1 = allocstr("-F default %s", cmd)));
 	free(p1);
+	r += sc(chp{ progname, "--format", "gpx", cmd, "34,56", "-78,9",
+	             NULL },
+	        "",
+	        ": No way to display this info in GPX format\n",
+	        EXIT_FAILURE,
+	        (p1 = allocstr("--format gpx %s", cmd)));
+	free(p1);
 
 	return r;
 }
@@ -1108,6 +1352,7 @@ static int test_functions(void)
 
 	diag("Test selftest routines");
 	r += ok(!ok(0, NULL), "ok(0, NULL)");
+	r += verify_definitions();
 	r += test_diag();
 	r += test_gotexp_output();
 	r += test_valgrind_lines();
@@ -1122,6 +1367,8 @@ static int test_functions(void)
 	r += ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
 	r += test_allocstr();
 	r += test_parse_coordinate();
+	r += test_xml_escape_string();
+	r += test_gpx_wpt();
 
 	return r;
 }

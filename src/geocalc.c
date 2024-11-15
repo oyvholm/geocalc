@@ -243,8 +243,8 @@ static int usage(const int retval)
 	printf("Options:\n");
 	printf("\n");
 	printf("  -F <format>, --format <format>\n"
-	       "    Output in a specific format. Available format:"
-	       " default.\n");
+	       "    Output in a specific format. Available formats:"
+	       " default, gpx.\n");
 	printf("  -h, --help\n"
 	       "    Show this help.\n");
 	printf("  --km\n"
@@ -438,7 +438,9 @@ static int setup_options(struct Options *o)
 		                   __func__, o->format);
 		if (!strlen(o->format) || !strcmp(o->format, "default")) {
 			o->outpformat = OF_DEFAULT;
-		} else {
+		} else if (!strcmp(o->format, "gpx"))
+			o->outpformat = OF_GPX;
+		else {
 			myerror("%s: Unknown output format", o->format);
 			return 1;
 		}
