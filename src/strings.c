@@ -1,5 +1,5 @@
 /*
- * string.c
+ * strings.c
  * File ID: f7f16c5c-96b1-11ef-bd3d-83850402c3ce
  *
  * (C)opyleft 2024- Øyvind A. Holm <sunny@sunbase.org>

@@ -18,7 +18,7 @@ CFILES += geomath.c
 CFILES += gpx.c
 CFILES += io.c
 CFILES += selftest.c
-CFILES += string.c
+CFILES += strings.c
 CFLAGS  =
 CFLAGS += $$(test "$$(uname -o)" = "Android" || echo -fcf-protection=full)
 CFLAGS += $$(test -n "$(GCOV)" && echo -n "-fprofile-arcs -ftest-coverage")
@@ -77,7 +77,7 @@ OBJS += geomath.o
 OBJS += gpx.o
 OBJS += io.o
 OBJS += selftest.o
-OBJS += string.o
+OBJS += strings.o
 PDFFILE = $(EXEC).pdf
 
 CMD_VALGRIND  = valgrind
@@ -133,8 +133,8 @@ io.o: io.c $(DEPS)
 selftest.o: selftest.c $(DEPS)
 	$(CC) $(CFLAGS) selftest.c
 
-string.o: string.c $(DEPS)
-	$(CC) $(CFLAGS) string.c
+strings.o: strings.c $(DEPS)
+	$(CC) $(CFLAGS) strings.c
 
 .PHONY: clean
 clean:

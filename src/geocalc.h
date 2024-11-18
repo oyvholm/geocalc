@@ -159,7 +159,7 @@ int streams_exec(struct streams *dest, char *cmd[]);
 /* selftest.c */
 int selftest(void);
 
-/* string.c */
+/* strings.c */
 int string_to_double(const char *s, double *dest);
 char *mystrdup(const char *s);
 char *allocstr(const char *format, ...);

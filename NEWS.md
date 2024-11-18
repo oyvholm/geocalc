@@ -15,6 +15,7 @@ v0.x.x - 202x-xx-xx
 - `--valgrind`: Verify that Valgrind is installed on the system.
 - Clean up stderr when the tests are executed, remove "got/expected" 
   output.
+- Rename `string.c` to `strings.c`.
 
 v0.1.0 - 2024-11-10
 -------------------
