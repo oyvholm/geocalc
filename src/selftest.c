@@ -812,8 +812,8 @@ static int test_valgrind_option(void)
 		streams_exec(&ss, chp{"valgrind", "--version", /* gncov */
 		                      NULL});
 		if (!strstr(ss.out.buf, "valgrind-")) { /* gncov */
-			diag("NOTICE: Valgrind is not installed," /* gncov */
-			     " disabling Valgrind checks.");
+			r += ok(1, "Valgrind is not installed," /* gncov */
+			           " disabling Valgrind checks.");
 		} else {
 			ok(0, "Valgrind is installed"); /* gncov */
 			opt.valgrind = true; /* gncov */
