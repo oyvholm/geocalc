@@ -244,50 +244,6 @@ static int verify_definitions(void)
 }
 
 /*
- * test_gotexp_output() - Tests the gotexp_output() function. print_gotexp() 
- * can't be tested directly because it would pollute stderr. Returns the number 
- * of failed tests.
- */
-
-static int test_gotexp_output(void)
-{
-	int r = 0;
-	char *p, *s;
-
-	diag("Test gotexp_output()");
-
-	r += ok(gotexp_output(NULL, "a") ? 1 : 0,
-	        "gotexp_output(NULL, \"a\")");
-
-	r += ok(strcmp((p = gotexp_output("got this", "expected this")),
-	               "         got: 'got this'\n"
-	               "    expected: 'expected this'") ? 1 : 0,
-	        "gotexp_output(\"got this\", \"expected this\")");
-	free(p);
-
-	r += ok(!print_gotexp(NULL, "expected this"),
-	        "print_gotexp(): Arg is NULL");
-
-	s = "gotexp_output(\"a\", \"a\")";
-	r += ok((p = gotexp_output("a", "a")) ? 0 : 1,
-	        "%s doesn't return NULL", s);
-	r += ok(strcmp(p, "         got: 'a'\n    expected: 'a'") ? 1 : 0,
-	        "%s: Contents is ok", s);
-	free(p);
-
-	s = "gotexp_output() with newline";
-	r += ok((p = gotexp_output("with\nnewline", "also with\nnewline"))
-	        ? 0 : 1,
-	        "%s: Doesn't return NULL", s);
-	r += ok(strcmp(p, "         got: 'with\nnewline'\n"
-	                  "    expected: 'also with\nnewline'") ? 1 : 0,
-	        "%s: Contents is ok", s);
-	free(p);
-
-	return r;
-}
-
-/*
  * test_diag_big() - Tests diag_output() with a string larger than BUFSIZ. 
  * Returns the number of failed tests.
  */
@@ -353,6 +309,50 @@ static int test_diag(void) {
 	free(p);
 
 	r += test_diag_big();
+
+	return r;
+}
+
+/*
+ * test_gotexp_output() - Tests the gotexp_output() function. print_gotexp() 
+ * can't be tested directly because it would pollute stderr. Returns the number 
+ * of failed tests.
+ */
+
+static int test_gotexp_output(void)
+{
+	int r = 0;
+	char *p, *s;
+
+	diag("Test gotexp_output()");
+
+	r += ok(gotexp_output(NULL, "a") ? 1 : 0,
+	        "gotexp_output(NULL, \"a\")");
+
+	r += ok(strcmp((p = gotexp_output("got this", "expected this")),
+	               "         got: 'got this'\n"
+	               "    expected: 'expected this'") ? 1 : 0,
+	        "gotexp_output(\"got this\", \"expected this\")");
+	free(p);
+
+	r += ok(!print_gotexp(NULL, "expected this"),
+	        "print_gotexp(): Arg is NULL");
+
+	s = "gotexp_output(\"a\", \"a\")";
+	r += ok((p = gotexp_output("a", "a")) ? 0 : 1,
+	        "%s doesn't return NULL", s);
+	r += ok(strcmp(p, "         got: 'a'\n    expected: 'a'") ? 1 : 0,
+	        "%s: Contents is ok", s);
+	free(p);
+
+	s = "gotexp_output() with newline";
+	r += ok((p = gotexp_output("with\nnewline", "also with\nnewline"))
+	        ? 0 : 1,
+	        "%s: Doesn't return NULL", s);
+	r += ok(strcmp(p, "         got: 'with\nnewline'\n"
+	                  "    expected: 'also with\nnewline'") ? 1 : 0,
+	        "%s: Contents is ok", s);
+	free(p);
 
 	return r;
 }
