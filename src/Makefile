@@ -2,13 +2,10 @@
 # File ID: 93f52a4a-87f2-11ef-bbc3-83850402c3ce
 # Author: Øyvind A. Holm <sunny@sunbase.org>
 
-PREFIX = /usr/local
-
-EXEC = geocalc
-MANPAGE = $(EXEC).1
-
 CC = cc
+EXEC = geocalc
 LD = cc
+PREFIX = /usr/local
 
 CFILES  =
 CFILES += binbuf.c
@@ -67,6 +64,7 @@ LDFLAGS += -Wl,-z,relro
 LIBS  =
 LIBS += $$(test -n "$(GCOV)" && echo "-lgcov --coverage")
 LIBS += -lm
+MANPAGE = $(EXEC).1
 MANSRC = $(MANPAGE).man
 MAN_DATE = $$(grep EXEC_DATE version.h | cut -d '"' -f 2 | sed 's/-/\\\\-/g;')
 OBJS  =

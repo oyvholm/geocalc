@@ -14,7 +14,7 @@ v0.x.x - 202x-xx-xx
 - Add the `-F`/`--format` option. Supports `default` and `gpx`.
 - `--valgrind`: Verify that Valgrind is installed on the system.
 - Clean up stderr when the tests are executed, remove "got/expected" 
-  output.
+  output and obsolete info, tweak descriptions.
 - Rename `string.c` to `strings.c`.
 
 v0.1.0 - 2024-11-10

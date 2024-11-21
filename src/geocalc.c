@@ -248,8 +248,7 @@ static int usage(const int retval)
 	printf("  -h, --help\n"
 	       "    Show this help.\n");
 	printf("  --km\n"
-	       "    Use kilometers instead of meters in the input and"
-	       " output.\n");
+	       "    Use kilometers instead of meters for input and output.\n");
 	printf("  --license\n"
 	       "    Print the software license.\n");
 	printf("  -q, --quiet\n"
@@ -438,9 +437,9 @@ static int setup_options(struct Options *o)
 		                   __func__, o->format);
 		if (!strlen(o->format) || !strcmp(o->format, "default")) {
 			o->outpformat = OF_DEFAULT;
-		} else if (!strcmp(o->format, "gpx"))
+		} else if (!strcmp(o->format, "gpx")) {
 			o->outpformat = OF_GPX;
-		else {
+		} else {
 			myerror("%s: Unknown output format", o->format);
 			return 1;
 		}
@@ -466,9 +465,9 @@ int main(int argc, char *argv[])
 	}
 
 	msg(VERBOSE_DEBUG, "%s(): Using verbose level %d",
-	    __func__, opt.verbose);
+	                   __func__, opt.verbose);
 	msg(VERBOSE_DEBUG, "%s(): argc = %d, optind = %d",
-	    __func__, argc, optind);
+	                   __func__, argc, optind);
 
 	if (setup_options(&opt))
 		return EXIT_FAILURE;
@@ -483,13 +482,13 @@ int main(int argc, char *argv[])
 		return print_license();
 
 	msg(VERBOSE_TRACE, "argc = %d, optind = %d, argv[optind] = %s\n",
-	       argc, optind, argv[optind]);
+	                   argc, optind, argv[optind]);
 	if (optind < argc) {
 		int t;
 
 		for (t = optind; t < argc; t++) {
 			msg(VERBOSE_DEBUG, "%s(): Non-option arg %d: %s",
-			       __func__, t, argv[t]);
+			                   __func__, t, argv[t]);
 		}
 		retval = process_args(argc, argv);
 	} else {
@@ -498,7 +497,7 @@ int main(int argc, char *argv[])
 	}
 
 	msg(VERBOSE_DEBUG, "Returning from %s() with value %d",
-	    __func__, retval);
+	                   __func__, retval);
 	return retval;
 }
 

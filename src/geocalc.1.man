@@ -8,7 +8,7 @@ geocalc \- Calculate various geographic data
 [\fIOPTIONS\fP] <\fICOMMAND\fP> [\fIARGS\fP]
 .SH DESCRIPTION
 geocalc is a program that calculates various geographic data. It receives 
-parameters and values via the command line, and prints strict, stripped-down 
+parameters and values via the command line, and prints accurate and strict 
 values to standard output. This makes it suitable for use in scripts and quick 
 manual calculations.
 .SS Features
@@ -36,7 +36,7 @@ Create output of type \fIFORMAT\fP. Available formats: \fBdefault\fP,\&
 Show a help summary.
 .TP
 \fB\-\-km\fP
-Use kilometers instead of meters in the input and output.
+Use kilometers instead of meters for input and output.
 .TP
 \fB\-\-license\fP
 Print the software license.
@@ -104,7 +104,7 @@ Bergen, Norway.
 .TP
 \fCgeocalc bpos 40.80542,\-73.96546 188.7 4817.84\fP
 Determine the new position when traveling 4817.84 meters from the "Seinfeld 
-Café" along a bearing of 188.7 degrees, heading slightly southwest.
+Caf\['e]" along a bearing of 188.7 degrees, heading slightly southwest.
 .TP
 \fCgeocalc \-F gpx course 52.3731,4.891 35.681,139.767 1000\fP
 Create 1000 intermediate points on a straight line from Amsterdam to Tokyo in 

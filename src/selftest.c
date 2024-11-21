@@ -32,8 +32,9 @@ static int testnum = 0;
 /*
  * ok() - Print a log line to stdout. If `i` is 0, an "ok" line is printed, 
  * otherwise a "not ok" line is printed. `desc` is the test description and can 
- * use `printf` sequences. If `desc` is NULL, it returns 1. Otherwise, it 
- * returns `i`.
+ * use printf sequences.
+ *
+ * If `desc` is NULL, it returns 1. Otherwise, it returns `i`.
  */
 
 static int ok(const int i, const char *desc, ...)
@@ -54,7 +55,7 @@ static int ok(const int i, const char *desc, ...)
 
 /*
  * diag_output_va() - Receives a printf-like string and returns an allocated 
- * string, prefixed it with "# " and all '\n' characters converted to "\n# ". 
+ * string, prefixed with "# " and all '\n' characters converted to "\n# ". 
  * Returns NULL if anything fails or `format` is NULL.
  */
 
@@ -298,7 +299,6 @@ static int test_diag_big(void)
 	char *p, *outp;
 
 	size = BUFSIZ * 2;
-	diag("%s(): BUFSIZ = %d, size = %zu", __func__, BUFSIZ, size);
 	p = malloc(size + 1);
 	if (!p)
 		return ok(1, "%s(): malloc(%zu) failed", /* gncov */
@@ -454,14 +454,14 @@ static int test_valgrind_lines(void)
 	i = 0;
 	while (has[i]) {
 		r += ok(!valgrind_lines(has[i]),
-		        "Has valgrind marker, string %d", i);
+		        "valgrind_lines(): Has valgrind marker, string %d", i);
 		i++;
 	}
 
 	i = 0;
 	while (hasnot[i]) {
 		r += ok(valgrind_lines(hasnot[i]),
-		        "Has no valgrind marker, string %d", i);
+		        "valgrind_lines(): No valgrind marker, string %d", i);
 		i++;
 	}
 
@@ -830,6 +830,11 @@ static int test_gpx_wpt(void)
 	return r;
 }
 
+/*
+ * test_valgrind_option() - Tests the --valgrind command line option. Returns 
+ * the number of failed tests.
+ */
+
 static int test_valgrind_option(void)
 {
 	int r = 0;
@@ -945,7 +950,7 @@ static int test_standard_options(void) {
 	        "",
 	        ": Option error\n",
 	        EXIT_FAILURE,
-	        "\"Option error\" message is printed");
+	        "Unknown option: \"Option error\" message is printed");
 	r += sc(chp{ progname, "--gurgle", NULL },
 	        "",
 	        " --help\" for help screen. Returning with value 1.\n",
