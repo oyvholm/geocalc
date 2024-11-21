@@ -209,6 +209,163 @@ static int print_gotexp(const char *got, const char *exp)
 }
 
 /*
+ * tc_cmp() - Comparison function used by test_command(). There are 2 types of 
+ * verification: One that demands that the whole output must be identical to 
+ * the expected value, and the other is just a substring search. `got` is the 
+ * actual output from the program, and `exp` is the expected output or 
+ * substring.
+ *
+ * If `identical` is 0 (substring search) and `exp` is empty, the output in 
+ * `got` must also be empty for the test to succeed.
+ *
+ * Returns 0 if the string was found, otherwise 1.
+ */
+
+static int tc_cmp(const int identical, const char *got, const char *exp)
+{
+	assert(got);
+	assert(exp);
+	if (!got || !exp)
+		return 1; /* gncov */
+
+	if (identical || !strlen(exp))
+		return strcmp(got, exp) ? 1 : 0;
+
+	return strstr(got, exp) ? 0 : 1;
+}
+
+/*
+ * valgrind_lines() - Searches for Valgrind markers ("\n==DIGITS==") in `s`, 
+ * used by test_command(). If a marker is found or `s` is NULL, it returns 1. 
+ * Otherwise, it returns 0.
+ */
+
+static int valgrind_lines(const char *s)
+{
+	const char *p = s;
+
+	if (!s)
+		return ok(1, "%s(): s == NULL", __func__); /* gncov */
+
+	while (*p) {
+		p = strstr(p, "\n==");
+		if (!p)
+			return 0;
+		p += 3;
+		if (!*p)
+			return 0;
+		if (!isdigit(*p))
+			continue;
+		while (isdigit(*p))
+			p++;
+		if (!*p)
+			return 0;
+		if (!strncmp(p, "==", 2))
+			return 1;
+		p++;
+	}
+
+	return 0;
+}
+
+/*
+ * test_command() - Run the executable with arguments in `cmd` and verify 
+ * stdout, stderr and the return value against `exp_stdout`, `exp_stderr` and 
+ * `exp_retval`. Returns the number of failed tests, or 1 if `cmd` is NULL.
+ */
+
+static int test_command(const char identical, char *cmd[],
+                        const char *exp_stdout, const char *exp_stderr,
+                        const int exp_retval, const char *desc)
+{
+	int r = 0;
+	struct streams ss;
+
+	assert(cmd);
+	if (!cmd)
+		return 1; /* gncov */
+
+	if (opt.verbose >= VERBOSE_DEBUG) {
+		int i = -1; /* gncov */
+		fprintf(stderr, "# %s(", __func__); /* gncov */
+		while (cmd[++i]) /* gncov */
+			fprintf(stderr, "%s\"%s\"", /* gncov */
+			                i ? ", " : "", cmd[i]); /* gncov */
+		fprintf(stderr, ")\n"); /* gncov */
+	}
+
+	streams_init(&ss);
+	streams_exec(&ss, cmd);
+	if (exp_stdout) {
+		r += ok(tc_cmp(identical, ss.out.buf, exp_stdout),
+		        "%s (stdout)", desc);
+		if (tc_cmp(identical, ss.out.buf, exp_stdout)) {
+			print_gotexp(ss.out.buf, exp_stdout); /* gncov */
+		}
+	}
+	if (exp_stderr) {
+		r += ok(tc_cmp(identical, ss.err.buf, exp_stderr),
+		        "%s (stderr)", desc);
+		if (tc_cmp(identical, ss.err.buf, exp_stderr)) {
+			print_gotexp(ss.err.buf, exp_stderr); /* gncov */
+		}
+	}
+	r += ok(!(ss.ret == exp_retval), "%s (retval)", desc);
+	if (ss.ret != exp_retval) {
+		char *g = allocstr("%d", ss.ret), /* gncov */
+		     *e = allocstr("%d", exp_retval); /* gncov */
+		if (!g || !e) /* gncov */
+			r += ok(1, "%s(): allocstr() failed", /* gncov */
+			           __func__); /* gncov */
+		else
+			print_gotexp(g, e); /* gncov */
+		free(e); /* gncov */
+		free(g); /* gncov */
+	}
+	if (valgrind_lines(ss.err.buf))
+		r += ok(1, "Found valgrind output"); /* gncov */
+	streams_free(&ss);
+
+	return r;
+}
+
+/*
+ * sc() - Execute command `cmd` and verify that stdout, stderr and the return 
+ * value corresponds to the expected values. The `exp_*` variables are 
+ * substrings that must occur in the actual output. Returns the number of 
+ * failed tests.
+ */
+
+static int sc(char *cmd[], const char *exp_stdout, const char *exp_stderr,
+              const int exp_retval, const char *desc)
+{
+	return test_command(0, cmd, exp_stdout, exp_stderr, exp_retval, desc);
+}
+
+/*
+ * tc() - Execute command `cmd` and verify that stdout, stderr and the return 
+ * value are identical to the expected values. The `exp_*` variables are 
+ * strings that must be identical to the actual output. Returns the number of 
+ * failed tests.
+ */
+
+static int tc(char *cmd[], const char *exp_stdout, const char *exp_stderr,
+              const int exp_retval, const char *desc)
+{
+	return test_command(1, cmd, exp_stdout, exp_stderr, exp_retval, desc);
+}
+
+/*
+ ******************
+ * Function tests *
+ ******************
+ */
+
+/*
+ * selftest functions
+ */
+
+/*
  * verify_definitions() - Check that certain constants are unmodified. Some of 
  * these constants are used in the tests themselves, so the tests will be 
  * automatically updated to match the new text or value. This function contains 
@@ -358,66 +515,6 @@ static int test_gotexp_output(void)
 }
 
 /*
- * tc_cmp() - Comparison function used by test_command(). There are 2 types of 
- * verification: One that demands that the whole output must be identical to 
- * the expected value, and the other is just a substring search. `got` is the 
- * actual output from the program, and `exp` is the expected output or 
- * substring.
- *
- * If `identical` is 0 (substring search) and `exp` is empty, the output in 
- * `got` must also be empty for the test to succeed.
- *
- * Returns 0 if the string was found, otherwise 1.
- */
-
-static int tc_cmp(const int identical, const char *got, const char *exp)
-{
-	assert(got);
-	assert(exp);
-	if (!got || !exp)
-		return 1; /* gncov */
-
-	if (identical || !strlen(exp))
-		return strcmp(got, exp) ? 1 : 0;
-
-	return strstr(got, exp) ? 0 : 1;
-}
-
-/*
- * valgrind_lines() - Searches for Valgrind markers ("\n==DIGITS==") in `s`, 
- * used by test_command(). If a marker is found or `s` is NULL, it returns 1. 
- * Otherwise, it returns 0.
- */
-
-static int valgrind_lines(const char *s)
-{
-	const char *p = s;
-
-	if (!s)
-		return ok(1, "%s(): s == NULL", __func__); /* gncov */
-
-	while (*p) {
-		p = strstr(p, "\n==");
-		if (!p)
-			return 0;
-		p += 3;
-		if (!*p)
-			return 0;
-		if (!isdigit(*p))
-			continue;
-		while (isdigit(*p))
-			p++;
-		if (!*p)
-			return 0;
-		if (!strncmp(p, "==", 2))
-			return 1;
-		p++;
-	}
-
-	return 0;
-}
-
-/*
  * test_valgrind_lines() - Test the behavior of valgrind_lines(). Returns the 
  * number of failed tests.
  */
@@ -469,117 +566,8 @@ static int test_valgrind_lines(void)
 }
 
 /*
- * test_command() - Run the executable with arguments in `cmd` and verify 
- * stdout, stderr and the return value against `exp_stdout`, `exp_stderr` and 
- * `exp_retval`. Returns the number of failed tests, or 1 if `cmd` is NULL.
+ * Various functions
  */
-
-static int test_command(const char identical, char *cmd[],
-                        const char *exp_stdout, const char *exp_stderr,
-                        const int exp_retval, const char *desc)
-{
-	int r = 0;
-	struct streams ss;
-
-	assert(cmd);
-	if (!cmd)
-		return 1; /* gncov */
-
-	if (opt.verbose >= VERBOSE_DEBUG) {
-		int i = -1; /* gncov */
-		fprintf(stderr, "# %s(", __func__); /* gncov */
-		while (cmd[++i]) /* gncov */
-			fprintf(stderr, "%s\"%s\"", /* gncov */
-			                i ? ", " : "", cmd[i]); /* gncov */
-		fprintf(stderr, ")\n"); /* gncov */
-	}
-
-	streams_init(&ss);
-	streams_exec(&ss, cmd);
-	if (exp_stdout) {
-		r += ok(tc_cmp(identical, ss.out.buf, exp_stdout),
-		        "%s (stdout)", desc);
-		if (tc_cmp(identical, ss.out.buf, exp_stdout)) {
-			print_gotexp(ss.out.buf, exp_stdout); /* gncov */
-		}
-	}
-	if (exp_stderr) {
-		r += ok(tc_cmp(identical, ss.err.buf, exp_stderr),
-		        "%s (stderr)", desc);
-		if (tc_cmp(identical, ss.err.buf, exp_stderr)) {
-			print_gotexp(ss.err.buf, exp_stderr); /* gncov */
-		}
-	}
-	r += ok(!(ss.ret == exp_retval), "%s (retval)", desc);
-	if (ss.ret != exp_retval) {
-		char *g = allocstr("%d", ss.ret), /* gncov */
-		     *e = allocstr("%d", exp_retval); /* gncov */
-		if (!g || !e) /* gncov */
-			r += ok(1, "%s(): allocstr() failed", /* gncov */
-			           __func__); /* gncov */
-		else
-			print_gotexp(g, e); /* gncov */
-		free(e); /* gncov */
-		free(g); /* gncov */
-	}
-	if (valgrind_lines(ss.err.buf))
-		r += ok(1, "Found valgrind output"); /* gncov */
-	streams_free(&ss);
-
-	return r;
-}
-
-/*
- * sc() - Execute command `cmd` and verify that stdout, stderr and the return 
- * value corresponds to the expected values. The `exp_*` variables are 
- * substrings that must occur in the actual output. Returns the number of 
- * failed tests.
- */
-
-static int sc(char *cmd[], const char *exp_stdout, const char *exp_stderr,
-              const int exp_retval, const char *desc)
-{
-	return test_command(0, cmd, exp_stdout, exp_stderr, exp_retval, desc);
-}
-
-/*
- * tc() - Execute command `cmd` and verify that stdout, stderr and the return 
- * value are identical to the expected values. The `exp_*` variables are 
- * strings that must be identical to the actual output. Returns the number of 
- * failed tests.
- */
-
-static int tc(char *cmd[], const char *exp_stdout, const char *exp_stderr,
-              const int exp_retval, const char *desc)
-{
-	return test_command(1, cmd, exp_stdout, exp_stderr, exp_retval, desc);
-}
-
-/*
- * chk_coor() - Try to parse the coordinate in `s` with `parse_coordinate()` 
- * and test that `parse_coordinate()` returns the expected values.
- * Returns the number of failed tests.
- */
-
-static int chk_coor(const char *s, const int exp_ret,
-                    const double exp_lat, const double exp_lon)
-{
-	double lat, lon;
-	int result, r = 0;
-
-	result = parse_coordinate(s, &lat, &lon);
-	r += ok(!(result == exp_ret),
-	        "parse_coordinate(\"%s\"), expected to %s",
-	        s, exp_ret ? "fail" : "succeed");
-
-	if (result)
-		return r;
-
-	r += ok(!(lat == exp_lat), "parse_coordinate(\"%s\"): lat is ok", s);
-	r += ok(!(lon == exp_lon), "parse_coordinate(\"%s\"): lon is ok", s);
-
-	return r;
-}
 
 /*
  * test_allocstr() - Tests the allocstr() function. Returns the number of 
@@ -652,6 +640,32 @@ static int test_streams_exec(void)
 	        "%s (stderr)", s);
 	r += ok(!(ss.ret == EXIT_FAILURE), "%s (retval)", s);
 	streams_free(&ss);
+
+	return r;
+}
+
+/*
+ * chk_coor() - Try to parse the coordinate in `s` with `parse_coordinate()` 
+ * and test that `parse_coordinate()` returns the expected values.
+ * Returns the number of failed tests.
+ */
+
+static int chk_coor(const char *s, const int exp_ret,
+                    const double exp_lat, const double exp_lon)
+{
+	double lat, lon;
+	int result, r = 0;
+
+	result = parse_coordinate(s, &lat, &lon);
+	r += ok(!(result == exp_ret),
+	        "parse_coordinate(\"%s\"), expected to %s",
+	        s, exp_ret ? "fail" : "succeed");
+
+	if (result)
+		return r;
+
+	r += ok(!(lat == exp_lat), "parse_coordinate(\"%s\"): lat is ok", s);
+	r += ok(!(lon == exp_lon), "parse_coordinate(\"%s\"): lon is ok", s);
 
 	return r;
 }
@@ -829,6 +843,12 @@ static int test_gpx_wpt(void)
 
 	return r;
 }
+
+/*
+ ****************
+ * Option tests *
+ ****************
+ */
 
 /*
  * test_valgrind_option() - Tests the --valgrind command line option. Returns 
