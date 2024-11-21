@@ -626,6 +626,37 @@ free_p:
 }
 
 /*
+ * test_streams_exec() - Tests the streams_exec() function. Returns the number 
+ * of failed tests.
+ */
+
+static int test_streams_exec(void)
+{
+	int r = 0;
+	bool orig_valgrind;
+	struct streams ss;
+	char *s;
+
+	diag("Test streams_exec()");
+
+	streams_init(&ss);
+	ss.in.buf = "This is sent to stdin.\n";
+	ss.in.len = strlen(ss.in.buf);
+	orig_valgrind = opt.valgrind;
+	opt.valgrind = false;
+	streams_exec(&ss, chp{ progname, NULL });
+	opt.valgrind = orig_valgrind;
+	s = "streams_exec(progname) with stdin data";
+	r += ok(!!strcmp(ss.out.buf, ""), "%s (stdout)", s);
+	r += ok(!strstr(ss.err.buf, ": No arguments specified\n"),
+	        "%s (stderr)", s);
+	r += ok(!(ss.ret == EXIT_FAILURE), "%s (retval)", s);
+	streams_free(&ss);
+
+	return r;
+}
+
+/*
  * test_parse_coordinate() - Various tests for `parse_coordinate()`. Returns 
  * the number of failed tests.
  */
@@ -1397,6 +1428,7 @@ static int test_functions(void)
 	r += ok(!(std_strerror(0) != NULL), "std_strerror(0)");
 	r += ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
 	r += test_allocstr();
+	r += test_streams_exec();
 	r += test_parse_coordinate();
 	r += test_xml_escape_string();
 	r += test_gpx_wpt();

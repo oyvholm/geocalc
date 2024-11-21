@@ -90,6 +90,43 @@ char *read_from_fp(FILE *fp, struct binbuf *dest)
 }
 
 /*
+ * prepare_valgrind_cmd() - Creates command array for valgrind execution. 
+ * Returns a new allocated array that starts with `valgrind_args` followed by 
+ * `cmd`. Returns NULL on error. Caller must free the returned array after use.
+ */
+
+static char **prepare_valgrind_cmd(char *cmd[]) /* gncov */
+{
+	static const char *valgrind_args[] = {
+		"valgrind",
+		"-q",
+		"--leak-check=full",
+		"--show-leak-kinds=all",
+		"--"
+	};
+	const size_t argnum = sizeof(valgrind_args) /* gncov */
+	                      / sizeof(valgrind_args[0]);
+	size_t cmd_len = 0; /* gncov */
+	char **valgrind_cmd;
+
+	while (cmd[cmd_len]) /* gncov */
+		cmd_len++; /* gncov */
+	valgrind_cmd = malloc((cmd_len + argnum + 1) /* gncov */
+	                      * sizeof(char *));
+	if (!valgrind_cmd) { /* gncov */
+		myerror("%s(): malloc() failed", __func__); /* gncov */
+		return NULL; /* gncov */
+	}
+
+	memcpy(valgrind_cmd, valgrind_args, /* gncov */
+	       argnum * sizeof(char *));
+	memcpy(valgrind_cmd + argnum, cmd, /* gncov */
+	       (cmd_len + 1) * sizeof(char *)); /* gncov */
+
+	return valgrind_cmd; /* gncov */
+}
+
+/*
  * streams_exec() - Execute a command and store stdout, stderr and the return 
  * value into `dest`. `cmd` is an array of arguments, and the last element must 
  * be NULL. The return value is somewhat undefined at this point in time.
@@ -98,10 +135,12 @@ char *read_from_fp(FILE *fp, struct binbuf *dest)
 int streams_exec(struct streams *dest, char *cmd[])
 {
 	int retval = 1;
-	int infd[2];
-	int outfd[2];
-	int errfd[2];
+	int infd[2] = { -1, -1 };
+	int outfd[2] = { -1, -1 };
+	int errfd[2] = { -1, -1 };
 	pid_t pid;
+	FILE *infp = NULL, *outfp = NULL, *errfp = NULL;
+	struct sigaction old_action, new_action;
 
 	assert(cmd);
 	if (opt.verbose >= 10) {
@@ -114,24 +153,41 @@ int streams_exec(struct streams *dest, char *cmd[])
 		fprintf(stderr, ")\n"); /* gncov */
 	}
 
-	if (pipe(infd) == -1
-	    || pipe(outfd) == -1
-	    || pipe(errfd) == -1) {
-		myerror("%s(): pipe() failed", __func__); /* gncov */
-		goto out; /* gncov */
+	if (pipe(infd) == -1) {
+		myerror("%s():%d: Failed to create input pipe", /* gncov */
+		        __func__, __LINE__);
+		goto cleanup; /* gncov */
 	}
+	if (pipe(outfd) == -1) {
+		myerror("%s():%d: Failed to create output pipe", /* gncov */
+		        __func__, __LINE__);
+		goto cleanup; /* gncov */
+	}
+	if (pipe(errfd) == -1) {
+		myerror("%s():%d: Failed to create error pipe", /* gncov */
+		        __func__, __LINE__);
+		goto cleanup; /* gncov */
+	}
+
 	if ((pid = fork()) == -1) {
-		myerror("%s(): fork() failed", __func__); /* gncov */
-		goto out; /* gncov */
+		myerror("%s():%d: fork() failed", /* gncov */
+		        __func__, __LINE__);
+		goto cleanup; /* gncov */
 	}
+
 	if (!pid) {
-		/* child */
+		/* Child */
 		close(STDIN_FILENO);
 		close(STDOUT_FILENO);
 		close(STDERR_FILENO);
-		dup2(infd[0], STDIN_FILENO);
-		dup2(outfd[1], STDOUT_FILENO);
-		dup2(errfd[1], STDERR_FILENO);
+		if (dup2(infd[0], STDIN_FILENO) == -1
+		    || dup2(outfd[1], STDOUT_FILENO) == -1
+		    || dup2(errfd[1], STDERR_FILENO) == -1) {
+			myerror("%s():%d: dup2() failed", /* gncov */
+			        __func__, __LINE__);
+			_exit(EXIT_FAILURE); /* gncov */
+		}
+
 		close(infd[0]);
 		close(infd[1]);
 		close(outfd[0]);
@@ -140,75 +196,79 @@ int streams_exec(struct streams *dest, char *cmd[])
 		close(errfd[1]);
 
 		if (opt.valgrind) { /* gncov */
-			size_t cmd_len = 0; /* gncov */
-			const size_t argnum = 5; /* gncov */
-
-			while (cmd[cmd_len]) /* gncov */
-				cmd_len++; /* gncov */
 			char **valgrind_cmd
-			     = malloc((cmd_len + argnum + 1) /* gncov */
-			              * sizeof(char *));
-			if (!valgrind_cmd) { /* gncov */
-				myerror("%s(): malloc() failed", /* gncov */
-				        __func__);
-				return 1; /* gncov */
-			}
-
-			/* If the element count changes, update argnum. */
-			valgrind_cmd[0] = "valgrind"; /* gncov */
-			valgrind_cmd[1] = "-q"; /* gncov */
-			valgrind_cmd[2] = "--leak-check=full"; /* gncov */
-			valgrind_cmd[3] = "--show-leak-kinds=all"; /* gncov */
-			valgrind_cmd[4] = "--"; /* gncov */
-
-			for (size_t i = 0; i < cmd_len; i++) /* gncov */
-				valgrind_cmd[i + argnum] = cmd[i]; /* gncov */
-			valgrind_cmd[cmd_len + argnum] = NULL; /* gncov */
-
+			= prepare_valgrind_cmd(cmd); /* gncov */
 			execvp(valgrind_cmd[0], valgrind_cmd); /* gncov */
 			free(valgrind_cmd); /* gncov */
 		} else {
 			execvp(cmd[0], cmd); /* gncov */
 		}
-		myerror("%s(): execvp() failed", __func__); /* gncov */
 
-		return 1; /* gncov */
-	} else {
-		/* parent */
-		FILE *infp, *outfp, *errfp;
-
-		close(infd[0]);
-		close(errfd[1]);
-		close(outfd[1]);
-		if (!dest) {
-			wait(&retval); /* gncov */
-			goto out; /* gncov */
-		}
-		infp = fdopen(infd[1], "w");
-		outfp = fdopen(outfd[0], "r");
-		errfp = fdopen(errfd[0], "r");
-		if (infp && outfp && errfp) {
-			if (dest->in.buf && dest->in.len)
-				fwrite(dest->in.buf, 1, /* gncov */
-				       dest->in.len, infp);
-			read_from_fp(errfp, &dest->err);
-			read_from_fp(outfp, &dest->out);
-			msg(10, "%s(): %d: dest->out.buf = \"%s\"",
-			        __func__, __LINE__, dest->out.buf);
-			msg(10, "%s(): %d: dest->err.buf = \"%s\"",
-			        __func__, __LINE__, dest->err.buf);
-		} else {
-			myerror("%s(): fdopen() failed", __func__); /* gncov */
-		}
-		fclose(errfp);
-		fclose(outfp);
-		fclose(infp);
-		wait(&dest->ret);
-		dest->ret = dest->ret >> 8;
-		retval = dest->ret;
+		myerror("%s():%d: execvp() failed", /* gncov */
+		        __func__, __LINE__);
+		_exit(EXIT_FAILURE); /* gncov */
 	}
 
-out:
+	/* Parent */
+	close(infd[0]);
+	close(outfd[1]);
+	close(errfd[1]);
+
+	if (!dest) {
+		wait(&retval); /* gncov */
+		goto cleanup; /* gncov */
+	}
+
+	if (!(infp = fdopen(infd[1], "w"))
+	    || !(outfp = fdopen(outfd[0], "r"))
+	    || !(errfp = fdopen(errfd[0], "r"))) {
+		myerror("%s():%d: fdopen() failed", /* gncov */
+		        __func__, __LINE__);
+		goto cleanup; /* gncov */
+	}
+
+	if (dest->in.buf && dest->in.len)
+		fwrite(dest->in.buf, 1, dest->in.len, infp);
+	read_from_fp(errfp, &dest->err);
+	read_from_fp(outfp, &dest->out);
+	msg(10, "%s():%d: dest->out.buf = \"%s\"",
+	        __func__, __LINE__, dest->out.buf);
+	msg(10, "%s():%d: dest->err.buf = \"%s\"",
+	        __func__, __LINE__, dest->err.buf);
+
+	wait(&dest->ret);
+	dest->ret = dest->ret >> 8;
+	retval = dest->ret;
+
+cleanup:
+	/* Protect against SIGPIPE when closing streams */
+	new_action.sa_handler = SIG_IGN;
+	sigemptyset(&new_action.sa_mask);
+	new_action.sa_flags = 0;
+	if (sigaction(SIGPIPE, &new_action, &old_action) == -1) {
+		myerror("%s():%d: Failed to set SIGPIPE handler", /* gncov */
+		        __func__, __LINE__);
+	}
+
+	if (errfp)
+		fclose(errfp);
+	if (outfp)
+		fclose(outfp);
+	if (infp)
+		fclose(infp);
+	if (infd[1] != -1)
+		close(infd[1]);
+	if (outfd[0] != -1)
+		close(outfd[0]);
+	if (errfd[0] != -1)
+		close(errfd[0]);
+
+	/* Restore original signal handling */
+	if (sigaction(SIGPIPE, &old_action, NULL) == -1) {
+		myerror("%s():%d: Failed to restore" /* gncov */
+		        " SIGPIPE handler", __func__, __LINE__);
+	}
+
 	return retval;
 }
 
