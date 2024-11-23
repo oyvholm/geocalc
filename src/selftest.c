@@ -941,17 +941,12 @@ static int test_standard_options(void) {
 	} else {
 		r += ok(1, "%s(): allocstr() 1 failed", __func__); /* gncov */
 	}
-	s = allocstr("%s\n", EXEC_VERSION);
-	if (s) {
-		r += tc(chp{ progname, "--version", "-q", NULL },
-		        s,
-		        "",
-		        EXIT_SUCCESS,
-		        "--version with -q shows only the version number");
-		free(s);
-	} else {
-		r += ok(1, "%s(): allocstr() 2 failed", __func__); /* gncov */
-	}
+	s = EXEC_VERSION "\n";
+	r += tc(chp{ progname, "--version", "-q", NULL },
+	        s,
+	        "",
+	        EXIT_SUCCESS,
+	        "--version with -q shows only the version number");
 
 	diag("Test --license");
 	r += sc(chp{ progname, "--license", NULL },
@@ -1298,7 +1293,7 @@ static int test_cmd_lpos(void)
 static int test_multiple(char *cmd)
 {
 	int r = 0;
-	char *p1, *p2;
+	char *p1;
 
 	assert(cmd);
 	if (!cmd)
@@ -1318,14 +1313,11 @@ static int test_multiple(char *cmd)
 	        (p1 = allocstr("%s: Argument 2 is not a coordinate", cmd)));
 	free(p1);
 	r += tc(chp{ progname, cmd, "1,2", "3,4", NULL },
-	        (p2 = allocstr("%s\n",
-	                       !strcmp(cmd, "bear") ? "44.951998"
-	                                            : "314402.951024")),
+	        !strcmp(cmd, "bear") ? "44.951998\n" : "314402.951024\n",
 	        "",
 	        EXIT_SUCCESS,
 	        (p1 = allocstr("%s 1,2 3,4", cmd)));
 	free(p1);
-	free(p2);
 	r += sc(chp{ progname, cmd, "1,2", "3,4", "5", NULL },
 	        "",
 	        ": Too many arguments\n",
@@ -1362,14 +1354,11 @@ static int test_multiple(char *cmd)
 	                       cmd)));
 	free(p1);
 	r += tc(chp{ progname, cmd, "10,2,", "3,4", NULL },
-	        (p2 = allocstr("%s\n",
-	                       !strcmp(cmd, "bear") ? "164.027619"
-	                                            : "809080.682265")),
+	        !strcmp(cmd, "bear") ? "164.027619\n" : "809080.682265\n",
 	        "",
 	        EXIT_SUCCESS,
 	        (p1 = allocstr("%s with comma after number", cmd)));
 	free(p1);
-	free(p2);
 	r += sc(chp{ progname, cmd, "1,2", "3,NAN", NULL },
 	        "",
 	        ": Invalid number specified:"
@@ -1397,14 +1386,11 @@ static int test_multiple(char *cmd)
 	        (p1 = allocstr("%s: lon1 out of range", cmd)));
 	free(p1);
 	r += tc(chp{ progname, cmd, "90,0", "-90,0", NULL },
-	        (p2 = allocstr("%s\n",
-	                       !strcmp(cmd, "bear") ? "180.000000"
-	                                            : "20015086.796021")),
+	        !strcmp(cmd, "bear") ? "180.000000\n" : "20015086.796021\n",
 	        "",
 	        EXIT_SUCCESS,
 	        (p1 = allocstr("%s 90,0 -90,0", cmd)));
 	free(p1);
-	free(p2);
 	r += tc(chp{ progname, "--km", cmd, "90,0", "-90,0", NULL },
 	        !strcmp(cmd, "bear") ? "180.000000\n" : "20015.086796\n",
 	        "",
