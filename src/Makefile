@@ -233,6 +233,17 @@ tlok:
 	[ -e $(EXEC) ] || echo FAIL; \
 	rm .make-tlok.tmp
 
+.PHONY: tlokall
+tlokall:
+	@echo -n   "tlok TESTEXEC=  TESTFUNC=  : "
+	@$(MAKE) -s tlok TESTEXEC=  TESTFUNC=
+	@echo -n   "tlok TESTEXEC=  TESTFUNC=1 : "
+	@$(MAKE) -s tlok TESTEXEC=  TESTFUNC=1
+	@echo -n   "tlok TESTEXEC=1 TESTFUNC=  : "
+	@$(MAKE) -s tlok TESTEXEC=1 TESTFUNC=
+	@echo -n   "tlok TESTEXEC=1 TESTFUNC=1 : "
+	@$(MAKE) -s tlok TESTEXEC=1 TESTFUNC=1
+
 .PHONY: uninstall
 uninstall:
 	rm -f $(INSTALL_TARGETS)

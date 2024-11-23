@@ -79,6 +79,10 @@ testall:
 tlok:
 	@cd src && $(MAKE) -s $@
 
+.PHONY: tlokall
+tlokall:
+	@cd src && $(MAKE) -s $@
+
 .PHONY: uninstall
 uninstall:
 	cd src && $(MAKE) $@
