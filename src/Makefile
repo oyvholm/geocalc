@@ -77,6 +77,10 @@ OBJS += io.o
 OBJS += selftest.o
 OBJS += strings.o
 PDFFILE = $(EXEC).pdf
+TESTEXEC =
+TESTEXEC_STR = $$([ -n "$(TESTEXEC)" ] && echo -n "exec,")
+TESTFUNC =
+TESTFUNC_STR = $$([ -n "$(TESTFUNC)" ] && echo -n "func,")
 
 CMD_VALGRIND  = valgrind
 CMD_VALGRIND += -q
@@ -85,6 +89,8 @@ CMD_VALGRIND += --show-leak-kinds=all
 CMD_VALGRIND += --
 MAN_VERSION = $$(grep EXEC_VERSION version.h | cut -d '"' -f 2 \
                  | sed 's/-/\\\\-/g;')
+SELFTEST_STR = $$([ -n "$(TESTEXEC)$(TESTFUNC)" ] \
+                  && echo "$(TESTEXEC_STR)$(TESTFUNC_STR)" || echo all)
 TESTABLE_LINES = $$(grep -E '^ +\#\#\#\#\#:' *.c.gcov \
                     | grep -vF '/* gncov */' | wc -l)
 
@@ -192,7 +198,7 @@ tags: $(CFILES) $(HFILES)
 
 .PHONY: test
 test: $(EXEC)
-	./$(EXEC) --selftest
+	./$(EXEC) --selftest $(SELFTEST_STR)
 
 .PHONY: testall
 testall:
@@ -233,8 +239,9 @@ uninstall:
 
 .PHONY: valgrind
 valgrind: $(EXEC)
-	./$(EXEC) --valgrind
-	$(CMD_VALGRIND) ./$(EXEC) --selftest | grep -v ^ok
+	./$(EXEC) --valgrind $(SELFTEST_STR)
+	$(CMD_VALGRIND) ./$(EXEC) --selftest $(SELFTEST_STR) \
+	| grep -v ^ok
 
 .PHONY: valgrindall
 valgrindall:

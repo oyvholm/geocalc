@@ -255,10 +255,21 @@ static int usage(const int retval)
 	       "    Be more quiet. Can be repeated to increase silence.\n");
 	printf("  -v, --verbose\n"
 	       "    Increase level of verbosity. Can be repeated.\n");
-	printf("  --selftest\n"
-	       "    Run the built-in test suite.\n");
-	printf("  --valgrind\n"
-	       "    Run the built-in test suite with Valgrind checking.\n");
+	printf("  --selftest [arg]\n"
+	       "    Run the built-in test suite. If specified, the argument"
+	       " can contain \n"
+	       "    one or more of these strings: \"exec\" (the tests use the"
+	       " executable \n"
+	       "    file), \"func\" (runs function tests), or \"all\"."
+	       " Multiple strings \n"
+	       "    should be separated by commas. If no argument is"
+	       " specified, default \n"
+	       "    is \"all\".\n");
+	printf("  --valgrind [arg]\n"
+	       "    Run the built-in test suite with Valgrind memory checking."
+	       " Accepts \n"
+	       "    the same optional argument as --selftest, with the same"
+	       " defaults.\n");
 	printf("  --version\n"
 	       "    Print version information.\n");
 	printf("\n");
@@ -331,6 +342,8 @@ static int parse_options(const int argc, char * const argv[])
 	opt.license = false;
 	opt.outpformat = OF_DEFAULT;
 	opt.selftest = false;
+	opt.testexec = false;
+	opt.testfunc = false;
 	opt.valgrind = false;
 	opt.verbose = 0;
 	opt.version = false;
@@ -425,12 +438,17 @@ static int process_args(int argc, char *argv[])
 }
 
 /*
- * setup_options() - Do necessary changes to `o` based on the user input. For 
- * now, it sets `o->outpformat` to the corresponding integer value of the 
- * -F/--format argument. Returns 0 if everything is ok, otherwise it returns 1.
+ * setup_options() - Do necessary changes to `o` based on the user input.
+ *
+ * - Set `o->outpformat` to the corresponding integer value of the -F/--format 
+ *   argument.
+ * - Parse the optional argument to --selftest and set `o->testexec` and 
+ *   `o->testfunc`.
+ *
+ * Returns 0 if everything is ok, otherwise it returns 1.
  */
 
-static int setup_options(struct Options *o)
+static int setup_options(struct Options *o, const int argc, char *argv[])
 {
 	if (o->format) {
 		msg(VERBOSE_DEBUG, "%s(): o.format = \"%s\"",
@@ -442,6 +460,24 @@ static int setup_options(struct Options *o)
 		} else {
 			myerror("%s: Unknown output format", o->format);
 			return 1;
+		}
+	}
+	if (o->selftest) {
+		if (optind < argc) {
+			const char *s = argv[optind];
+			if (!s) {
+				myerror("%s(): argv[optind] is" /* gncov */
+				        " NULL", __func__);
+				return 1; /* gncov */
+			}
+			if (strstr(s, "all"))
+				o->testexec = o->testfunc = true; /* gncov */
+			if (strstr(s, "exec"))
+				o->testexec = true; /* gncov */
+			if (strstr(s, "func"))
+				o->testfunc = true; /* gncov */
+		} else {
+			o->testexec = o->testfunc = true;
 		}
 	}
 
@@ -469,7 +505,7 @@ int main(int argc, char *argv[])
 	msg(VERBOSE_DEBUG, "%s(): argc = %d, optind = %d",
 	                   __func__, argc, optind);
 
-	if (setup_options(&opt))
+	if (setup_options(&opt, argc, argv))
 		return EXIT_FAILURE;
 
 	if (opt.help)

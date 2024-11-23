@@ -1437,6 +1437,9 @@ static int test_functions(void)
 {
 	int r = 0;
 
+	if (!opt.testfunc)
+		return r; /* gncov */
+
 	diag("Test selftest routines");
 	r += ok(!ok(0, NULL), "ok(0, NULL)");
 	r += verify_definitions();
@@ -1470,6 +1473,9 @@ static int test_functions(void)
 static int test_executable(void)
 {
 	int r = 0;
+
+	if (!opt.testexec)
+		return r; /* gncov */
 
 	diag("Test the executable");
 	r += test_valgrind_option();

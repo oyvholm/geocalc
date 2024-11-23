@@ -117,6 +117,8 @@ struct Options {
 	bool license;
 	char *format;
 	bool selftest;
+	bool testexec;
+	bool testfunc;
 	bool valgrind;
 	VerboseLevel verbose;
 	bool version;
