@@ -168,19 +168,18 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 	for (i = 0; i <= numpoints; i++) {
 		result = routepoint(lat1, lon1, lat2, lon2,
 		                    1.0 * i / numpoints, &nlat, &nlon);
-		if (!result) {
-			switch(opt.outpformat) {
-			case OF_DEFAULT:
-				printf("%f,%f\n", nlat, nlon);
-				break;
-			case OF_GPX:
-				printf("    <rtept lat=\"%f\" lon=\"%f\">\n"
-				       "    </rtept>\n", nlat, nlon);
-				break;
-			}
-		} else {
+		if (result) {
 			myerror("Value out of range");
 			retval = EXIT_FAILURE;
+			break;
+		}
+		switch(opt.outpformat) {
+		case OF_DEFAULT:
+			printf("%f,%f\n", nlat, nlon);
+			break;
+		case OF_GPX:
+			printf("    <rtept lat=\"%f\" lon=\"%f\">\n"
+			       "    </rtept>\n", nlat, nlon);
 			break;
 		}
 	}

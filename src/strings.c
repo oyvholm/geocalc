@@ -140,9 +140,8 @@ char *allocstr(const char *format, ...)
 			        __func__, size);
 			free(p); /* gncov */
 			return NULL; /* gncov */
-		} else {
-			p = p2;
 		}
+		p = p2;
 	}
 }
 

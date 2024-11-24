@@ -490,7 +490,7 @@ static int setup_options(struct Options *o, const int argc, char *argv[])
 
 int main(int argc, char *argv[])
 {
-	int retval = EXIT_SUCCESS;
+	int retval = EXIT_SUCCESS, t;
 
 	progname = argv[0];
 	errno = 0;
@@ -519,18 +519,16 @@ int main(int argc, char *argv[])
 
 	msg(VERBOSE_TRACE, "argc = %d, optind = %d, argv[optind] = %s\n",
 	                   argc, optind, argv[optind]);
-	if (optind < argc) {
-		int t;
-
-		for (t = optind; t < argc; t++) {
-			msg(VERBOSE_DEBUG, "%s(): Non-option arg %d: %s",
-			                   __func__, t, argv[t]);
-		}
-		retval = process_args(argc, argv);
-	} else {
+	if (optind >= argc) {
 		myerror("No arguments specified");
 		return usage(EXIT_FAILURE);
 	}
+
+	for (t = optind; t < argc; t++) {
+		msg(VERBOSE_DEBUG, "%s(): Non-option arg %d: %s",
+		                   __func__, t, argv[t]);
+	}
+	retval = process_args(argc, argv);
 
 	msg(VERBOSE_DEBUG, "Returning from %s() with value %d",
 	                   __func__, retval);
