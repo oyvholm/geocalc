@@ -229,9 +229,9 @@ static int tc_cmp(const int identical, const char *got, const char *exp)
 		return 1; /* gncov */
 
 	if (identical || !strlen(exp))
-		return strcmp(got, exp) ? 1 : 0;
+		return !!strcmp(got, exp);
 
-	return strstr(got, exp) ? 0 : 1;
+	return !strstr(got, exp);
 }
 
 /*
@@ -386,15 +386,15 @@ static int verify_definitions(void)
 	    " version=\"1.1\""
 	    " creator=\"Geocalc - https://gitlab.com/oyvholm/geocalc\""
 	    ">\n";
-	r += ok(strcmp(gpx_header, e) ? 1 : 0, "gpx_header is correct");
+	r += ok(!!strcmp(gpx_header, e), "gpx_header is correct");
 	print_gotexp(gpx_header, e);
 
 	e = "Geocalc";
-	r += ok(strcmp(PROJ_NAME, e) ? 1 : 0, "PROJ_NAME is correct");
+	r += ok(!!strcmp(PROJ_NAME, e), "PROJ_NAME is correct");
 	print_gotexp(PROJ_NAME, e);
 
 	e = "https://gitlab.com/oyvholm/geocalc";
-	r += ok(strcmp(PROJ_URL, e) ? 1 : 0, "PROJ_URL is correct");
+	r += ok(!!strcmp(PROJ_URL, e), "PROJ_URL is correct");
 	print_gotexp(PROJ_URL, e);
 
 	return r;
@@ -426,7 +426,7 @@ static int test_diag_big(void)
 	r += ok(!outp, "diag_big: diag_output() returns ok");
 	r += ok(!(strlen(outp) == size + 2),
 	        "diag_big: String length is correct");
-	r += ok(strncmp(outp, "# aaabcaaa", 10) ? 1 : 0,
+	r += ok(!!strncmp(outp, "# aaabcaaa", 10),
 	        "diag_big: Beginning is ok");
 	free(outp);
 	free(p);
@@ -448,20 +448,18 @@ static int test_diag(void) {
 	r += ok(!(diag_output(NULL) == NULL), "diag_output() receives NULL");
 
 	p = diag_output("Text with\nnewline");
-	r += ok(p ? 0 : 1, "diag_output() with newline didn't return NULL");
+	r += ok(!p, "diag_output() with newline didn't return NULL");
 	s = "# Text with\n# newline";
-	r += ok(p ? (strcmp(p, s) ? 1 : 0) : 1,
+	r += ok(p ? !!strcmp(p, s) : 1,
 	        "diag_output() with newline, output is ok");
 	print_gotexp(p, s);
 	free(p);
 
 	p = diag_output("%d = %s, %d = %s, %d = %s",
 	                1, "one", 2, "two", 3, "three");
-	r += ok(p ? 0 : 1, "diag_output() with %%d and %%s didn't return"
-	                   " NULL");
+	r += ok(!p, "diag_output() with %%d and %%s didn't return NULL");
 	s = "# 1 = one, 2 = two, 3 = three";
-	r += ok(p ? (strcmp(p, s) ? 1 : 0) : 1,
-	        "diag_output() with %%d and %%s");
+	r += ok(p ? !!strcmp(p, s) : 1, "diag_output() with %%d and %%s");
 	print_gotexp(p, s);
 	free(p);
 
@@ -483,12 +481,11 @@ static int test_gotexp_output(void)
 
 	diag("Test gotexp_output()");
 
-	r += ok(gotexp_output(NULL, "a") ? 1 : 0,
-	        "gotexp_output(NULL, \"a\")");
+	r += ok(!!gotexp_output(NULL, "a"), "gotexp_output(NULL, \"a\")");
 
-	r += ok(strcmp((p = gotexp_output("got this", "expected this")),
-	               "         got: 'got this'\n"
-	               "    expected: 'expected this'") ? 1 : 0,
+	r += ok(!!strcmp((p = gotexp_output("got this", "expected this")),
+	                 "         got: 'got this'\n"
+	                 "    expected: 'expected this'"),
 	        "gotexp_output(\"got this\", \"expected this\")");
 	free(p);
 
@@ -496,18 +493,16 @@ static int test_gotexp_output(void)
 	        "print_gotexp(): Arg is NULL");
 
 	s = "gotexp_output(\"a\", \"a\")";
-	r += ok((p = gotexp_output("a", "a")) ? 0 : 1,
-	        "%s doesn't return NULL", s);
-	r += ok(strcmp(p, "         got: 'a'\n    expected: 'a'") ? 1 : 0,
+	r += ok(!(p = gotexp_output("a", "a")), "%s doesn't return NULL", s);
+	r += ok(!!strcmp(p, "         got: 'a'\n    expected: 'a'"),
 	        "%s: Contents is ok", s);
 	free(p);
 
 	s = "gotexp_output() with newline";
-	r += ok((p = gotexp_output("with\nnewline", "also with\nnewline"))
-	        ? 0 : 1,
+	r += ok(!(p = gotexp_output("with\nnewline", "also with\nnewline")),
 	        "%s: Doesn't return NULL", s);
-	r += ok(strcmp(p, "         got: 'with\nnewline'\n"
-	                  "    expected: 'also with\nnewline'") ? 1 : 0,
+	r += ok(!!strcmp(p, "         got: 'with\nnewline'\n"
+	                    "    expected: 'also with\nnewline'"),
 	        "%s: Contents is ok", s);
 	free(p);
 
@@ -714,7 +709,7 @@ static int chk_xmlesc(const char *s, const char *exp)
 	got = xml_escape_string(s);
 	if (!got)
 		return ok(1, "xml_escape_string() failed"); /* gncov */
-	r += ok(strcmp(got, exp) ? 1 : 0, "xml escape: \"%s\"", s);
+	r += ok(!!strcmp(got, exp), "xml escape: \"%s\"", s);
 	free(got);
 
 	return r;
@@ -738,7 +733,7 @@ static int test_xml_escape_string(void)
 	r += chk_xmlesc("a<c", "a&lt;c");
 	r += chk_xmlesc("a>c", "a&gt;c");
 	r += chk_xmlesc("abc", "abc");
-	r += ok(xml_escape_string(NULL) ? 1 : 0, "xml_escape_string(NULL)");
+	r += ok(!!xml_escape_string(NULL), "xml_escape_string(NULL)");
 
 	return r;
 }
@@ -761,8 +756,7 @@ static int test_gpx_wpt(void)
 	    "    <cmt>ghi jkl MN</cmt>\n"
 	    "  </wpt>\n";
 	s = gpx_wpt(12.34, 56.78, "abc def", "ghi jkl MN");
-	r += ok((s ? (strcmp(s, e) ? 1 : 0) : 1),
-	        "gpx_wpt() without special chars");
+	r += ok((s ? !!strcmp(s, e) : 1), "gpx_wpt() without special chars");
 	print_gotexp(s, e);
 	free(s);
 
@@ -771,8 +765,7 @@ static int test_gpx_wpt(void)
 	    "    <cmt>&amp;</cmt>\n"
 	    "  </wpt>\n";
 	s = gpx_wpt(12.34, 56.78, "&", "&");
-	r += ok((s ? (strcmp(s, e) ? 1 : 0) : 1),
-	        "gpx_wpt() with ampersand");
+	r += ok((s ? !!strcmp(s, e) : 1), "gpx_wpt() with ampersand");
 	print_gotexp(s, e);
 	free(s);
 
@@ -781,8 +774,7 @@ static int test_gpx_wpt(void)
 	    "    <cmt>&lt;</cmt>\n"
 	    "  </wpt>\n";
 	s = gpx_wpt(12.34, 56.78, "<", "<");
-	r += ok((s ? (strcmp(s, e) ? 1 : 0) : 1),
-	        "gpx_wpt() with lt");
+	r += ok((s ? !!strcmp(s, e) : 1), "gpx_wpt() with lt");
 	print_gotexp(s, e);
 	free(s);
 
@@ -791,8 +783,7 @@ static int test_gpx_wpt(void)
 	    "    <cmt>&gt;</cmt>\n"
 	    "  </wpt>\n";
 	s = gpx_wpt(12.34, 56.78, ">", ">");
-	r += ok((s ? (strcmp(s, e) ? 1 : 0) : 1),
-	        "gpx_wpt() with gt");
+	r += ok((s ? !!strcmp(s, e) : 1), "gpx_wpt() with gt");
 	print_gotexp(s, e);
 	free(s);
 
@@ -809,7 +800,7 @@ static int test_gpx_wpt(void)
 	             "    <cmt>%s</cmt>\n"
 	             "  </wpt>\n", c, c);
 	s = gpx_wpt(12.34, 56.78, p, p);
-	r += ok((s ? (strcmp(s, e) ? 1 : 0) : 1),
+	r += ok((s ? !!strcmp(s, e) : 1),
 	        "gpx_wpt() with amp, gt, lt, and more");
 	print_gotexp(s, e);
 	free(s);
@@ -818,7 +809,7 @@ static int test_gpx_wpt(void)
 	p = NULL;
 	e = NULL;
 	s = gpx_wpt(12.34, 56.78, p, p);
-	r += ok(s ? 1 : 0, "gpx_wpt() with NULL in name and cmt");
+	r += ok(!!s, "gpx_wpt() with NULL in name and cmt");
 	print_gotexp(s, e);
 	if (s) {
 		ok(1, "%s():%d: `s` was allocated", /* gncov */
@@ -829,7 +820,7 @@ static int test_gpx_wpt(void)
 	p = NULL;
 	e = NULL;
 	s = gpx_wpt(12.34, 56.78, p, "def");
-	r += ok(s ? 1 : 0, "gpx_wpt() with NULL in name");
+	r += ok(!!s, "gpx_wpt() with NULL in name");
 	print_gotexp(s, e);
 	if (s) {
 		ok(1, "%s():%d: `s` was allocated", /* gncov */
@@ -838,7 +829,7 @@ static int test_gpx_wpt(void)
 	}
 
 	s = gpx_wpt(12.34, 56.78, "abc", NULL);
-	r += ok(s ? 0 : 1, "gpx_wpt() with NULL in cmt");
+	r += ok(!s, "gpx_wpt() with NULL in cmt");
 	free(s);
 
 	return r;
