@@ -444,6 +444,8 @@ static int test_diag(void) {
 	int r = 0;
 	char *p, *s;
 
+	diag("Test diag()");
+
 	r += ok(!diag(NULL), "diag(NULL)");
 	r += ok(!(diag_output(NULL) == NULL), "diag_output() receives NULL");
 
@@ -543,6 +545,8 @@ static int test_valgrind_lines(void)
 		NULL
 	};
 
+	diag("Test valgrind_lines()");
+
 	i = 0;
 	while (has[i]) {
 		r += ok(!valgrind_lines(has[i]),
@@ -576,6 +580,7 @@ static int test_allocstr(void)
 	int r = 0;
 	size_t alen;
 
+	diag("Test allocstr()");
 	p = malloc(bufsize);
 	if (!p) {
 		r += ok(1, "%s(): malloc() failed", __func__); /* gncov */
@@ -724,6 +729,7 @@ static int test_xml_escape_string(void)
 {
 	int r = 0;
 
+	diag("Test xml_escape_string()");
 	r += chk_xmlesc("", "");
 	r += chk_xmlesc("&", "&amp;");
 	r += chk_xmlesc("<", "&lt;");
@@ -750,6 +756,8 @@ static int test_gpx_wpt(void)
 	     *c, /* Converted version of `p` */
 	     *e, /* Expected string from gpx_wpt() */
 	     *s; /* Result from gpx_wpt() */
+
+	diag("Test gpx_wpt()");
 
 	e = "  <wpt lat=\"12.340000\" lon=\"56.780000\">\n"
 	    "    <name>abc def</name>\n"
@@ -885,6 +893,8 @@ static int test_valgrind_option(void)
 static int test_standard_options(void) {
 	int r = 0;
 	char *s;
+
+	diag("Test standard options");
 
 	diag("Test -h/--help");
 	r += sc(chp{ progname, "-h", NULL },
