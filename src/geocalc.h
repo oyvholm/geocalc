@@ -160,7 +160,7 @@ char *read_from_fp(FILE *fp, struct binbuf *dest);
 int streams_exec(struct streams *dest, char *cmd[]);
 
 /* selftest.c */
-int selftest(void);
+int opt_selftest(void);
 
 /* strings.c */
 int string_to_double(const char *s, double *dest);

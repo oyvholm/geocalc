@@ -1483,12 +1483,12 @@ static int test_executable(void)
 }
 
 /*
- * selftest() - Run internal testing to check that it works on the current 
+ * opt_selftest() - Run internal testing to check that it works on the current 
  * system. Executed if --selftest is used. Returns `EXIT_FAILURE` if any tests 
  * fail; otherwise, it returns `EXIT_SUCCESS`.
  */
 
-int selftest(void)
+int opt_selftest(void)
 {
 	int r = 0;
 
