@@ -20,6 +20,8 @@ v0.x.x - 202x-xx-xx
 - Clean up stderr when the tests are executed, remove "got/expected" 
   output and obsolete info, tweak descriptions.
 - Rename `string.c` to `strings.c`.
+- Add `tlokall` to the `make` command in `.gitlab-ci.yml` to document 
+  the tlok status at commit time.
 
 v0.1.0 - 2024-11-10
 -------------------
