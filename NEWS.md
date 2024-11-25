@@ -14,6 +14,8 @@ v0.x.x - 202x-xx-xx
 - Add the `-F`/`--format` option. Supports `default` and `gpx`.
 - `--selftest` and `--valgrind` now accept an optional argument to 
   control which test categories to run: `exec`, `func`, or `all`.
+- Add `TESTS` variable for use with `make`. This variable is used as 
+  `--selftest`/`--valgrind` argument in all relevant `make` commands.
 - Add `make tlokall`, prints the result of `make tlok` with and without 
   `exec` and `func` tests.
 - `--valgrind`: Verify that Valgrind is installed on the system.
