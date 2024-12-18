@@ -820,8 +820,8 @@ static int test_gpx_wpt(void)
 	r += ok(!!s, "gpx_wpt() with NULL in name and cmt");
 	print_gotexp(s, e);
 	if (s) {
-		ok(1, "%s():%d: `s` was allocated", /* gncov */
-		      __func__, __LINE__);
+		r += ok(1, "%s():%d: `s` was allocated", /* gncov */
+		           __func__, __LINE__);
 		free(s); /* gncov */
 	}
 
@@ -831,8 +831,8 @@ static int test_gpx_wpt(void)
 	r += ok(!!s, "gpx_wpt() with NULL in name");
 	print_gotexp(s, e);
 	if (s) {
-		ok(1, "%s():%d: `s` was allocated", /* gncov */
-		      __func__, __LINE__);
+		r += ok(1, "%s():%d: `s` was allocated", /* gncov */
+		           __func__, __LINE__);
 		free(s); /* gncov */
 	}
 
