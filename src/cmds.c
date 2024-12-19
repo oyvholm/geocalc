@@ -120,6 +120,10 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 		myerror("Value out of range");
 		return EXIT_FAILURE;
 	}
+	if (result == -2.0) {
+		myerror("Antipodal points, answer is undefined");
+		return EXIT_FAILURE;
+	}
 	if (opt.km && !strcmp(cmd, "dist"))
 		result /= 1000.0;
 
@@ -175,6 +179,10 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 		myerror("Invalid number specified");
 		return EXIT_FAILURE;
 	}
+	if (are_antipodal(lat1, lon1, lat2, lon2)) {
+		myerror("Antipodal points, answer is undefined");
+		return EXIT_FAILURE;
+	}
 	if (numpoints++ < 0) {
 		myerror("Value out of range");
 		return EXIT_FAILURE;
@@ -227,6 +235,10 @@ int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s)
 	    || parse_coordinate(coor2, &lat2, &lon2)
 	    || string_to_double(fracdist_s, &fracdist)) {
 		myerror("Invalid number specified");
+		return EXIT_FAILURE;
+	}
+	if (are_antipodal(lat1, lon1, lat2, lon2)) {
+		myerror("Antipodal points, answer is undefined");
 		return EXIT_FAILURE;
 	}
 	if (routepoint(lat1, lon1, lat2, lon2, fracdist, &nlat, &nlon)) {

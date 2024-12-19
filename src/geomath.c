@@ -24,6 +24,30 @@ const double EARTH_RADIUS = 6371000; /* Meters */
 const double MAX_EARTH_DISTANCE = 20015086.79602057114243507385; /* Meters */
 
 /*
+ * are_antipodal() - Check if two points are antipodal, i.e. on exactly 
+ * opposite positions of the planet. To account for rounding errors, a small 
+ * margin (~1.1 mm) is allowed. Returns 1 if they're antipodal, otherwise 0.
+ */
+
+int are_antipodal(const double lat1, const double lon1,
+                  const double lat2, const double lon2)
+{
+	const double eps = 1e-10;
+
+	/* Check if points are at opposite poles */
+	if (fabs(lat1 - 90.0) < eps && fabs(lat2 + 90.0) < eps)
+		return 1;
+	if (fabs(lat1 + 90.0) < eps && fabs(lat2 - 90.0) < eps)
+		return 1;
+
+	/* Check other antipodal points */
+	if (fabs(lat1 + lat2) < eps && fabs(fabs(lon1 - lon2) - 180.0) < eps)
+		return 1;
+
+	return 0;
+}
+
+/*
  * deg2rad() - Convert degrees to radians.
  */
 
@@ -142,15 +166,19 @@ double haversine(const double lat1, const double lon1,
  * point `lat2, lon2`. Returns bearing in degrees: 0 = north, 90 = east, 180 = 
  * south, 270 = west.
  *
- * If values outside the valid coordinate range are provided, it returns -1.0.
+ * Returns:
+ * - -1.0: if values outside the valid coordinate range are provided
+ * - -2.0: if points are antipodal, answer is undefined
  */
-
 double initial_bearing(const double lat1, const double lon1,
                        const double lat2, const double lon2)
 {
 	if (fabs(lat1) > 90.0 || fabs(lat2) > 90.0
 	    || fabs(lon1) > 180.0 || fabs(lon2) > 180.0)
 		return -1.0;
+
+	if (are_antipodal(lat1, lon1, lat2, lon2))
+		return -2.0;
 
 	const double lat1_rad = deg2rad(lat1);
 	const double lat2_rad = deg2rad(lat2);

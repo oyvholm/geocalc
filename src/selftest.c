@@ -721,6 +721,64 @@ static int chk_xmlesc(const char *s, const char *exp)
 }
 
 /*
+ * chk_antip() - Used by test_are_antipodal(), checks that are_antipodal() 
+ * returns the correct answer for the coordinates. The expected return value is 
+ * stored in `exp`. Returns the number of failed tests.
+ */
+
+static int chk_antip(const char *coor1, const char *coor2, const int exp)
+{
+	int r = 0, result;
+	double lat1, lon1, lat2, lon2;
+	char *s;
+
+	if (!coor1 || !coor2)
+		return r + ok(1, "%s(): coor1 or coor2 is NULL", /* gncov */
+		                 __func__);
+
+	if (parse_coordinate(coor1, &lat1, &lon1)
+	    || parse_coordinate(coor2, &lat2, &lon2))
+		return r + ok(1, "parse_coordinate() failed"); /* gncov */
+
+	s = allocstr("are_antipodal(): \"%s\" and \"%s\", expects %s",
+	             coor1, coor2, exp ? "yes" : "no");
+	if (!s)
+		return r + ok(1, "allocstr() failed"); /* gncov */
+	result = are_antipodal(lat1, lon1, lat2, lon2);
+	r += ok(!(result == exp), s);
+	free(s);
+
+	return r;
+}
+
+/*
+ * test_are_antipodal() - Tests the are_antipodal() function. Returns number of 
+ * failed tests.
+ */
+
+static int test_are_antipodal(void)
+{
+	int r = 0;
+
+	r += chk_antip("-0.00000000001,0", "0,180.0", 1);
+	r += chk_antip("-0.0000000001,0", "0,180.0", 0);
+	r += chk_antip("0,0", "0,179.999999999", 0);
+	r += chk_antip("0,0", "0,179.9999999999", 1);
+	r += chk_antip("0,0", "0,180", 1);
+	r += chk_antip("0.00000000001,0", "0,180.0", 1);
+	r += chk_antip("0.0000000001,0", "0,180.0", 0);
+	r += chk_antip("36.988716,-9.604127", "-36.988716,170.395873", 1);
+	r += chk_antip("36.988716,-9.6041270001", "-36.988716,170.395873", 1);
+	r += chk_antip("36.988716,-9.604127001", "-36.988716,170.395873", 0);
+	r += chk_antip("60,5", "-60,-175", 1);
+	r += chk_antip("89.9999999999,0", "-90,0", 0);
+	r += chk_antip("89.99999999999,0", "-90,0", 1);
+	r += chk_antip("90,0", "-90,0", 1);
+
+	return r;
+}
+
+/*
  * test_xml_escape_string() - Tests the xml_escape_string() function. Returns 
  * the number of failed tests.
  */
@@ -1118,18 +1176,10 @@ static int test_cmd_course(void)
 	        "",
 	        EXIT_SUCCESS,
 	        "course: Across the North Pole");
-	r += tc(chp{ progname, "course", "0,0", "0,180", "7", NULL },
-	        "0.000000,0.000000\n"
-	        "0.000000,22.500000\n"
-	        "0.000000,45.000000\n"
-	        "0.000000,67.500000\n"
-	        "0.000000,90.000000\n"
-	        "0.000000,112.500000\n"
-	        "0.000000,135.000000\n"
-	        "0.000000,157.500000\n"
-	        "0.000000,180.000000\n",
+	r += sc(chp{ progname, "course", "0,0", "0,180", "7", NULL },
 	        "",
-	        EXIT_SUCCESS,
+	        ": Antipodal points, answer is undefined\n",
+	        EXIT_FAILURE,
 	        "course 0,0 0,180 7");
 	r += tc(chp{ progname, "course", "90,0", "0,0", "3", NULL },
 	        "90.000000,0.000000\n"
@@ -1289,6 +1339,11 @@ static int test_cmd_lpos(void)
 	        "",
 	        EXIT_SUCCESS,
 	        "lpos: Point is moved 1 cm");
+	r += sc(chp{ progname, "lpos", "-90,0", "90,0", "3", NULL },
+	        "",
+	        ": Antipodal points, answer is undefined\n",
+	        EXIT_FAILURE,
+	        "lpos: South Pole to the North Pole");
 	r += sc(chp{ progname, "lpos", "1,2", "3,4", NULL },
 	        "",
 	        ": Missing arguments\n",
@@ -1331,6 +1386,16 @@ static int test_cmd_lpos(void)
 	        ": Invalid number specified: Numerical result out of range\n",
 	        EXIT_FAILURE,
 	        "lpos: fracdist is INF");
+	r += sc(chp{ progname, "lpos", "0,0", "0,180", "0.5", NULL },
+	        "",
+	        ": Antipodal points, answer is undefined\n",
+	        EXIT_FAILURE,
+	        "lpos: Antipodal positions, 0,0 and 0,180");
+	r += sc(chp{ progname, "lpos", "90,0", "-90,0", "0.5", NULL },
+	        "",
+	        ": Antipodal points, answer is undefined\n",
+	        EXIT_FAILURE,
+	        "lpos: Antipodal positions, 90,0 and -90,0");
 
 	return r;
 }
@@ -1368,12 +1433,19 @@ static int test_multiple(char *cmd)
 	        EXIT_SUCCESS,
 	        (p1 = allocstr("%s 1,2 3,4", cmd)));
 	free(p1);
-	r += tc(chp{ progname, cmd, "12,34", "-12,-146", NULL },
-	        !strcmp(cmd, "bear") ? "270.000000\n" : "20015086.796021\n",
-	        "",
-	        EXIT_SUCCESS,
-	        (p1 = allocstr("%s 12,34 -12,-146 - antipodal points", cmd)));
-	free(p1);
+	if (!strcmp(cmd, "bear")) {
+		r += sc(chp{ progname, "bear", "12,34", "-12,-146", NULL },
+		        "",
+		        ": Antipodal points, answer is undefined\n",
+		        EXIT_FAILURE,
+		        "bear 12,34 -12,-146 - antipodal points");
+	} else {
+		r += tc(chp{ progname, "dist", "12,34", "-12,-146", NULL },
+		        "20015086.796021\n",
+		        "",
+		        EXIT_SUCCESS,
+		        "dist 12,34 -12,-146 - antipodal points");
+	}
 	r += sc(chp{ progname, cmd, "1,2", "3,4", "5", NULL },
 	        "",
 	        ": Too many arguments\n",
@@ -1441,18 +1513,29 @@ static int test_multiple(char *cmd)
 	        EXIT_FAILURE,
 	        (p1 = allocstr("%s: lon1 out of range", cmd)));
 	free(p1);
-	r += tc(chp{ progname, cmd, "90,0", "-90,0", NULL },
-	        !strcmp(cmd, "bear") ? "180.000000\n" : "20015086.796021\n",
-	        "",
-	        EXIT_SUCCESS,
-	        (p1 = allocstr("%s 90,0 -90,0", cmd)));
-	free(p1);
-	r += tc(chp{ progname, "--km", cmd, "90,0", "-90,0", NULL },
-	        !strcmp(cmd, "bear") ? "180.000000\n" : "20015.086796\n",
-	        "",
-	        EXIT_SUCCESS,
-	        (p1 = allocstr("--km %s 90,0 -90,0", cmd)));
-	free(p1);
+	if (!strcmp(cmd, "bear")) {
+		r += sc(chp{ progname, "bear", "90,0", "-90,0", NULL },
+		        "",
+		        ": Antipodal points, answer is undefined",
+		        EXIT_FAILURE,
+		        "bear 90,0 -90,0");
+		r += sc(chp{ progname, "--km", cmd, "90,0", "-90,0", NULL },
+		        "",
+		        ": Antipodal points, answer is undefined\n",
+		        EXIT_FAILURE,
+		        "--km bear 90,0 -90,0");
+	} else {
+		r += tc(chp{ progname, "dist", "90,0", "-90,0", NULL },
+		        "20015086.796021\n",
+		        "",
+		        EXIT_SUCCESS,
+		        "dist 90,0 -90,0");
+		r += tc(chp{ progname, "--km", cmd, "90,0", "-90,0", NULL },
+		        "20015.086796\n",
+		        "",
+		        EXIT_SUCCESS,
+		        "--km dist 90,0 -90,0");
+	}
 	r += tc(chp{ progname, "-F", "default", cmd, "34,56", "-78,9", NULL },
 	        !strcmp(cmd, "bear") ? "189.693136\n" : "12835310.777042\n",
 	        "",
@@ -1500,6 +1583,7 @@ static int test_functions(void)
 	r += test_allocstr();
 	r += test_streams_exec();
 	r += test_parse_coordinate();
+	r += test_are_antipodal();
 	r += test_xml_escape_string();
 	r += test_gpx_wpt();
 
