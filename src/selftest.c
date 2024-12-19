@@ -1339,6 +1339,12 @@ static int test_multiple(char *cmd)
 	        EXIT_SUCCESS,
 	        (p1 = allocstr("%s 1,2 3,4", cmd)));
 	free(p1);
+	r += tc(chp{ progname, cmd, "12,34", "-12,-146", NULL },
+	        !strcmp(cmd, "bear") ? "270.000000\n" : "20015086.796021\n",
+	        "",
+	        EXIT_SUCCESS,
+	        (p1 = allocstr("%s 12,34 -12,-146 - antipodal points", cmd)));
+	free(p1);
 	r += sc(chp{ progname, cmd, "1,2", "3,4", "5", NULL },
 	        "",
 	        ": Too many arguments\n",

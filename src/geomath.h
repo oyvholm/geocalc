@@ -27,6 +27,8 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+extern const double MAX_EARTH_DISTANCE;
+
 int bearing_position(const double lat, const double lon,
                      const double bearing_deg, const double dist_m,
                      double *new_lat, double *new_lon);

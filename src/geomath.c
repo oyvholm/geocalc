@@ -21,6 +21,7 @@
 #include "geocalc.h"
 
 const double EARTH_RADIUS = 6371000; /* Meters */
+const double MAX_EARTH_DISTANCE = 20015086.79602057114243507385; /* Meters */
 
 /*
  * deg2rad() - Convert degrees to radians.
@@ -88,9 +89,18 @@ int bearing_position(const double lat, const double lon,
 }
 
 /*
- * haversine() - Return distance in meters between two geographic coordinates.
+ * haversine() - Calculate great-circle distance between two geographic 
+ * coordinates.
  *
- * If values outside the valid coordinate range are provided, it returns -1.0.
+ * Parameters:
+ * - lat1, lon1 - First position's latitude and longitude in decimal degrees
+ * - lat2, lon2 - Second position's latitude and longitude in decimal degrees
+ *
+ * Returns:
+ * - Distance in meters between the points.
+ * - MAX_EARTH_DISTANCE if points are antipodal.
+ * - -1.0 if coordinates are outside valid ranges (-90° to 90° for latitude,
+ *   -180° to 180° for longitude).
  */
 
 double haversine(const double lat1, const double lon1,
@@ -113,8 +123,10 @@ double haversine(const double lat1, const double lon1,
 	                   * sin_delta_lambda * sin_delta_lambda;
 
 	const double arc = 2.0 * atan2(sqrt(hav), sqrt(1.0 - hav));
+	const double distance = EARTH_RADIUS * arc; /* Distance in meters */
 
-	return EARTH_RADIUS * arc; /* Distance in meters */
+	/* If `distance` is NaN, the positions are antipodal. */
+	return isnan(distance) ? MAX_EARTH_DISTANCE : distance;
 }
 
 /*
