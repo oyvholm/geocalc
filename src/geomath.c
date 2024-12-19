@@ -50,6 +50,9 @@ static inline double rad2deg(const double rad)
  * Negative values for `dist_m` are allowed, to calculate positions in the 
  * opposite direction of `bearing_deg`.
  *
+ * For exact pole positions (lat = ±90°), the latitude is adjusted by ~1 cm to 
+ * avoid computational instability.
+ *
  * If the provided values are outside the valid coordinate range, it returns 1. 
  * Otherwise, it returns 0.
  */
@@ -58,11 +61,16 @@ int bearing_position(const double lat, const double lon,
                      const double bearing_deg, const double dist_m,
                      double *new_lat, double *new_lon)
 {
+	double lat_a = lat;
+
 	if (fabs(lat) > 90.0 || fabs(lon) > 180.0
 	    || bearing_deg < 0.0 || bearing_deg > 360.0)
 		return 1;
 
-	const double lat_rad = deg2rad(lat);
+	if (fabs(lat_a) == 90.0)
+		lat_a *= 1.0 - 1e-9;
+
+	const double lat_rad = deg2rad(lat_a);
 	const double lon_rad = deg2rad(lon);
 	const double bearing_rad = deg2rad(bearing_deg);
 	const double ang_dist = dist_m / EARTH_RADIUS;

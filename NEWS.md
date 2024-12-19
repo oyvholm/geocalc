@@ -15,6 +15,8 @@ v0.x.x - 202x-xx-xx
 - `--selftest` and `--valgrind` now accept an optional argument to 
   control which test categories to run: `exec`, `func`, or `all`.
 - Fix bug when `dist` printed "-nan" for certain antipodal points.
+- Fixed bearing calculations near poles (±90° latitude) by moving the 
+  point 1 cm against Equator to avoid computational instability.
 - Add `TESTS` variable for use with `make`. This variable is used as 
   `--selftest`/`--valgrind` argument in all relevant `make` commands.
 - Add `make tlokall`, prints the result of `make tlok` with and without 

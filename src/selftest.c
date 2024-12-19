@@ -1042,6 +1042,21 @@ static int test_cmd_bpos(void)
 	        "",
 	        EXIT_SUCCESS,
 	        "bpos: No negative zero in lon");
+	r += tc(chp{ progname, "--km", "bpos", "90,0", "180", "20000", NULL },
+	        "-89.864321,0.000000\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "bpos: North Pole, point is moved 1 cm");
+	r += tc(chp{ progname, "bpos", "90,97.97", "180", "1234567.89", NULL },
+	        "78.897264,97.970000\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "bpos: North Pole, longitude is kept");
+	r += tc(chp{ progname, "--km", "bpos", "-90,0", "359", "7000", NULL },
+	        "-27.047487,-1.000000\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "bpos: South Pole, bearing 359");
 	r += sc(chp{ progname, "bpos", "1,2", "r", "1000", NULL },
 	        "",
 	        ": Invalid number specified: Invalid argument\n",
@@ -1116,6 +1131,15 @@ static int test_cmd_course(void)
 	        "",
 	        EXIT_SUCCESS,
 	        "course 0,0 0,180 7");
+	r += tc(chp{ progname, "course", "90,0", "0,0", "3", NULL },
+	        "90.000000,0.000000\n"
+	        "67.500000,0.000000\n"
+	        "45.000000,0.000000\n"
+	        "22.500000,0.000000\n"
+	        "0.000000,0.000000\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "course 90,0 0,0 3");
 	exp_stdout = "60.392990,5.324150\n"
 	             "66.169926,16.700678\n"
 	             "70.664233,33.818071\n"
@@ -1260,6 +1284,11 @@ static int test_cmd_lpos(void)
 	        "",
 	        EXIT_SUCCESS,
 	        "lpos: No negative zero in lon");
+	r += tc(chp{ progname, "lpos", "90,0", "0,0", "0.5", NULL },
+	        "45.000000,0.000000\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "lpos: Point is moved 1 cm");
 	r += sc(chp{ progname, "lpos", "1,2", "3,4", NULL },
 	        "",
 	        ": Missing arguments\n",
