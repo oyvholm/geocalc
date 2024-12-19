@@ -21,6 +21,20 @@
 #include "geocalc.h"
 
 /*
+ * round_number() - Rounds number in `*dest` to `decimals` number of decimals 
+ * and gets rid of negative zero. Returns nothing.
+ */
+
+static void round_number(double *dest, const int decimals)
+{
+	double m = pow(10.0, (double)decimals);
+
+	*dest = round(*dest * m) / m;
+	if (*dest == -0.0)
+		*dest = 0.0;
+}
+
+/*
  * print_eor_coor() - Prints "end of run" coordinate. All commands use this 
  * function if the final result is only a coordinate, so the proper output 
  * format can be used. Returns 1 if allocations failed, or an unknown value is 
@@ -31,16 +45,20 @@ static int print_eor_coor(const double lat, const double lon, const char *cmd,
                           const char *par1, const char *par2, const char *par3)
 {
 	char *cmt, *s;
+	double nlat = lat, nlon = lon;
+
+	round_number(&nlat, 6);
+	round_number(&nlon, 6);
 
 	switch (opt.outpformat) {
 	case OF_DEFAULT:
-		printf("%f,%f\n", lat, lon);
+		printf("%f,%f\n", nlat, nlon);
 		break;
 	case OF_GPX:
 		cmt = allocstr("%s %s %s %s", cmd, par1, par2, par3);
 		if (!cmt)
 			return 1; /* gncov */
-		s = gpx_wpt(lat, lon, cmd, cmt);
+		s = gpx_wpt(nlat, nlon, cmd, cmt);
 		if (!s) {
 			free(cmt); /* gncov */
 			return 1; /* gncov */
@@ -145,7 +163,7 @@ int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
 
 int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 {
-	double lat1, lon1, lat2, lon2, numpoints, nlat, nlon;
+	double lat1, lon1, lat2, lon2, numpoints, nlat = 0.0, nlon = 0.0;
 	int i, result, retval = EXIT_SUCCESS;
 
 	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\")",
@@ -173,6 +191,8 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 			retval = EXIT_FAILURE;
 			break;
 		}
+		round_number(&nlat, 6);
+		round_number(&nlon, 6);
 		switch(opt.outpformat) {
 		case OF_DEFAULT:
 			printf("%f,%f\n", nlat, nlon);

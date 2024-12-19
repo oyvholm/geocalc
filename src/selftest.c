@@ -1032,6 +1032,16 @@ static int test_cmd_bpos(void)
 	        "",
 	        EXIT_SUCCESS,
 	        "--km bpos 45,0 45 1");
+	r += tc(chp{ progname, "bpos", "0,0", "90.0000001", "1", NULL },
+	        "0.000000,0.000009\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "bpos: No negative zero in lat");
+	r += tc(chp{ progname, "bpos", "0,0", "359.9999999", "1", NULL },
+	        "0.000009,0.000000\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "bpos: No negative zero in lon");
 	r += sc(chp{ progname, "bpos", "1,2", "r", "1000", NULL },
 	        "",
 	        ": Invalid number specified: Invalid argument\n",
@@ -1240,6 +1250,16 @@ static int test_cmd_lpos(void)
 	        EXIT_SUCCESS,
 	        "--format gpx lpos: At the North Pole");
 	free(p);
+	r += tc(chp{ progname, "lpos", "0,0", "-0.0000001,0", "1", NULL },
+	        "0.000000,0.000000\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "lpos: No negative zero in lat");
+	r += tc(chp{ progname, "lpos", "0,0", "0,-0.0000001", "1", NULL },
+	        "0.000000,0.000000\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "lpos: No negative zero in lon");
 	r += sc(chp{ progname, "lpos", "1,2", "3,4", NULL },
 	        "",
 	        ": Missing arguments\n",
