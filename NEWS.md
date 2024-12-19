@@ -19,6 +19,8 @@ v0.x.x - 202x-xx-xx
 - Fix bug when `dist` printed "-nan" for certain antipodal points.
 - Fixed bearing calculations near poles (±90° latitude) by moving the 
   point 1 cm against Equator to avoid computational instability.
+- Normalize the longitude value from `bearing_position()`, fixes certain 
+  values for `bpos` and `lpos`.
 - Add `TESTS` variable for use with `make`. This variable is used as 
   `--selftest`/`--valgrind` argument in all relevant `make` commands.
 - Add `make tlokall`, prints the result of `make tlok` with and without 

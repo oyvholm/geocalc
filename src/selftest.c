@@ -1100,6 +1100,11 @@ static int test_cmd_bpos(void)
 	        "",
 	        EXIT_SUCCESS,
 	        "bpos: No negative zero in lon");
+	r += tc(chp{ progname, "--km", "bpos", "-34,179", "2", "19716", NULL },
+	        "36.688059,-1.117018\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "bpos: Longitude is normalized");
 	r += tc(chp{ progname, "--km", "bpos", "90,0", "180", "20000", NULL },
 	        "-89.864321,0.000000\n",
 	        "",
@@ -1334,6 +1339,12 @@ static int test_cmd_lpos(void)
 	        "",
 	        EXIT_SUCCESS,
 	        "lpos: No negative zero in lon");
+	r += tc(chp{ progname, "--km", "lpos", "-24.598059,178.290755",
+	             "-12.500692,163.651473", "9.8", NULL },
+	        "24.508273,-1.833156\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "lpos: Longitude is normalized");
 	r += tc(chp{ progname, "lpos", "90,0", "0,0", "0.5", NULL },
 	        "45.000000,0.000000\n",
 	        "",

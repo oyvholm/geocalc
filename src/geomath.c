@@ -66,6 +66,25 @@ static inline double rad2deg(const double rad)
 }
 
 /*
+ * normalize_longitude() - Normalize a longitude value to the range [-180,180].
+ *
+ * This function adjusts the given longitude value to ensure it falls within 
+ * the standard range of -180 to 180 degrees. If the input is already within 
+ * this range, no change is made.
+ *
+ * Parameters:
+ * - lon: Pointer to the longitude value to be normalized (in degrees).
+ */
+
+static void normalize_longitude(double *lon)
+{
+	assert(lon);
+	if (fabs(*lon) <= 180.0)
+		return;
+	*lon = fmod(fmod(*lon + 180.0, 360.0) + 360.0, 360.0) - 180.0;
+}
+
+/*
  * bearing_position() - Calculates the new geographic position after moving 
  * `dist_m` meters from the position `lat, lon` in the direction `bearing_deg` 
  * (where north is 0, south is 180). The new coordinate is stored at memory 
@@ -116,6 +135,7 @@ int bearing_position(const double lat, const double lon,
 
 	*new_lat = rad2deg(lat2_rad);
 	*new_lon = rad2deg(lon2_rad);
+	normalize_longitude(new_lon);
 
 	return 0;
 }
