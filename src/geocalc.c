@@ -239,9 +239,23 @@ static int usage(const int retval)
 	       " to calculate \n"
 	       "    positions beyond `coor2` or in the opposite direction"
 	       " from `coor1`.\n");
+	printf("  randpos [[coor maxdist] mindist]\n"
+	       "    Generate random coordinates anywhere in the world. If"
+	       " `coor` and \n"
+	       "    `maxdist` are specified, locations will be within"
+	       " `maxdist` meters \n"
+	       "    from `coor`. Adding `mindist` sets the minimum distance in"
+	       " meters \n"
+	       "    from `coor`. To generate worldwide locations with only a"
+	       " minimum \n"
+	       "    distance, set `maxdist` to 0. Use --count to specify the"
+	       " number of \n"
+	       "    coordinates to generate.\n");
 	printf("\n");
 	printf("Options:\n");
 	printf("\n");
+	printf("  --count <num>\n"
+	       "    When used with `randpos`, print `num` random points.\n");
 	printf("  -F <format>, --format <format>\n"
 	       "    Output in a specific format. Available formats:"
 	       " default, gpx.\n");
@@ -291,16 +305,28 @@ static int choose_opt_action(const int c, const struct option *opts)
 
 	switch (c) {
 	case 0:
-		if (!strcmp(opts->name, "km"))
+		if (!strcmp(opts->name, "count")) {
+			char *endptr = NULL;
+			errno = 0;
+			opt.count = strtol(optarg, &endptr, 10);
+			if (errno || endptr == optarg || *endptr
+			    || opt.count < 0) {
+				myerror("%s: Invalid --count argument",
+				        optarg);
+				errno = 0;
+				return 1;
+			}
+		} else if (!strcmp(opts->name, "km")) {
 			opt.km = true;
-		else if (!strcmp(opts->name, "license"))
+		} else if (!strcmp(opts->name, "license")) {
 			opt.license = true;
-		else if (!strcmp(opts->name, "selftest"))
+		} else if (!strcmp(opts->name, "selftest")) {
 			opt.selftest = true;
-		else if (!strcmp(opts->name, "valgrind"))
+		} else if (!strcmp(opts->name, "valgrind")) {
 			opt.valgrind = opt.selftest = true;
-		else if (!strcmp(opts->name, "version"))
+		} else if (!strcmp(opts->name, "version")) {
 			opt.version = true;
+		}
 		break;
 	case 'F':
 		opt.format = optarg;
@@ -336,6 +362,7 @@ static int parse_options(const int argc, char * const argv[])
 
 	assert(argv);
 
+	opt.count = 1;
 	opt.format = NULL;
 	opt.help = false;
 	opt.km = false;
@@ -352,6 +379,7 @@ static int parse_options(const int argc, char * const argv[])
 		int c;
 		int option_index = 0;
 		static const struct option long_options[] = {
+			{"count", required_argument, NULL, 0},
 			{"format", required_argument, NULL, 'F'},
 			{"help", no_argument, NULL, 'h'},
 			{"km", no_argument, NULL, 0},
@@ -429,6 +457,25 @@ static int process_args(int argc, char *argv[])
 			return EXIT_FAILURE;
 		retval = cmd_lpos(argv[optind + 1], argv[optind + 2],
 		                  argv[optind + 3]);
+	} else if (!strcmp(cmd, "randpos")) {
+		switch (numargs) {
+		case 1:
+		case 2:
+			retval = cmd_randpos(NULL, NULL, NULL);
+			break;
+		case 3:
+			retval = cmd_randpos(argv[optind + 1],
+			                     argv[optind + 2], NULL);
+			break;
+		case 4:
+			retval = cmd_randpos(argv[optind + 1],
+			                     argv[optind + 2],
+			                     argv[optind + 3]);
+			break;
+		default:
+			wrong_argcount(4, numargs);
+			return EXIT_FAILURE;
+		}
 	} else {
 		myerror("Unknown command: %s", cmd);
 		retval = EXIT_FAILURE;

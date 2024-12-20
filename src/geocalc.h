@@ -28,6 +28,7 @@
 #include <errno.h>
 #include <getopt.h>
 #include <math.h>
+#include <regex.h>
 #include <signal.h>
 #include <stdarg.h>
 #include <stdbool.h>
@@ -113,6 +114,7 @@ typedef enum {
 } OutputFormat;
 
 struct Options {
+	long count;
 	bool help;
 	bool km;
 	bool license;
@@ -142,6 +144,7 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2);
 int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s);
 int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s);
 int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s);
+int cmd_randpos(const char *coor, const char *maxdist, const char *mindist);
 
 /* geocalc.c */
 int msg(const VerboseLevel verbose, const char *format, ...);

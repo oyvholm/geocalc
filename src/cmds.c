@@ -35,6 +35,45 @@ static void round_number(double *dest, const int decimals)
 }
 
 /*
+ * print_coordinate() - Prints a coordinate to stdout using the format in 
+ * `opt.outpformat`. `name` and `cmt` are used for the GPX format. If `cmt` 
+ * isn't used, use NULL. Returns 1 if anything failed, otherwise 0.
+ */
+
+static int print_coordinate(const double lat, const double lon,
+                            const char *name, const char *cmt)
+{
+	double nlat = lat, nlon = lon;
+
+	round_number(&nlat, 6);
+	round_number(&nlon, 6);
+	if (opt.outpformat == OF_DEFAULT) {
+		printf("%f,%f\n", nlat, nlon);
+	} else if (opt.outpformat == OF_GPX) {
+		char *s;
+		if (!name) {
+			myerror("%s(): Cannot print GPX waypoint," /* gncov */
+			        " `name` is NULL", __func__);
+			return 1; /* gncov */
+		}
+		s = gpx_wpt(nlat, nlon, name, cmt);
+		if (!s) {
+			myerror("%s(): gpx_wpt() failed", /* gncov */
+			        __func__);
+			return 1; /* gncov */
+		}
+		fputs(s, stdout);
+		free(s);
+	} else {
+		myerror("%s(): opt.outpformat has unknown value:" /* gncov */
+		        " %d", __func__, opt.outpformat); /* gncov */
+		return 1; /* gncov */
+	}
+
+	return 0;
+}
+
+/*
  * print_eor_coor() - Prints "end of run" coordinate. All commands use this 
  * function if the final result is only a coordinate, so the proper output 
  * format can be used. Returns 1 if allocations failed, or an unknown value is 
@@ -248,6 +287,62 @@ int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s)
 
 	return print_eor_coor(nlat, nlon, "lpos", coor1, coor2, fracdist_s)
 	       ? EXIT_FAILURE : EXIT_SUCCESS;
+}
+
+/*
+ * cmd_randpos() - Executes the `randpos` command. Returns `EXIT_SUCCESS` or 
+ * `EXIT_FAILURE`.
+ */
+
+int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
+{
+	long l;
+	double c_lat = 1000, c_lon = 1000, maxdist_d = 0, mindist_d = 0;
+
+	if (coor) {
+		if (parse_coordinate(coor, &c_lat, &c_lon)) {
+			myerror("Error in center coordinate");
+			return EXIT_FAILURE;
+		}
+		if (maxdist && string_to_double(maxdist, &maxdist_d)) {
+			myerror("Error in max_dist argument");
+			return EXIT_FAILURE;
+		}
+		if (mindist && string_to_double(mindist, &mindist_d)) {
+			myerror("Error in min_dist argument");
+			return EXIT_FAILURE;
+		}
+		if (mindist_d < 0 || maxdist_d < 0) {
+			myerror("Distance can't be negative");
+			return EXIT_FAILURE;
+		}
+		if (maxdist_d != 0.0 && mindist_d > maxdist_d) {
+			myerror("max_dist must be larger than min_dist");
+			return EXIT_FAILURE;
+		}
+		if (opt.km) {
+			mindist_d *= 1000.0;
+			maxdist_d *= 1000.0;
+		}
+		if (mindist_d > MAX_EARTH_DISTANCE)
+			mindist_d = MAX_EARTH_DISTANCE;
+		if (maxdist_d > MAX_EARTH_DISTANCE)
+			maxdist_d = MAX_EARTH_DISTANCE;
+	}
+	if (opt.outpformat == OF_GPX)
+		fputs(gpx_header, stdout);
+	for (l = 1; l <= opt.count; l++) {
+		double lat, lon;
+		char *name;
+		rand_pos(&lat, &lon, c_lat, c_lon, maxdist_d, mindist_d);
+		name = allocstr("Random %lu", l);
+		print_coordinate(lat, lon, name, NULL);
+		free(name);
+	}
+	if (opt.outpformat == OF_GPX)
+		puts("</gpx>");
+
+	return EXIT_SUCCESS;
 }
 
 /* vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 : */

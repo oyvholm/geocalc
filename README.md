@@ -15,6 +15,7 @@ scripts and quick manual calculations.
 - Distance calculations between coordinates
 - Bearing calculations
 - Plot shortest route between points
+- Generate random positions on Earth with optional distance restraints
 - Output in various formats
 - Minimal dependencies, no extra C libraries needed
 - Platform independent
@@ -43,6 +44,8 @@ Contains the following commands:
   Prints the position of a point on a straight line between the 
   positions, where `fracdist` is a fraction that specifies how far along 
   the line the point is.
+- **`randpos`**\
+  Generates random coordinates.
 
 ## Examples
 
@@ -61,6 +64,9 @@ Contains the following commands:
 - `geocalc -F gpx lpos -11.952039,49.245985 -25.606629,45.167246 0.5`\
   Find center point on Madagascar, measured from the points furthest 
   north and south. Print the result as a GPX waypoint.
+- `geocalc --km --count 20 -F gpx randpos 33.33131,44.39689 12`\
+  Generate 20 random locations within Baghdad and output them in GPX 
+  format.
 
 ## Development
 

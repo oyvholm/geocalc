@@ -1636,6 +1636,345 @@ static int test_multiple(char *cmd)
 }
 
 /*
+ * verify_coor_dist() - Verifies that the distance between `coor` and all 
+ * "\n"-separated coordinates in `str` are in the range `mindist`-`maxdist` 
+ * meters. Returns the number of failed tests.
+ */
+
+static int verify_coor_dist(const char *str, const char *coor,
+                            const double mindist, const double maxdist)
+{
+	int r = 0, errcount = 0;
+	char *s, *p;
+	double clat, clon,
+	       mindist_r = round(mindist), maxdist_r = round(maxdist);
+	unsigned long coorcount = 0;
+
+	if (!str || !coor)
+		return r + ok(1, "%s(): `str` or `coor` is NULL", /* gncov */
+		                 __func__);
+	if (!strchr(str, '\n'))
+		return r + ok(1, "%s(): No '\\n' found in `str`", /* gncov */
+		                 __func__);
+	if (parse_coordinate(coor, &clat, &clon)) {
+		r += ok(1, "%s(): parse_coordinate() failed", /* gncov */
+		           __func__);
+		diag("%s(): coor = \"%s\"", __func__, coor); /* gncov */
+		return r; /* gncov */
+	}
+
+	s = mystrdup(str);
+	if (!s)
+		return r + ok(1, "%s(): mystrdup() failed", /* gncov */
+		                 __func__);
+	p = strtok(s, "\n");
+	while (p) {
+		double lat, lon, dist;
+		coorcount++;
+		if (parse_coordinate(p, &lat, &lon)) {
+			r += ok(1, "%s(): parse_coordinate()" /* gncov */
+			           " failed", __func__);
+			diag("%s(): p = \"%s\"", __func__, p); /* gncov */
+			errcount++; /* gncov */
+			goto next; /* gncov */
+		}
+		dist = haversine(clat, clon, lat, lon);
+		if (dist == -1.0) {
+			r += ok(1, "%s(): haversine() failed," /* gncov */
+			           " values out of range", __func__);
+			diag("%s(): coor = \"%s\", lat = %f," /* gncov */
+			     " lon = %f", __func__, coor, lat, lon);
+			errcount++; /* gncov */
+			goto next; /* gncov */
+		}
+		dist = round(dist);
+		if (dist < mindist_r || dist > maxdist_r) {
+			r += errcount < 11 /* gncov */
+			     ? ok(1, "Coordinate out of range (%f" /* gncov */
+			             " to %f m). center: %f,%f, coor = %f,%f,"
+			             " dist = %f",
+			             mindist, maxdist,
+			             clat, clon, lat, lon, dist)
+			     : 1; /* gncov */
+			errcount++; /* gncov */
+		}
+next:
+		if (errcount >= 10) {
+			r += ok(1, "Aborting this test after 10" /* gncov */
+			           " errors");
+			break; /* gncov */
+		}
+		p = strtok(NULL, "\n");
+	}
+	r += ok(!!errcount, "randpos: All %lu coordinates were inside range of"
+	                    " %.0f to %.0f meters.",
+	                    coorcount, mindist, maxdist);
+	free(s);
+
+	return r;
+}
+
+/*
+ * chk_coor_outp() - Verify the output from the randpos command. Returns the 
+ * number of failed tests.
+ */
+
+int chk_coor_outp(const OutputFormat format, const char *output,
+                  const unsigned int num, const char *coor,
+                  const double mindist, const double maxdist)
+{
+	int r = 0;
+	regex_t regex;
+	char *regstr, *pattern;
+
+	if (format == OF_DEFAULT && coor)
+		r += verify_coor_dist(output, coor, mindist, maxdist);
+
+	switch (format) {
+	case OF_DEFAULT:
+		regstr = "^(-?[0-9]+\\.[0-9]+"
+		         ","
+		         "-?[0-9]+\\.[0-9]+\n){%u}$";
+		break;
+	case OF_GPX:
+		regstr = "^<\\?xml version=\"1\\.0\" encoding=\"UTF-8\"\\?>\n"
+		         "<gpx"
+		         " xmlns=\"http://www\\.topografix\\.com/GPX/1/1\""
+		         " version=\"1\\.1\""
+		         " creator=\"" PROJ_NAME " - " PROJ_URL "\""
+		         ">\n"
+		         "("
+		         "  <wpt"
+		         " lat=\"-?[0-9]+\\.[0-9]+\""
+		         " lon=\"-?[0-9]+\\.[0-9]+\""
+		         ">\n"
+		         "    <name>Random [0-9]+</name>\n"
+		         "  </wpt>\n"
+		         "){%u}"
+		         "</gpx>\n$";
+		break;
+	}
+
+	pattern = allocstr(regstr, num);
+	if (!pattern)
+		return r + ok(1, "%s(): allocstr() failed", /* gncov */
+		                 __func__);
+
+	if (regcomp(&regex, pattern, REG_EXTENDED)) {
+		r += ok(1, "%s(): regcomp() failed", __func__); /* gncov */
+		goto cleanup; /* gncov */
+	}
+
+	r += regexec(&regex, output, 0, NULL, 0);
+	regfree(&regex);
+
+cleanup:
+	free(pattern);
+
+	return r;
+}
+
+/*
+ * te_randpos() - Execute `cmd` and verify that all coordinates are valid and 
+ * inside the various ranges specified.
+ */
+
+int te_randpos(const OutputFormat format, char **cmd, const unsigned int num,
+               const char *coor, const double mindist, const double maxdist,
+               const char *desc)
+{
+	int r = 0;
+	struct streams ss;
+
+	streams_init(&ss);
+	streams_exec(&ss, cmd);
+	r += ok(chk_coor_outp(format, ss.out.buf, num, coor, mindist, maxdist),
+	        desc);
+	streams_free(&ss);
+
+	return r;
+}
+
+/*
+ * test_cmd_randpos() - Tests the randpos command. Returns the number of failed 
+ * tests.
+ */
+
+static int test_cmd_randpos(void)
+{
+	int r = 0, res;
+	struct streams ss;
+	double lat, lon;
+	char *s;
+	char **as;
+
+	diag("Test randpos command");
+
+	r += sc(chp{ progname, "randpos", "1,2", "100", "90", "5", NULL },
+	        "",
+	        ": Too many arguments\n",
+	        EXIT_FAILURE,
+	        "randpos with 1 extra argument");
+
+	streams_init(&ss);
+	streams_exec(&ss, chp{ progname, "randpos", NULL });
+	lat = lon = 0;
+	res = parse_coordinate(ss.out.buf, &lat, &lon);
+	r += ok(!!res, "randpos: Coordinate is valid");
+	r += ok(!(fabs(lat) <= 90), "randpos: lat is in range");
+	r += ok(!(fabs(lat) <= 180), "randpos: lon is in range");
+	streams_free(&ss);
+
+	as = chp{ progname, "--count", "5", "randpos", NULL };
+	r += te_randpos(OF_DEFAULT, as, 5, NULL, 0, 0,
+	                "--count 5 randpos, stdout is ok");
+
+	as = chp{ progname, "-F", "gpx", "--count", "9", "randpos", NULL };
+	r += te_randpos(OF_GPX, as, 9, NULL, 0, 0,
+	                "-F gpx --count 9 randpos, stdout is ok");
+
+	r += sc(chp{ progname, "--count", "", "randpos", NULL },
+	        "",
+	        ": : Invalid --count argument\n",
+	        EXIT_FAILURE,
+	        "Empty argument to --count");
+	r += sc(chp{ progname, "--count", "g", "randpos", NULL },
+	        "",
+	        ": g: Invalid --count argument\n",
+	        EXIT_FAILURE,
+	        "--count receives non-number");
+	r += sc(chp{ progname, "--count", "11y", "randpos", NULL },
+	        "",
+	        ": 11y: Invalid --count argument\n",
+	        EXIT_FAILURE,
+	        "--count 11y");
+	r += sc(chp{ progname, "--count", "11.3", "randpos", NULL },
+	        "",
+	        ": 11.3: Invalid --count argument\n",
+	        EXIT_FAILURE,
+	        "--count 11.3");
+	r += sc(chp{ progname, "--count", "-2", "randpos", NULL },
+	        "",
+	        ": -2: Invalid --count argument\n",
+	        EXIT_FAILURE,
+	        "--count -2");
+	r += tc(chp{ progname, "--count", "0", "randpos", NULL },
+	        "",
+	        "",
+	        EXIT_SUCCESS,
+	        "--count 0");
+
+	s = allocstr("%s</gpx>\n", gpx_header);
+	if (!s) {
+		return r + ok(1, "%s(): allocstr() failed", /* gncov */
+		                 __func__);
+	}
+	r += tc(chp{ progname, "-F", "gpx", "--count", "0", "randpos", NULL },
+	        s,
+	        "",
+	        EXIT_SUCCESS,
+	        "-F gpx --count 0");
+	free(s);
+
+	diag("randpos with max_dist");
+
+	as = chp{ progname, "--count", "50", "randpos", "1.234,5.6789", "100",
+	          NULL };
+	r += te_randpos(OF_DEFAULT, as, 50, "1.234,5.6789", 0.0, 100.0,
+	                "randpos: 50 pos inside a radius of 100m");
+
+	as = chp{ progname, "--count", "50", "randpos", "1.234,5.6789",
+	          "100000000", NULL };
+	r += te_randpos(OF_DEFAULT, as, 50, "1.234,5.6789", 0.0,
+	                MAX_EARTH_DISTANCE,
+	                "randpos: max_dist is larger than MAX_EARTH_DISTANCE");
+
+	as = chp{ progname, "--count", "50", "randpos", "1.234,5.6789", "0",
+	          "100000000", NULL };
+	r += te_randpos(OF_DEFAULT, as, 50, "1.234,5.6789", 0.0,
+	                MAX_EARTH_DISTANCE,
+	                "randpos: min_dist is larger than MAX_EARTH_DISTANCE");
+
+	as = chp{ progname, "--count", "50", "randpos", "1.234,5.67",
+	          "100000000", "100000000", NULL };
+	r += te_randpos(OF_DEFAULT, as, 50, "1.234,5.67", MAX_EARTH_DISTANCE,
+	                MAX_EARTH_DISTANCE,
+	                "randpos: min_dist and max_dist are larger than"
+	                " MAX_EARTH_DISTANCE, stdout looks ok");
+
+	as = chp{ progname, "--km", "--count", "50", "randpos", "1.234,5.6789",
+	          "100", NULL };
+	r += te_randpos(OF_DEFAULT, as, 50,
+	        "1.234,5.6789", 0.0, 100000.0,
+	        "--km randpos: 50 pos inside a radius of 100km, stdout looks"
+	        " ok");
+
+	as = chp{ progname, "--km", "--count", "50", "randpos", "1.234,5.6789",
+	          "100000", NULL };
+	r += te_randpos(OF_DEFAULT, as, 50,
+	        "1.234,5.6789", 0.0, MAX_EARTH_DISTANCE,
+	        "--km randpos: max_dist is larger than MAX_EARTH_DISTANCE,"
+	        " stdout looks ok");
+
+	r += sc(chp{ progname, "randpos", "12.34,56.34y", "10", NULL },
+	        "",
+	        ": Error in center coordinate: Invalid argument\n",
+	        EXIT_FAILURE,
+	        "randpos with error in coordinate");
+
+	r += sc(chp{ progname, "randpos", "12.34,56.34", "10y", NULL },
+	        "",
+	        ": Error in max_dist argument: Invalid argument\n",
+	        EXIT_FAILURE,
+	        "randpos with error in max_dist");
+
+	r += sc(chp{ progname, "randpos", "12.34,56.34", "-17.9", NULL },
+	        "",
+	        ": Distance can't be negative\n",
+	        EXIT_FAILURE,
+	        "randpos with negative max_dist");
+
+	diag("randpos with max_dist and min_dist");
+
+	r += sc(chp{ progname, "randpos", "12.34,56.34", "10", "3y", NULL },
+	        "",
+	        ": Error in min_dist argument: Invalid argument\n",
+	        EXIT_FAILURE,
+	        "randpos with error in min_dist");
+
+	r += sc(chp{ progname, "randpos", "12.34,56.34", "9", "-2", NULL },
+	        "",
+	        ": Distance can't be negative\n",
+	        EXIT_FAILURE,
+	        "randpos with negative min_dist");
+
+	r += sc(chp{ progname, "randpos", "12.34,56.78", "100", "200", NULL },
+	        "",
+	        ": max_dist must be larger than min_dist\n",
+	        EXIT_FAILURE,
+	        "randpos, min_dist is larger than max_dist");
+
+	as = chp{ progname, "--count", "27", "randpos", "1.234,5.6789", "2000",
+	          "2000", NULL };
+	r += te_randpos(OF_DEFAULT, as, 27, "1.234,5.6789", 2000.0, 2000.0,
+	        "randpos: max_dist is equal to min_dist, stdout looks ok");
+	streams_free(&ss);
+
+	as = chp{ progname, "--count", "33", "randpos", "90,0", "10000",
+	          NULL };
+	r += te_randpos(OF_DEFAULT, as, 33, "90,0", 0.0, 10000.0,
+	                "randpos: Exactly at the North Pole");
+
+	as = chp{ progname, "--count", "33", "randpos", "-90,0", "10000",
+	          NULL };
+	r += te_randpos(OF_DEFAULT, as, 33, "-90,0", 0.0, 10000.0,
+	                "randpos: Exactly at the South Pole");
+	streams_free(&ss);
+
+	return r;
+}
+
+/*
  * test_functions() - Tests various functions directly. Returns the number of 
  * failed tests.
  */
@@ -1700,6 +2039,7 @@ static int test_executable(void)
 	r += test_cmd_lpos();
 	r += test_multiple("bear");
 	r += test_multiple("dist");
+	r += test_cmd_randpos();
 
 	return r;
 }

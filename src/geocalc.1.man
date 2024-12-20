@@ -19,6 +19,8 @@ Bearing calculations
 .IP \[bu] 2
 Plot shortest route between points
 .IP \[bu] 2
+Generate random positions on Earth with optional distance restraints
+.IP \[bu] 2
 Output in various formats
 .IP \[bu] 2
 Minimal dependencies, no extra C libraries needed
@@ -27,6 +29,9 @@ Platform independent
 .IP \[bu] 2
 Built-in test suite for all functionality
 .SH OPTIONS
+.TP
+\fB\-\-count\fP \fINUM\fP
+When used with \fBrandpos\fP, print \fINUM\fP random points.
 .TP
 \fB\-F\fP \fIFORMAT\fP, \fB\-\-format\fP \fIFORMAT\fP
 Create output of type \fIFORMAT\fP. Available formats: \fBdefault\fP,\& 
@@ -93,6 +98,14 @@ Prints the position of a point on a straight line between the locations, where
 is. 0 = start position, 1 = end position. \fIfracdist\fP can also take values 
 below 0 or above 1 to calculate positions beyond \fIcoor2\fP or in the opposite 
 direction from \fIcoor1\fP.
+.TP
+\fBrandpos\fP [[\fIcoor\fP \fImaxdist\fP] \fImindist\fP]
+Generate random coordinates anywhere in the world. If \fIcoor\fP and 
+\fImaxdist\fP are specified, locations will be within \fImaxdist\fP meters from 
+\fIcoor\fP. Adding \fImindist\fP sets the minimum distance in meters from 
+\fIcoor\fP. To generate worldwide locations with only a minimum distance, set 
+\fImaxdist\fP to 0. Use \fB\-\-count\fP to specify the number of coordinates to 
+generate.
 .SH EXIT STATUS
 .TP
 0
@@ -121,6 +134,9 @@ in the result.
 \fCgeocalc \-F gpx lpos \-11.952039,49.245985 \-25.606629,45.167246 0.5\fP
 Find center point on Madagascar, measured from the points furthest north and 
 south. Print the result as a GPX waypoint.
+.TP
+\fCgeocalc \-\-km \-\-count 20 \-F gpx randpos 33.33131,44.39689 12\fP
+Generate 20 random locations within Baghdad and output them in GPX format.
 .SH AUTHOR
 Written by \[/O]yvind A.\& Holm <sunny@sunbase.org>
 .SH COPYRIGHT
