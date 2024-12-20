@@ -494,6 +494,7 @@ int main(int argc, char *argv[])
 
 	progname = argv[0];
 	errno = 0;
+	srand48((long)time(NULL) ^ ((long)getpid() << 16));
 
 	if (parse_options(argc, argv)) {
 		myerror("Option error");

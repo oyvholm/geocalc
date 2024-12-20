@@ -85,6 +85,19 @@ static void normalize_longitude(double *lon)
 }
 
 /*
+ * set_antipode() - Set the coordinate `dlat,dlon` to the antipodal position on 
+ * Earth. By repeating the process the original values are back. Returns 
+ * nothing.
+ */
+
+void set_antipode(double *dlat, double *dlon)
+{
+	*dlat *= -1.0;
+	*dlon -= 180;
+	normalize_longitude(dlon);
+}
+
+/*
  * bearing_position() - Calculates the new geographic position after moving 
  * `dist_m` meters from the position `lat, lon` in the direction `bearing_deg` 
  * (where north is 0, south is 180). The new coordinate is stored at memory 
@@ -212,6 +225,85 @@ double initial_bearing(const double lat1, const double lon1,
 	                 - sin(lat1_rad) * cos_lat2 * cos(delta_lon);
 
 	return fmod(rad2deg(atan2(y, x)) + 360.0, 360.0);
+}
+
+/*
+ * rand_pos_bear_dist() - Generate a random position on Earth within specified 
+ * distance constraints.
+ *
+ * Parameters:
+ * - dlat:    Pointer to store resulting latitude (-90 to 90 degrees)
+ * - dlon:    Pointer to store resulting longitude (-180 to 180 degrees)
+ * - c_lat:   Center position latitude (-90 to 90 degrees)
+ * - c_lon:   Center position longitude (-180 to 180 degrees)
+ * - maxdist: Maximum distance in meters from center
+ * - mindist: Minimum distance in meters from center
+ *
+ * Return value:
+ * - 0 on success
+ * - 1 on invalid parameter values
+ */
+
+int rand_pos_bear_dist(double *dlat, double *dlon,
+                       const double c_lat_p, const double c_lon_p,
+                       const double maxdist_p, const double mindist_p)
+{
+	double c_lat = c_lat_p, c_lon = c_lon_p,
+	       maxdist = maxdist_p, mindist = mindist_p,
+	       rand_bear, rand_dist, result;
+
+	if (mindist != 0.0 && maxdist == 0.0) {
+		set_antipode(&c_lat, &c_lon);
+		maxdist = MAX_EARTH_DISTANCE - mindist;
+		mindist = 0.0;
+	}
+	do {
+		rand_bear = drand48() * 360.0;
+		rand_dist = mindist + sqrt(drand48()) * (maxdist - mindist);
+		if (rand_dist > MAX_EARTH_DISTANCE)
+			rand_dist = MAX_EARTH_DISTANCE; /* gncov */
+
+		bearing_position(c_lat, c_lon, rand_bear, rand_dist,
+		                 dlat, dlon);
+		result = haversine(c_lat, c_lon, *dlat, *dlon);
+	} while (mindist != maxdist && (result < mindist || result > maxdist));
+
+	return 0;
+}
+
+/*
+ * rand_pos() - Generate a random position on Earth with optional distance 
+ * constraints.
+ *
+ * If `c_lat` is larger than 90, generate a random location somewhere on Earth. 
+ * Otherwise, the position is between `mindist` and `maxdist` meters from 
+ * `c_lat,c_lon`.
+ *
+ * Parameters:
+ * - dlat:    Pointer to store resulting latitude (-90 to 90 degrees)
+ * - dlon:    Pointer to store resulting longitude (-180 to 180 degrees)
+ * - c_lat:   Center position latitude (-90 to 90 degrees)
+ * - c_lon:   Center position longitude (-180 to 180 degrees)
+ * - maxdist: Maximum distance in meters from center
+ * - mindist: Minimum distance in meters from center
+ *
+ * Return value:
+ * - 0 on success
+ * - 1 on invalid parameter values
+ */
+
+int rand_pos(double *dlat, double *dlon,
+             const double c_lat, const double c_lon,
+             const double maxdist, const double mindist)
+{
+	if (c_lat > 90.0 || (maxdist == 0.0 && mindist == 0.0)) {
+		/* No center coordinate or distances, use the whole world */
+		*dlat = rad2deg(asin(2.0 * drand48() - 1.0));
+		*dlon = rad2deg(drand48() * 2.0 * M_PI) - 180.0;
+		return 0;
+	}
+
+	return rand_pos_bear_dist(dlat, dlon, c_lat, c_lon, maxdist, mindist);
 }
 
 /*

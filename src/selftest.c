@@ -614,6 +614,77 @@ free_p:
 }
 
 /*
+ * test_rand_pos() - Tests the rand_pos() function. Returns the number of 
+ * failed tests.
+ */
+
+static int test_rand_pos(void)
+{
+	int r = 0, errcount = 0;
+	unsigned long l, failed, succ;
+	time_t seclimit;
+
+	diag("Test rand_pos()");
+
+	/* All around the world */
+	l = failed = succ = 0UL;
+	time(&seclimit);
+	seclimit += 2;
+	while (time(NULL) < seclimit) {
+		double lat, lon;
+		l++;
+		rand_pos(&lat, &lon, 1000, 1000, -1, -1);
+		if (fabs(lat) > 90.0) {
+			r += ok(1, "rand_pos(): Coordinate %lu:" /* gncov */
+			           " lat is outside range, lat = %f", l, lat);
+			errcount++; /* gncov */
+		}
+		if (fabs(lon) > 180.0) {
+			r += ok(1, "rand_pos(): Coordinate %lu:" /* gncov */
+			           " lon is outside range, lon = %f", l, lon);
+			errcount++; /* gncov */
+		}
+		if (errcount >= 10) {
+			diag("Aborting rand_pos() range test after" /* gncov */
+			      " 10 errors");
+			break; /* gncov */
+		}
+	}
+	r += ok(!!errcount,
+	        "rand_pos(): All %lu random coordinates are in range", l);
+
+	/* Between 1000 and 2000 meters */
+	l = failed = succ = 0UL;
+	time(&seclimit);
+	seclimit += 2;
+	while (time(NULL) < seclimit) {
+		double lat, lon, dist,
+		       clat = 12.34, clon = 56.78,
+		       mindist = 1000.0, maxdist = 2000.0;
+		l++;
+		rand_pos(&lat, &lon, clat, clon, maxdist, mindist);
+		dist = haversine(clat, clon, lat, lon);
+		if (dist < mindist || dist > maxdist) {
+			r += failed < 11 /* gncov */
+			     ? ok(1, "randpos out of range (%f to" /* gncov */
+			             " %f m), center = %f,%f randpos = %f,%f"
+			             " dist = %f", mindist, maxdist,
+			             clat, clon, lat, lon, dist)
+			     : 1; /* gncov */
+			failed++; /* gncov */
+		} else {
+			succ++;
+		}
+	}
+	r += ok(!!failed, "All 1000-2000m are in range, succ = %lu,"
+	                  " failed = %lu (%f%%)", succ, failed,
+	                  100.0 * (double)failed
+	                  / ((double)failed + (double)succ));
+
+	return r;
+}
+
+/*
  * test_streams_exec() - Tests the streams_exec() function. Returns the number 
  * of failed tests.
  */
@@ -1592,6 +1663,7 @@ static int test_functions(void)
 	r += ok(!(std_strerror(0) != NULL), "std_strerror(0)");
 	r += ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
 	r += test_allocstr();
+	r += test_rand_pos();
 	r += test_streams_exec();
 	r += test_parse_coordinate();
 	r += test_are_antipodal();
