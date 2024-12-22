@@ -1991,6 +1991,99 @@ static int test_cmd_randpos(void)
 }
 
 /*
+ * test_seed_option() - Tests the --seed option. Returns the number of failed 
+ * tests.
+ */
+
+static int test_seed_option(void)
+{
+	int r = 0;
+	struct binbuf bb1, bb2, bb3;
+
+	diag("Test --seed");
+
+	binbuf_init(&bb1);
+	binbuf_init(&bb2);
+	binbuf_init(&bb3);
+	exec_output(&bb1, chp{ progname, "--seed", "64738",
+	                       "--count", "20", "randpos", NULL });
+	exec_output(&bb2, chp{ progname, "--seed", "64739",
+	                       "--count", "20", "randpos", NULL });
+	exec_output(&bb3, chp{ progname, "--seed", "64738",
+	                       "--count", "20", "randpos", NULL });
+	r += ok(!strcmp(bb1.buf, bb2.buf),
+	        "randpos with seed 64738 and 64739 are different");
+	r += ok(!!strcmp(bb3.buf, bb1.buf),
+	        "randpos with seed 64738 is identical to the first");
+	binbuf_free(&bb3);
+	binbuf_free(&bb2);
+	binbuf_free(&bb1);
+
+	r += tc(chp{ progname, "--seed", "-29271", "--count", "10", "randpos",
+	             NULL },
+	        "56.398026,65.672317\n"
+	        "-62.545731,39.973376\n"
+	        "-12.953591,-109.219631\n"
+	        "71.625404,10.907732\n"
+	        "-49.720325,-97.898594\n"
+	        "-9.863466,161.067034\n"
+	        "-21.125676,-179.454884\n"
+	        "-20.152272,-58.458280\n"
+	        "11.179247,79.685331\n"
+	        "-47.058531,149.678499\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "--seed -29271 --count 10 randpos");
+
+	r += tc(chp{ progname, "--seed", "29271", "--count", "10", "randpos",
+	             NULL },
+	        "-8.603169,114.257108\n"
+	        "-46.646685,-133.238413\n"
+	        "32.233828,-45.004903\n"
+	        "-10.383696,-105.396018\n"
+	        "14.981908,-85.632935\n"
+	        "-2.551390,93.617273\n"
+	        "-45.194786,6.814725\n"
+	        "-4.491350,-102.252955\n"
+	        "-54.462817,-25.117826\n"
+	        "-23.940993,-89.915442\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "--seed 29271 --count 10 randpos");
+
+	r += tc(chp{ progname, "--format", "gpx", "--seed", "19999",
+	             "--count", "4", "randpos", NULL },
+	        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+	        "<gpx xmlns=\"http://www.topografix.com/GPX/1/1\""
+	        " version=\"1.1\" creator=\"Geocalc -"
+	        " https://gitlab.com/oyvholm/geocalc\">\n"
+	        "  <wpt lat=\"-17.914770\" lon=\"127.654700\">\n"
+	        "    <name>Random 1, seed 19999</name>\n"
+	        "  </wpt>\n"
+	        "  <wpt lat=\"-27.493377\" lon=\"115.562443\">\n"
+	        "    <name>Random 2, seed 19999</name>\n"
+	        "  </wpt>\n"
+	        "  <wpt lat=\"-22.699248\" lon=\"152.244953\">\n"
+	        "    <name>Random 3, seed 19999</name>\n"
+	        "  </wpt>\n"
+	        "  <wpt lat=\"-52.359745\" lon=\"-142.812430\">\n"
+	        "    <name>Random 4, seed 19999</name>\n"
+	        "  </wpt>\n"
+	        "</gpx>\n",
+	        "",
+	        EXIT_SUCCESS,
+	        "--format gpx --seed 19999 --count 4 randpos");
+
+	r += sc(chp{ progname, "--seed", "9.14", "randpos", NULL },
+	        "",
+	        ": 9.14: Invalid --seed argument\n",
+	        EXIT_FAILURE,
+	        "--seed 9.14 randpos");
+
+	return r;
+}
+
+/*
  * test_functions() - Tests various functions directly. Returns the number of 
  * failed tests.
  */
@@ -2056,6 +2149,7 @@ static int test_executable(void)
 	r += test_multiple("bear");
 	r += test_multiple("dist");
 	r += test_cmd_randpos();
+	r += test_seed_option();
 
 	return r;
 }

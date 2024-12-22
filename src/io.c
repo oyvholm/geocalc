@@ -272,4 +272,30 @@ cleanup:
 	return retval;
 }
 
+/*
+ * exec_output() - Execute the command stored in the NULL-terminated array 
+ * `cmd` and store stdout in `dest`. Returns the exit code from the program.
+ */
+
+int exec_output(struct binbuf *dest, char *cmd[])
+{
+	int retval;
+	struct streams st;
+
+	assert(dest);
+	assert(cmd);
+	if (!dest || !cmd) {
+		myerror("%s(): `dest` or `cmd` is NULL", __func__); /* gncov */
+		return 1; /* gncov */
+	}
+
+	streams_init(&st);
+	retval = streams_exec(&st, cmd);
+	if (dest)
+		binbuf_cpy(dest, &st.out);
+	streams_free(&st);
+
+	return retval;
+}
+
 /* vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 : */

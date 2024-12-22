@@ -275,6 +275,14 @@ static int usage(const int retval)
 	       "    Be more quiet. Can be repeated to increase silence.\n");
 	printf("  -v, --verbose\n"
 	       "    Increase level of verbosity. Can be repeated.\n");
+	printf("  --seed <seednum>\n"
+	       "    Initialize the pseudo-random number generator with the"
+	       " value \n"
+	       "    `seednum`. This allows reproducible sequences when using"
+	       " `randpos`, \n"
+	       "    where identical seed values will generate identical"
+	       " coordinate \n"
+	       "    sequences.\n");
 	printf("  --selftest [arg]\n"
 	       "    Run the built-in test suite. If specified, the argument"
 	       " can contain \n"
@@ -326,6 +334,17 @@ static int choose_opt_action(const int c, const struct option *opts)
 			opt.km = true;
 		} else if (!strcmp(opts->name, "license")) {
 			opt.license = true;
+		} else if (!strcmp(opts->name, "seed")) {
+			char *endptr = NULL;
+			opt.seed = optarg;
+			errno = 0;
+			opt.seedval = strtol(opt.seed, &endptr, 10);
+			if (errno || endptr == opt.seed || *endptr) {
+				myerror("%s: Invalid --seed argument",
+				        opt.seed);
+				errno = 0;
+				return 1;
+			}
 		} else if (!strcmp(opts->name, "selftest")) {
 			opt.selftest = true;
 		} else if (!strcmp(opts->name, "valgrind")) {
@@ -374,6 +393,8 @@ static int parse_options(const int argc, char * const argv[])
 	opt.km = false;
 	opt.license = false;
 	opt.outpformat = OF_DEFAULT;
+	opt.seed = NULL;
+	opt.seedval = (long)time(NULL) ^ ((long)getpid() << 16);
 	opt.selftest = false;
 	opt.testexec = false;
 	opt.testfunc = false;
@@ -391,6 +412,7 @@ static int parse_options(const int argc, char * const argv[])
 			{"km", no_argument, NULL, 0},
 			{"license", no_argument, NULL, 0},
 			{"quiet", no_argument, NULL, 'q'},
+			{"seed", required_argument, NULL, 0},
 			{"selftest", no_argument, NULL, 0},
 			{"valgrind", no_argument, NULL, 0},
 			{"verbose", no_argument, NULL, 'v'},
@@ -547,12 +569,12 @@ int main(int argc, char *argv[])
 
 	progname = argv[0];
 	errno = 0;
-	srand48((long)time(NULL) ^ ((long)getpid() << 16));
 
 	if (parse_options(argc, argv)) {
 		myerror("Option error");
 		return usage(EXIT_FAILURE);
 	}
+	srand48(opt.seedval);
 
 	msg(VERBOSE_DEBUG, "%s(): Using verbose level %d",
 	                   __func__, opt.verbose);

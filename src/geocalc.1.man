@@ -52,6 +52,11 @@ Be more quiet. Can be repeated to increase silence.
 \fB\-v\fP, \fB\-\-verbose\fP
 Increase level of verbosity. Can be repeated.
 .TP
+\fB\-\-seed\fP \fISEEDNUM\fP
+Initialize the pseudo-random number generator with the value \fISEEDNUM\fP. 
+This allows reproducible sequences when using \fBrandpos\fP, where identical 
+seed values will generate identical coordinate sequences.
+.TP
 \fB\-\-selftest\fP [\fIARG\fP]
 Run the built-in test suite. If specified, the argument can contain one or more 
 of these strings: \fBexec\fP (the tests use the executable file), \fBfunc\fP 

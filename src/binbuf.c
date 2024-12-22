@@ -44,4 +44,38 @@ void binbuf_free(struct binbuf *sb)
 	binbuf_init(sb);
 }
 
+/*
+ * binbuf_cpy() - Create a binbuf copy of `src` and store it in `dest`. Returns 
+ * a char pointer to `dest->buf` if successful, or NULL if allocation failed or 
+ * `dest` or `src` are NULL.
+ */
+
+char *binbuf_cpy(struct binbuf *dest, const struct binbuf *src)
+{
+	struct binbuf sb;
+
+	assert(dest);
+	assert(src);
+	if (!dest || !src) {
+		myerror("%s(): `dest` or `src` is NULL", __func__); /* gncov */
+		return NULL; /* gncov */
+	}
+	binbuf_init(&sb);
+	sb.alloc = src->alloc;
+	sb.buf = mymalloc(sb.alloc);
+	if (!sb.buf)
+		return NULL; /* gncov */
+	sb.len = src->len;
+	if (sb.len > sb.alloc) {
+		myerror("%s(): sb.len (%zu) is larger than" /* gncov */
+		        " sb.alloc (%zu)",
+		        __func__, sb.len, sb.alloc);
+		return NULL; /* gncov */
+	}
+	memcpy(sb.buf, src->buf, src->alloc);
+	*dest = sb;
+
+	return dest->buf;
+}
+
 /* vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 : */

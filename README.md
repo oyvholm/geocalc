@@ -16,6 +16,7 @@ scripts and quick manual calculations.
 - Bearing calculations
 - Plot shortest route between points
 - Generate random positions on Earth with optional distance restraints
+- Recreate random sequences with initial seed value
 - Output in various formats
 - Minimal dependencies, no extra C libraries needed
 - Platform independent

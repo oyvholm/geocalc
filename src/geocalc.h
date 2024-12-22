@@ -123,6 +123,8 @@ struct Options {
 	bool km;
 	bool license;
 	char *format;
+	char *seed;
+	long seedval;
 	bool selftest;
 	bool testexec;
 	bool testfunc;
@@ -166,11 +168,13 @@ void streams_init(struct streams *dest);
 void streams_free(struct streams *dest);
 char *read_from_fp(FILE *fp, struct binbuf *dest);
 int streams_exec(struct streams *dest, char *cmd[]);
+int exec_output(struct binbuf *dest, char *cmd[]);
 
 /* selftest.c */
 int opt_selftest(void);
 
 /* strings.c */
+void *mymalloc(const size_t size);
 int string_to_double(const char *s, double *dest);
 char *mystrdup(const char *s);
 char *allocstr(const char *format, ...);

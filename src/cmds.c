@@ -329,11 +329,20 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 		fputs(gpx_header, stdout);
 	for (l = 1; l <= opt.count; l++) {
 		double lat, lon;
-		char *name;
+		char *name, *seedstr = NULL;
+		if (opt.seed) {
+			seedstr = allocstr(", seed %ld", opt.seedval);
+			if (!seedstr) {
+				myerror("%s():%d: allocstr()" /* gncov */
+				        " failed()", __func__, __LINE__);
+				return EXIT_FAILURE; /* gncov */
+			}
+		}
 		rand_pos(&lat, &lon, c_lat, c_lon, maxdist_d, mindist_d);
-		name = allocstr("Random %lu", l);
+		name = allocstr("Random %lu%s", l, seedstr ? seedstr : "");
 		print_coordinate(lat, lon, name, NULL);
 		free(name);
+		free(seedstr);
 	}
 	if (opt.outpformat == OF_GPX)
 		puts("</gpx>");

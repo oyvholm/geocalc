@@ -12,7 +12,7 @@ v0.x.x - 202x-xx-xx
 
 - Add the `--km` option.
 - Add the `-F`/`--format` option. Supports `default` and `gpx`.
-- Add the `randpos` command and the `--count` option.
+- Add the `randpos` command, and the `--count` and `--seed` option.
 - `--selftest` and `--valgrind` now accept an optional argument to 
   control which test categories to run: `exec`, `func`, or `all`.
 - Generate error message when antipodal points are used with `bear`, 

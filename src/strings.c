@@ -21,6 +21,23 @@
 #include "geocalc.h"
 
 /*
+ * mymalloc() - Wrapper around malloc(), display error message if the 
+ * allocation fails. Returns the value from malloc().
+ */
+
+void *mymalloc(const size_t size)
+{
+	void *v = malloc(size);
+
+	if (!v) {
+		myerror("%s(): Memory allocation error" /* gncov */
+		        " (%zu bytes)", __func__, size);
+	}
+
+	return v;
+}
+
+/*
  * string_to_double() - Converts a number from `char *` to `double` and checks 
  * for errors. If any error occurs, it sets `errno` and returns 1, otherwise it 
  * returns 0.
