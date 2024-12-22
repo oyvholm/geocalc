@@ -614,65 +614,85 @@ free_p:
 }
 
 /*
+ * chk_rand_pos() - Used by test_rand_pos(). Executes rand_pos() with the 
+ * values in `coor`, `maxdist` and `mindist` and checks that they're in the 
+ * range defined by `exp_maxdist` and `exp_mindist`.
+ */
+
+static int chk_rand_pos(const char *coor,
+                        const double maxdist, const double mindist,
+                        const double exp_maxdist, const double exp_mindist)
+{
+	int r = 0, maxtests = 20;
+	unsigned long l, numloop = 1e+5;
+	double r_exp_max = round(exp_maxdist), r_exp_min = round(exp_mindist);
+
+	for (l = 0; l < numloop; l++) {
+		double clat = 1000.0, clon = 1000.0, rlat, rlon, dist, r_dist;
+		if (coor && parse_coordinate(coor, &clat, &clon)) {
+			return r + ok(1, "%s(): parse_coordinate()" /* gncov */
+			                 " failed, coor = \"%s\"",
+			                 __func__, coor);
+		}
+		rand_pos(&rlat, &rlon, clat, clon, maxdist, mindist);
+		if (fabs(rlat) > 90.0) {
+			r += ok(1, "rand_pos(): Coordinate %lu:" /* gncov */
+			           " lat is outside [-90,90] range,"
+			           " lat = %.15f", l, rlat);
+		}
+		if (fabs(rlon) > 180.0) {
+			r += ok(1, "rand_pos(): Coordinate %lu:" /* gncov */
+			           " lon is outside [-180,180] range,"
+			           " lon = %.15f", l, rlon);
+		}
+		if (r >= maxtests) {
+			diag("Aborting rand_pos() range test after" /* gncov */
+			     " %d errors", maxtests);
+			break; /* gncov */
+		}
+		if (!coor)
+			continue;
+		dist = haversine(clat, clon, rlat, rlon);
+		r_dist = round(dist);
+		if (r_dist < r_exp_min || r_dist > r_exp_max) {
+			r += r <= maxtests /* gncov */
+			     ? ok(1, "randpos out of range (%.0f to" /* gncov */
+			             " %.0f m), center = %f,%f randpos = %f,%f"
+			             " dist = %f", exp_mindist, exp_maxdist,
+			             clat, clon, rlat, rlon, dist)
+			     : 1; /* gncov */
+		}
+	}
+	r += ok(!!r, "rand_pos(): All %lu coordinates %.0f-%.0f m are in"
+	             " range, failed = %lu (%f%%)",
+	             numloop, exp_mindist, exp_maxdist, r,
+	             100.0 * (double)r / (double)numloop);
+
+	return r;
+}
+
+/*
  * test_rand_pos() - Tests the rand_pos() function. Returns the number of 
  * failed tests.
  */
 
 static int test_rand_pos(void)
 {
-	int r = 0, errcount = 0;
-	unsigned long l, failed, succ, numloop = 1e+5;
+	int r = 0;
+	double MED = MAX_EARTH_DISTANCE;
 
 	diag("Test rand_pos()");
 
-	/* All around the world */
-	failed = succ = 0UL;
-	for (l = 0; l < numloop; l++) {
-		double lat, lon;
-		rand_pos(&lat, &lon, 1000, 1000, -1, -1);
-		if (fabs(lat) > 90.0) {
-			r += ok(1, "rand_pos(): Coordinate %lu:" /* gncov */
-			           " lat is outside range, lat = %f", l, lat);
-			errcount++; /* gncov */
-		}
-		if (fabs(lon) > 180.0) {
-			r += ok(1, "rand_pos(): Coordinate %lu:" /* gncov */
-			           " lon is outside range, lon = %f", l, lon);
-			errcount++; /* gncov */
-		}
-		if (errcount >= 10) {
-			diag("Aborting rand_pos() range test after" /* gncov */
-			      " 10 errors");
-			break; /* gncov */
-		}
-	}
-	r += ok(!!errcount,
-	        "rand_pos(): All %lu random coordinates are in range", l);
-
-	/* Between 1000 and 2000 meters */
-	failed = succ = 0UL;
-	for (l = 0; l < numloop; l++) {
-		double lat, lon, dist,
-		       clat = 12.34, clon = 56.78,
-		       mindist = 1000.0, maxdist = 2000.0;
-		rand_pos(&lat, &lon, clat, clon, maxdist, mindist);
-		dist = haversine(clat, clon, lat, lon);
-		if (dist < mindist || dist > maxdist) {
-			r += failed < 11 /* gncov */
-			     ? ok(1, "randpos out of range (%f to" /* gncov */
-			             " %f m), center = %f,%f randpos = %f,%f"
-			             " dist = %f", mindist, maxdist,
-			             clat, clon, lat, lon, dist)
-			     : 1; /* gncov */
-			failed++; /* gncov */
-		} else {
-			succ++;
-		}
-	}
-	r += ok(!!failed, "All 1000-2000m are in range, succ = %lu,"
-	                  " failed = %lu (%f%%)", succ, failed,
-	                  100.0 * (double)failed
-	                  / ((double)failed + (double)succ));
+	r += chk_rand_pos("-3.14,-123.45", 1e+20, 1e+20, MED, MED);
+	r += chk_rand_pos("-3.14,-123.45", 1e+20, 1e+7, MED, 1e+7);
+	r += chk_rand_pos("-55.91,-107.32", 0, 2e+7, MED, 2e+7);
+	r += chk_rand_pos("-59.2105,44.47485", 1000.0, 1000.0, 1000.0, 1000.0);
+	r += chk_rand_pos("-90,0", 10.0, 0.0, 10.0, 0.0);
+	r += chk_rand_pos("12,34", 0.1, 0.0, 0.0, 0.0);
+	r += chk_rand_pos("12,34", 1.0, 0.0, 1.0, 0.0);
+	r += chk_rand_pos("65,7", 2000.0, 1000.0, 2000.0, 1000.0);
+	r += chk_rand_pos("90,0", 0.0, 1e+6, MED, 1e+6);
+	r += chk_rand_pos(NULL, 0.0, 0.0, MED, 0.0);
 
 	return r;
 }
