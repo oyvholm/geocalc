@@ -621,18 +621,14 @@ free_p:
 static int test_rand_pos(void)
 {
 	int r = 0, errcount = 0;
-	unsigned long l, failed, succ;
-	time_t seclimit;
+	unsigned long l, failed, succ, numloop = 1e+5;
 
 	diag("Test rand_pos()");
 
 	/* All around the world */
-	l = failed = succ = 0UL;
-	time(&seclimit);
-	seclimit += 2;
-	while (time(NULL) < seclimit) {
+	failed = succ = 0UL;
+	for (l = 0; l < numloop; l++) {
 		double lat, lon;
-		l++;
 		rand_pos(&lat, &lon, 1000, 1000, -1, -1);
 		if (fabs(lat) > 90.0) {
 			r += ok(1, "rand_pos(): Coordinate %lu:" /* gncov */
@@ -654,14 +650,11 @@ static int test_rand_pos(void)
 	        "rand_pos(): All %lu random coordinates are in range", l);
 
 	/* Between 1000 and 2000 meters */
-	l = failed = succ = 0UL;
-	time(&seclimit);
-	seclimit += 2;
-	while (time(NULL) < seclimit) {
+	failed = succ = 0UL;
+	for (l = 0; l < numloop; l++) {
 		double lat, lon, dist,
 		       clat = 12.34, clon = 56.78,
 		       mindist = 1000.0, maxdist = 2000.0;
-		l++;
 		rand_pos(&lat, &lon, clat, clon, maxdist, mindist);
 		dist = haversine(clat, clon, lat, lon);
 		if (dist < mindist || dist > maxdist) {
