@@ -101,11 +101,12 @@ direction from \fIcoor1\fP.
 .TP
 \fBrandpos\fP [[\fIcoor\fP \fImaxdist\fP] \fImindist\fP]
 Generate random coordinates anywhere in the world. If \fIcoor\fP and 
-\fImaxdist\fP are specified, locations will be within \fImaxdist\fP meters from 
-\fIcoor\fP. Adding \fImindist\fP sets the minimum distance in meters from 
-\fIcoor\fP. To generate worldwide locations with only a minimum distance, set 
-\fImaxdist\fP to 0. Use \fB\-\-count\fP to specify the number of coordinates to 
-generate.
+\fImaxdist\fP are provided, locations will be within \fImaxdist\fP meters from 
+\fIcoor\fP. If \fImindist\fP is also specified, it sets the minimum distance in 
+meters from \fIcoor\fP. For worldwide locations with only a minimum distance,\& 
+use \fImaxdist\fP = 0. If \fImaxdist\fP is not 0 and \fImindist\fP is greater 
+than \fImaxdist\fP, their values will be swapped automatically. Use 
+\fB\-\-count\fP to specify the number of coordinates to generate.
 .SH EXIT STATUS
 .TP
 0

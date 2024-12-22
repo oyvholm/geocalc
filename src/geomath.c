@@ -260,6 +260,11 @@ int rand_pos_bear_dist(double *dlat, double *dlon,
 		maxdist = MAX_EARTH_DISTANCE - mindist;
 		mindist = 0.0;
 	}
+	if (mindist > maxdist) {
+		double d = mindist;
+		mindist = maxdist;
+		maxdist = d;
+	}
 	do {
 		rand_bear = drand48() * 360.0;
 		rand_dist = mindist + sqrt(drand48()) * (maxdist - mindist);

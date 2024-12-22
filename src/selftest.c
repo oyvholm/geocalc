@@ -685,11 +685,13 @@ static int test_rand_pos(void)
 
 	r += chk_rand_pos("-3.14,-123.45", 1e+20, 1e+20, MED, MED);
 	r += chk_rand_pos("-3.14,-123.45", 1e+20, 1e+7, MED, 1e+7);
+	r += chk_rand_pos("-3.14,-123.45", 1e+7, 1e+20, MED, 1e+7);
 	r += chk_rand_pos("-55.91,-107.32", 0, 2e+7, MED, 2e+7);
 	r += chk_rand_pos("-59.2105,44.47485", 1000.0, 1000.0, 1000.0, 1000.0);
 	r += chk_rand_pos("-90,0", 10.0, 0.0, 10.0, 0.0);
 	r += chk_rand_pos("12,34", 0.1, 0.0, 0.0, 0.0);
 	r += chk_rand_pos("12,34", 1.0, 0.0, 1.0, 0.0);
+	r += chk_rand_pos("12,34", 10.0, 20.0, 20.0, 10.0);
 	r += chk_rand_pos("65,7", 2000.0, 1000.0, 2000.0, 1000.0);
 	r += chk_rand_pos("90,0", 0.0, 1e+6, MED, 1e+6);
 	r += chk_rand_pos(NULL, 0.0, 0.0, MED, 0.0);
@@ -1961,11 +1963,9 @@ static int test_cmd_randpos(void)
 	        EXIT_FAILURE,
 	        "randpos with negative min_dist");
 
-	r += sc(chp{ progname, "randpos", "12.34,56.78", "100", "200", NULL },
-	        "",
-	        ": max_dist must be larger than min_dist\n",
-	        EXIT_FAILURE,
-	        "randpos, min_dist is larger than max_dist");
+	as = chp{ progname, "randpos", "12.34,56.78", "100", "200", NULL };
+	r += te_randpos(OF_DEFAULT, as, 1, "12.34,56.78", 100.0, 200.0,
+	                "randpos: min_dist is larger than max_dist");
 
 	as = chp{ progname, "--count", "27", "randpos", "1.234,5.6789", "2000",
 	          "2000", NULL };

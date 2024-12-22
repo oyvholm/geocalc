@@ -316,10 +316,6 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 			myerror("Distance can't be negative");
 			return EXIT_FAILURE;
 		}
-		if (maxdist_d != 0.0 && mindist_d > maxdist_d) {
-			myerror("max_dist must be larger than min_dist");
-			return EXIT_FAILURE;
-		}
 		if (opt.km) {
 			mindist_d *= 1000.0;
 			maxdist_d *= 1000.0;

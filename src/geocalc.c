@@ -244,15 +244,19 @@ static int usage(const int retval)
 	printf("  randpos [[coor maxdist] mindist]\n"
 	       "    Generate random coordinates anywhere in the world. If"
 	       " `coor` and \n"
-	       "    `maxdist` are specified, locations will be within"
-	       " `maxdist` meters \n"
-	       "    from `coor`. Adding `mindist` sets the minimum distance in"
+	       "    `maxdist` are provided, locations will be within `maxdist`"
 	       " meters \n"
-	       "    from `coor`. To generate worldwide locations with only a"
+	       "    from `coor`. If `mindist` is also specified, it sets the"
 	       " minimum \n"
-	       "    distance, set `maxdist` to 0. Use --count to specify the"
-	       " number of \n"
-	       "    coordinates to generate.\n");
+	       "    distance in meters from `coor`. For worldwide locations"
+	       " with only a \n"
+	       "    minimum distance, use `maxdist` = 0. If `maxdist` is not 0"
+	       " and \n"
+	       "    `mindist` is greater than `maxdist`, their values will be"
+	       " swapped \n"
+	       "    automatically. Use --count to specify the number of"
+	       " coordinates to \n"
+	       "    generate.\n");
 	printf("\n");
 	printf("Options:\n");
 	printf("\n");
