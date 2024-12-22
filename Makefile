@@ -35,6 +35,10 @@ all:
 tags: src/*.[ch]
 	ctags src/*.[ch]
 
+.PHONY: cflags
+cflags:
+	@cd src && $(MAKE) -s $@
+
 .PHONY: clean
 clean:
 	rm -f NEWS.html NEWS.html.tmp

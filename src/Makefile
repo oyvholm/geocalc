@@ -17,35 +17,37 @@ CFILES += io.c
 CFILES += selftest.c
 CFILES += strings.c
 CFLAGS  =
-CFLAGS += $$(test "$$(uname -o)" = "Android" || echo -fcf-protection=full)
+CFLAGS += $$($(IS_DEV) && echo -O0 || echo -O2)
 CFLAGS += $$(test -n "$(GCOV)" && echo -n "-fprofile-arcs -ftest-coverage")
 CFLAGS += $$(test -n "$(PROF)" && echo -n "-pg")
-CFLAGS += -O0
+CFLAGS += $(DEVFLAGS_STR)
 CFLAGS += -Wall
-CFLAGS += -Wcast-align
-CFLAGS += -Wcast-qual
-CFLAGS += -Wconversion
-CFLAGS += -Wdouble-promotion
-CFLAGS += -Werror
-CFLAGS += -Werror=implicit-function-declaration
-CFLAGS += -Wextra
-CFLAGS += -Wfloat-conversion
-CFLAGS += -Wformat
-CFLAGS += -Wformat-overflow
-CFLAGS += -Wformat-security
-CFLAGS += -Wformat-truncation
-CFLAGS += -Wpedantic
-CFLAGS += -Wshadow
-CFLAGS += -Wstrict-aliasing
-CFLAGS += -Wstrict-overflow=5
-CFLAGS += -Wstrict-prototypes
 CFLAGS += -c
-CFLAGS += -fno-common
-CFLAGS += -fstack-protector-strong
-CFLAGS += -fwrapv
-CFLAGS += -g3
-CFLAGS += -pedantic
 DEPS = version.h $(HFILES) Makefile
+DEVFLAGS += $$(test "$$(uname -o)" = "Android" || echo -fcf-protection=full)
+DEVFLAGS += -Wcast-align
+DEVFLAGS += -Wcast-qual
+DEVFLAGS += -Wconversion
+DEVFLAGS += -Wdouble-promotion
+DEVFLAGS += -Werror
+DEVFLAGS += -Werror=implicit-function-declaration
+DEVFLAGS += -Wextra
+DEVFLAGS += -Wfloat-conversion
+DEVFLAGS += -Wformat
+DEVFLAGS += -Wformat-overflow
+DEVFLAGS += -Wformat-security
+DEVFLAGS += -Wformat-truncation
+DEVFLAGS += -Wpedantic
+DEVFLAGS += -Wshadow
+DEVFLAGS += -Wstrict-aliasing
+DEVFLAGS += -Wstrict-overflow=5
+DEVFLAGS += -Wstrict-prototypes
+DEVFLAGS += -fno-common
+DEVFLAGS += -fstack-protector-strong
+DEVFLAGS += -fwrapv
+DEVFLAGS += -g3
+DEVFLAGS += -pedantic
+DEVFLAGS_STR = $$($(IS_DEV) && echo $(DEVFLAGS))
 GNCOV_STR = $$(test -n "$(GNCOV)" && echo "-g")
 HFILES  =
 HFILES += binbuf.h
@@ -84,6 +86,8 @@ CMD_VALGRIND += -q
 CMD_VALGRIND += --leak-check=full
 CMD_VALGRIND += --show-leak-kinds=all
 CMD_VALGRIND += --
+IS_DEV = [ \( -z "$(NODEVEL)" \) \
+           -a \( -e .devel -o -e ../.git/.devel -o -n "$(DEVEL)" \) ]
 MAN_VERSION = $$(grep EXEC_VERSION version.h | cut -d '"' -f 2 \
                  | sed 's/-/\\\\-/g;')
 TESTABLE_LINES = $$(grep -E '^ +\#\#\#\#\#:' *.c.gcov \
@@ -134,6 +138,10 @@ selftest.o: selftest.c $(DEPS)
 
 strings.o: strings.c $(DEPS)
 	$(CC) $(CFLAGS) strings.c
+
+.PHONY: cflags
+cflags:
+	@echo $(CFLAGS)
 
 .PHONY: clean
 clean:

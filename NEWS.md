@@ -22,6 +22,9 @@ v0.x.x - 202x-xx-xx
   point 1 cm against Equator to avoid computational instability.
 - Normalize the longitude value from `bearing_position()`, fixes certain 
   values for `bpos` and `lpos`.
+- Don't compile with lots of warning flags by default. Only use them if 
+  `src/.devel` or `.git/.devel` exists, or the `DEVEL` variable is set.
+- Create `make cflags` to inspect the current compiler flags.
 - Add `TESTS` variable for use with `make`. This variable is used as 
   `--selftest`/`--valgrind` argument in all relevant `make` commands.
 - Add `make tlokall`, prints the result of `make tlok` with and without 

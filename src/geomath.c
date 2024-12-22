@@ -90,12 +90,12 @@ static void normalize_longitude(double *lon)
  * nothing.
  */
 
-void set_antipode(double *dlat, double *dlon)
+void set_antipode(double *dlat, double *dlon) /* gncov */
 {
 	*dlat *= -1.0;
 	*dlon -= 180;
 	normalize_longitude(dlon);
-}
+} /* gncov */
 
 /*
  * bearing_position() - Calculates the new geographic position after moving 

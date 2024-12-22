@@ -1768,6 +1768,9 @@ int chk_coor_outp(const OutputFormat format, const char *output,
 		         "){%u}"
 		         "</gpx>\n$";
 		break;
+	default: /* gncov */
+		regstr = "NON-EXISTENT VALUE"; /* gncov */
+		break; /* gncov */
 	}
 
 	pattern = allocstr(regstr, num);
