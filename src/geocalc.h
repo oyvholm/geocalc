@@ -52,6 +52,10 @@
 #else
 #  define DEBL  ;
 #endif
+#define check_errno if (errno) { \
+	myerror("%s():%s:%d: errno = %d (\"%s\")", \
+	        __func__, __FILE__, __LINE__, errno, strerror(errno)); \
+}
 
 /*
  * Verbose levels:

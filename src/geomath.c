@@ -188,10 +188,13 @@ double haversine(const double lat1, const double lon1,
 	                   * sin_delta_lambda * sin_delta_lambda;
 
 	const double arc = 2.0 * atan2(sqrt(hav), sqrt(1.0 - hav));
-	const double distance = EARTH_RADIUS * arc; /* Distance in meters */
+	if (isnan(arc)) {
+		/* Antipodal positions */
+		errno = 0;
+		return MAX_EARTH_DISTANCE;
+	}
 
-	/* If `distance` is NaN, the positions are antipodal. */
-	return isnan(distance) ? MAX_EARTH_DISTANCE : distance;
+	return EARTH_RADIUS * arc; /* Distance in meters */
 }
 
 /*

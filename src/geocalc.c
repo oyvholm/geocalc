@@ -64,6 +64,8 @@ const char *std_strerror(const int errnum)
 	switch (errnum) {
 	case EACCES:
 		return "Permission denied";
+	case EDOM: /* gncov */
+		return "Numerical argument out of domain"; /* gncov */
 	case EINVAL:
 		return "Invalid argument";
 	case ERANGE:
@@ -577,6 +579,7 @@ int main(int argc, char *argv[])
 		                   __func__, t, argv[t]);
 	}
 	retval = process_args(argc, argv);
+	check_errno;
 
 	msg(VERBOSE_DEBUG, "Returning from %s() with value %d",
 	                   __func__, retval);
