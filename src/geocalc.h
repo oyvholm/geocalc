@@ -42,6 +42,7 @@
 
 #include "binbuf.h"
 #include "geomath.h"
+#include "gpx.h"
 
 #define PROJ_NAME  "Geocalc"
 #define PROJ_URL  "https://gitlab.com/oyvholm/geocalc"
@@ -158,7 +159,6 @@ const char *std_strerror(const int errnum);
 int myerror(const char *format, ...);
 
 /* gpx.c */
-extern const char *gpx_header;
 char *xml_escape_string(const char *text);
 char *gpx_wpt(const double lat, const double lon,
               const char *name, const char *cmt);

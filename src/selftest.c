@@ -386,8 +386,8 @@ static int verify_definitions(void)
 	    " version=\"1.1\""
 	    " creator=\"Geocalc - https://gitlab.com/oyvholm/geocalc\""
 	    ">\n";
-	r += ok(!!strcmp(gpx_header, e), "gpx_header is correct");
-	print_gotexp(gpx_header, e);
+	r += ok(!!strcmp(GPX_HEADER, e), "GPX_HEADER is correct");
+	print_gotexp(GPX_HEADER, e);
 
 	e = "Geocalc";
 	r += ok(!!strcmp(PROJ_NAME, e), "PROJ_NAME is correct");
@@ -1163,7 +1163,6 @@ static int test_format_option(void)
 static int test_cmd_bpos(void)
 {
 	int r = 0;
-	char *p1;
 
 	diag("Test bpos command");
 	r += tc(chp{ progname, "bpos", "45,0", "45", "1000", NULL },
@@ -1234,17 +1233,15 @@ static int test_cmd_bpos(void)
 	        "-F default bpos");
 	r += tc(chp{ progname, "--format", "gpx", "bpos", "40.80542,-73.96546",
 	             "188.7", "4817.84", NULL },
-	        (p1 = allocstr(
-	              "%s"
+	              GPX_HEADER
 	              "  <wpt lat=\"40.762590\" lon=\"-73.974113\">\n"
 	              "    <name>bpos</name>\n"
 	              "    <cmt>bpos 40.80542,-73.96546 188.7 4817.84</cmt>\n"
 	              "  </wpt>\n"
-	              "</gpx>\n", gpx_header)),
+	              "</gpx>\n",
 	        "",
 	        EXIT_SUCCESS,
 	        "--format gpx bpos");
-	free(p1);
 
 	return r;
 }
@@ -1354,8 +1351,7 @@ static int test_cmd_course(void)
 	        "-F default course, Amsterdam to Tokyo");
 	r += tc(chp{progname, "-F", "gpx", "course",
 	            "52.3731,4.891", "35.681,139.767", "5", NULL},
-	        (exp_stdout = allocstr(
-	        "%s"
+	        GPX_HEADER
 	        "  <rte>\n"
 	        "    <rtept lat=\"52.373100\" lon=\"4.891000\">\n"
 	        "    </rtept>\n"
@@ -1372,11 +1368,10 @@ static int test_cmd_course(void)
 	        "    <rtept lat=\"35.681000\" lon=\"139.767000\">\n"
 	        "    </rtept>\n"
 	        "  </rte>\n"
-	        "</gpx>\n", gpx_header)),
+	        "</gpx>\n",
 	        "",
 	        EXIT_SUCCESS,
 	        "-F gpx course, Amsterdam to Tokyo");
-	free(exp_stdout);
 
 	return r;
 }
@@ -1389,7 +1384,6 @@ static int test_cmd_course(void)
 static int test_cmd_lpos(void)
 {
 	int r = 0;
-	char *p;
 
 	diag("Test lpos command");
 	r += tc(chp{ progname, "lpos", "45,0", "45,180", "0.5", NULL },
@@ -1404,17 +1398,15 @@ static int test_cmd_lpos(void)
 	        "--km lpos: At the North Pole");
 	r += tc(chp{ progname, "--format", "gpx", "lpos", "45,0", "45,180",
 	             "0.5", NULL },
-	             (p = allocstr(
-	                  "%s"
+	                  GPX_HEADER
 	                  "  <wpt lat=\"90.000000\" lon=\"0.000000\">\n"
 	                  "    <name>lpos</name>\n"
 	                  "    <cmt>lpos 45,0 45,180 0.5</cmt>\n"
 	                  "  </wpt>\n"
-	                  "</gpx>\n", gpx_header)),
+	                  "</gpx>\n",
 	        "",
 	        EXIT_SUCCESS,
 	        "--format gpx lpos: At the North Pole");
-	free(p);
 	r += tc(chp{ progname, "lpos", "0,0", "-0.0000001,0", "1", NULL },
 	        "0.000000,0.000000\n",
 	        "",
@@ -1823,7 +1815,6 @@ static int test_cmd_randpos(void)
 	int r = 0, res;
 	struct streams ss;
 	double lat, lon;
-	char *s;
 	char **as;
 
 	diag("Test randpos command");
@@ -1881,18 +1872,11 @@ static int test_cmd_randpos(void)
 	        "",
 	        EXIT_SUCCESS,
 	        "--count 0");
-
-	s = allocstr("%s</gpx>\n", gpx_header);
-	if (!s) {
-		return r + ok(1, "%s(): allocstr() failed", /* gncov */
-		                 __func__);
-	}
 	r += tc(chp{ progname, "-F", "gpx", "--count", "0", "randpos", NULL },
-	        s,
+	        GPX_HEADER "</gpx>\n",
 	        "",
 	        EXIT_SUCCESS,
 	        "-F gpx --count 0");
-	free(s);
 
 	diag("randpos with max_dist");
 

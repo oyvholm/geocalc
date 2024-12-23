@@ -53,6 +53,7 @@ HFILES  =
 HFILES += binbuf.h
 HFILES += geocalc.h
 HFILES += geomath.h
+HFILES += gpx.h
 HTMLFILE = $(EXEC).html
 IGNFILES  =
 IGNFILES += -e ^bin/gcov-cmt

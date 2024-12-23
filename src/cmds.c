@@ -102,7 +102,7 @@ static int print_eor_coor(const double lat, const double lon, const char *cmd,
 			free(cmt); /* gncov */
 			return 1; /* gncov */
 		}
-		printf("%s%s</gpx>\n", gpx_header, s);
+		printf("%s%s</gpx>\n", GPX_HEADER, s);
 		free(s);
 		free(cmt);
 		break;
@@ -227,7 +227,7 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 		return EXIT_FAILURE;
 	}
 	if (opt.outpformat == OF_GPX) {
-		fputs(gpx_header, stdout);
+		fputs(GPX_HEADER, stdout);
 		puts("  <rte>");
 	}
 	for (i = 0; i <= numpoints; i++) {
@@ -326,7 +326,7 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 			maxdist_d = MAX_EARTH_DISTANCE;
 	}
 	if (opt.outpformat == OF_GPX)
-		fputs(gpx_header, stdout);
+		fputs(GPX_HEADER, stdout);
 	for (l = 1; l <= opt.count; l++) {
 		double lat, lon;
 		char *name, *seedstr = NULL;

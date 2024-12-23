@@ -20,13 +20,6 @@
 
 #include "geocalc.h"
 
-const char *gpx_header = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                         "<gpx"
-                         " xmlns=\"http://www.topografix.com/GPX/1/1\""
-                         " version=\"1.1\""
-                         " creator=\"" PROJ_NAME " - " PROJ_URL "\""
-                         ">\n";
-
 /*
  * xml_escape_string() - Return pointer to allocated string where the data in 
  * `text` is escaped for use in XML files.
