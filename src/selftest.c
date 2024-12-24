@@ -687,7 +687,7 @@ static int test_rand_pos(void)
 
 	r += chk_rand_pos("-3.14,-123.45", 1e+20, 1e+20, MED, MED);
 	r += chk_rand_pos("-3.14,-123.45", 1e+20, 1e+7, MED, 1e+7);
-	r += chk_rand_pos("-3.14,-123.45", 1e+7, 1e+20, MED, 1e+7);
+	r += chk_rand_pos("-3.14,-123.45", 1e+7 + 1, 1e+20, MED, 1e+7 + 1);
 	r += chk_rand_pos("-55.91,-107.32", 0, 2e+7, MED, 2e+7);
 	r += chk_rand_pos("-59.2105,44.47485", 1000.0, 1000.0, 1000.0, 1000.0);
 	r += chk_rand_pos("-90,0", 10.0, 0.0, 10.0, 0.0);
@@ -1136,17 +1136,17 @@ static int test_format_option(void)
 	        "",
 	        ": setup_options(): o.format = \"FoRmAt\"\n",
 	        EXIT_FAILURE,
-	        "-vvvv --format FoRmAt");
-	r += sc(chp{progname, "-vvvv", "-F", "FoRmAt", NULL},
-	        NULL,
-	        ": FoRmAt: Unknown output format\n",
-	        EXIT_FAILURE,
-	        "-vvvv --format FoRmAt: It says it's unknown");
+	        "-vvvv -F FoRmAt: o.format is correct");
 	r += sc(chp{progname, "-vvvv", "--format", "FoRmAt", NULL},
 	        "",
 	        ": setup_options(): o.format = \"FoRmAt\"\n",
 	        EXIT_FAILURE,
-	        "-vvvv --format FoRmAt");
+	        "-vvvv --format FoRmAt: o.format is correct");
+	r += sc(chp{progname, "-vvvv", "-F", "FoRmAt", NULL},
+	        NULL,
+	        ": FoRmAt: Unknown output format\n",
+	        EXIT_FAILURE,
+	        "-vvvv -F FoRmAt: It says it's unknown");
 	r += tc(chp{progname, "-vvvv", "-F", "", "lpos", "54,7", "12,22",
 	            "0.23", NULL},
 	        "44.531328,12.145870\n",
@@ -1888,24 +1888,29 @@ static int test_cmd_randpos(void)
 	r += te_randpos(OF_DEFAULT, as, 50, "1.234,5.6789", 0.0, 100.0,
 	                "randpos: 50 pos inside a radius of 100m");
 
-	as = chp{ progname, "--count", "50", "randpos", "1.234,5.6789",
+	as = chp{ progname, "--count", "51", "randpos", "1.234,5.6789",
 	          "100000000", NULL };
-	r += te_randpos(OF_DEFAULT, as, 50, "1.234,5.6789", 0.0,
+	r += te_randpos(OF_DEFAULT, as, 51, "1.234,5.6789", 0.0,
 	                MAX_EARTH_DISTANCE,
 	                "randpos: max_dist is larger than MAX_EARTH_DISTANCE");
 
-	as = chp{ progname, "--count", "50", "randpos", "1.234,5.6789", "0",
+	as = chp{ progname, "--count", "52", "randpos", "1.234,5.6789", "0",
 	          "100000000", NULL };
-	r += te_randpos(OF_DEFAULT, as, 50, "1.234,5.6789", 0.0,
+	r += te_randpos(OF_DEFAULT, as, 52, "1.234,5.6789", 0.0,
 	                MAX_EARTH_DISTANCE,
 	                "randpos: min_dist is larger than MAX_EARTH_DISTANCE");
 
-	as = chp{ progname, "--count", "50", "randpos", "1.234,5.67",
+	as = chp{ progname, "--count", "53", "randpos", "1.234,5.67",
 	          "100000000", "100000000", NULL };
-	r += te_randpos(OF_DEFAULT, as, 50, "1.234,5.67", MAX_EARTH_DISTANCE,
+	r += te_randpos(OF_DEFAULT, as, 53, "1.234,5.67", MAX_EARTH_DISTANCE,
 	                MAX_EARTH_DISTANCE,
 	                "randpos: min_dist and max_dist are larger than"
 	                " MAX_EARTH_DISTANCE, stdout looks ok");
+
+	as = chp{ progname, "-F", "gpx", "--count", "14", "randpos",
+	          "19.63,-19.70", "25", NULL };
+	r += te_randpos(OF_GPX, as, 14, NULL, 0, 0,
+	                "-F gpx --count 14 randpos 19.63,-19.70 25");
 
 	as = chp{ progname, "--km", "--count", "50", "randpos", "1.234,5.6789",
 	          "100", NULL };
@@ -1963,14 +1968,19 @@ static int test_cmd_randpos(void)
 	        "randpos: max_dist is equal to min_dist, stdout looks ok");
 	streams_free(&ss);
 
+	as = chp{ progname, "-F", "gpx", "--count", "21", "randpos",
+	          "90,0", "7741", "7777", NULL };
+	r += te_randpos(OF_GPX, as, 21, "90,0", 7741, 7777,
+	                "randpos, North Pole, 25 pos as GPX, dists swapped");
+
 	as = chp{ progname, "--count", "33", "randpos", "90,0", "10000",
 	          NULL };
 	r += te_randpos(OF_DEFAULT, as, 33, "90,0", 0.0, 10000.0,
 	                "randpos: Exactly at the North Pole");
 
-	as = chp{ progname, "--count", "33", "randpos", "-90,0", "10000",
+	as = chp{ progname, "--count", "34", "randpos", "-90,0", "10001",
 	          NULL };
-	r += te_randpos(OF_DEFAULT, as, 33, "-90,0", 0.0, 10000.0,
+	r += te_randpos(OF_DEFAULT, as, 34, "-90,0", 0.0, 10001.0,
 	                "randpos: Exactly at the South Pole");
 	streams_free(&ss);
 
@@ -2089,13 +2099,17 @@ static int test_functions(void)
 	r += test_gotexp_output();
 	r += test_valgrind_lines();
 
-	diag("Test various routines");
 	diag("Test myerror()");
 	errno = EACCES;
 	r += ok(!(myerror("errno is EACCES") > 37),
 	        "myerror(): errno is EACCES");
 	errno = 0;
+	diag("Test std_strerror()");
 	r += ok(!(std_strerror(0) != NULL), "std_strerror(0)");
+	r += ok(!!strcmp(std_strerror(EDOM),
+	                 "Numerical argument out of domain"),
+	        "std_strerror(EDOM) is as expected");
+	diag("Test mystrdup()");
 	r += ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
 	r += test_allocstr();
 	r += test_rand_pos();
