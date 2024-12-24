@@ -87,7 +87,7 @@ CMD_VALGRIND += -q
 CMD_VALGRIND += --leak-check=full
 CMD_VALGRIND += --show-leak-kinds=all
 CMD_VALGRIND += --
-IS_DEV = [ \( -z "$(NODEVEL)" \) \
+IS_DEV = [ -z "$(NODEVEL)" \
            -a \( -e .devel -o -e ../.git/.devel -o -n "$(DEVEL)" \) ]
 MAN_VERSION = $$(grep EXEC_VERSION version.h | cut -d '"' -f 2 \
                  | sed 's/-/\\\\-/g;')

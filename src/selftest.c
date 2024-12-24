@@ -616,7 +616,8 @@ free_p:
 /*
  * chk_rand_pos() - Used by test_rand_pos(). Executes rand_pos() with the 
  * values in `coor`, `maxdist` and `mindist` and checks that they're in the 
- * range defined by `exp_maxdist` and `exp_mindist`.
+ * range defined by `exp_maxdist` and `exp_mindist`. Returns the number of 
+ * failed tests.
  */
 
 static int chk_rand_pos(const char *coor,
@@ -656,10 +657,11 @@ static int chk_rand_pos(const char *coor,
 		r_dist = round(dist);
 		if (r_dist < r_exp_min || r_dist > r_exp_max) {
 			r += r <= maxtests /* gncov */
-			     ? ok(1, "randpos out of range (%.0f to" /* gncov */
-			             " %.0f m), center = %f,%f randpos = %f,%f"
-			             " dist = %f", exp_mindist, exp_maxdist,
-			             clat, clon, rlat, rlon, dist)
+			     ? ok(1, "randpos out of range (%.0f" /* gncov */
+			             " to %.0f m), center = %f,%f randpos ="
+			             " %f,%f dist = %f",
+			             exp_mindist, exp_maxdist, clat, clon,
+			             rlat, rlon, dist)
 			     : 1; /* gncov */
 		}
 	}
@@ -1726,7 +1728,7 @@ next:
  * number of failed tests.
  */
 
-int chk_coor_outp(const OutputFormat format, const char *output,
+static int chk_coor_outp(const OutputFormat format, const char *output,
                   const unsigned int num, const char *coor,
                   const double mindist, const double maxdist)
 {
@@ -1786,12 +1788,13 @@ cleanup:
 
 /*
  * te_randpos() - Execute `cmd` and verify that all coordinates are valid and 
- * inside the various ranges specified.
+ * inside the various ranges specified. Returns the number of failed tests.
  */
 
-int te_randpos(const OutputFormat format, char **cmd, const unsigned int num,
-               const char *coor, const double mindist, const double maxdist,
-               const char *desc)
+static int te_randpos(const OutputFormat format, char **cmd,
+                      const unsigned int num, const char *coor,
+                      const double mindist, const double maxdist,
+                      const char *desc)
 {
 	int r = 0;
 	struct streams ss;

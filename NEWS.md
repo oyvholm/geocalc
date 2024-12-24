@@ -10,18 +10,19 @@ repositories mentioned in `README.md`.
 v0.x.x - 202x-xx-xx
 -------------------
 
+- Add the `randpos` command with the `--count` and `--seed` option.
 - Add the `--km` option.
 - Add the `-F`/`--format` option. Supports `default` and `gpx`.
-- Add the `randpos` command, and the `--count` and `--seed` option.
 - `--selftest` and `--valgrind` now accept an optional argument to 
   control which test categories to run: `exec`, `func`, or `all`.
 - Generate error message when antipodal points are used with `bear`, 
   `course` and `lpos` because the answer is undefined.
-- Fix bug when `dist` printed "-nan" for certain antipodal points.
-- Fixed bearing calculations near poles (±90° latitude) by moving the 
+- Fix bug where `dist` printed "-nan" for certain antipodal points.
+- Fix bearing calculations at the poles (±90° latitude) by moving the 
   point 1 cm against Equator to avoid computational instability.
 - Normalize the longitude value from `bearing_position()`, fixes certain 
   values for `bpos` and `lpos`.
+- Don't print negative zero ("-0.000000"), normalize before output.
 - Don't compile with lots of warning flags by default. Only use them if 
   `src/.devel` or `.git/.devel` exists, or the `DEVEL` variable is set.
 - Create `make cflags` to inspect the current compiler flags.
@@ -32,9 +33,9 @@ v0.x.x - 202x-xx-xx
 - `--valgrind`: Verify that Valgrind is installed on the system.
 - Clean up stderr when the tests are executed, remove "got/expected" 
   output and obsolete info, tweak descriptions.
-- Rename `string.c` to `strings.c`.
 - Add `tlokall` to the `make` command in `.gitlab-ci.yml` to document 
   the tlok status at commit time.
+- `make valgrind` runs additional checks on the test process itself.
 
 v0.1.0 - 2024-11-10
 -------------------
