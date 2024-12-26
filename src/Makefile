@@ -154,6 +154,13 @@ clean:
 	rm -f gmon.out gmon.sum
 	rm -f version.h
 
+.PHONY: dupdesc
+dupdesc:
+	@$(MAKE) -s clean all \
+	&& ./$(EXEC) --selftest 2>/dev/null | cut -f 4- -d ' ' | sort \
+	   | uniq -c | sed 's/^[[:space:]]*//g;' | grep -v '^1 ' \
+	   | grep . && exit 1 || true
+
 .PHONY: edit
 edit: tags
 	$(EDITOR) $$(git ls-files | grep -v $(IGNFILES))
@@ -186,6 +193,13 @@ html: $(HTMLFILE)
 .PHONY: install
 install: $(INSTALL_TARGETS)
 
+.PHONY: longlines
+longlines:
+	@for f in $(CFILES) $(HFILES) $(MANSRC) Gen-version Makefile; do \
+		[ -f "$$f" ] && expand "$$f" | sed 's/ $$//;' \
+		| grep -q -E '.{80}' && echo "$$f"; \
+	done | grep . && exit 1 || true
+
 .PHONY: pdf
 pdf: $(PDFFILE)
 
@@ -206,7 +220,8 @@ test: $(EXEC)
 
 .PHONY: testall
 testall:
-	$(MAKE) testcomb WHAT=test
+	$(MAKE) -s testcomb WHAT=test
+	$(MAKE) -s testsrc
 
 .PHONY: testcomb
 testcomb:
@@ -215,11 +230,10 @@ testcomb:
 
 .PHONY: testsrc
 testsrc:
-	@echo Check files for long lines >&2
-	@for f in $(CFILES) $(HFILES) $(MANSRC) Gen-version Makefile; do \
-		[ -f "$$f" ] && expand "$$f" | sed 's/ $$//;' \
-		| grep -q -E '.{80}' && echo "$$f"; \
-	done | grep . && exit 1 || true
+	@echo Check files for long lines
+	@$(MAKE) -s longlines
+	@echo Check for duplicated test descriptions
+	@$(MAKE) -s dupdesc
 
 .PHONY: tlok
 tlok:

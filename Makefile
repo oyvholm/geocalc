@@ -65,6 +65,14 @@ html:
 install:
 	cd src && $(MAKE) $@
 
+.PHONY: longlines
+longlines:
+	@for f in .gitlab-ci.yml Makefile NEWS.md README.md; do \
+		[ -f "$$f" ] && expand "$$f" | sed 's/ $$//;' \
+		| grep -q -E '.{80}' && echo "$$f"; \
+	done | grep . && exit 1 || true
+	cd src && $(MAKE) -s $@
+
 .PHONY: pdf
 pdf:
 	$(MAKE) NEWS.pdf
@@ -77,7 +85,14 @@ test:
 
 .PHONY: testall
 testall:
-	cd src && $(MAKE) $@
+	$(MAKE) -s testsrc
+	cd src && $(MAKE) -s $@
+
+.PHONY: testsrc
+testsrc:
+	@echo Check files for long lines
+	@$(MAKE) -s longlines
+	cd src && $(MAKE) -s $@
 
 .PHONY: tlok
 tlok:

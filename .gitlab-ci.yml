@@ -3,6 +3,9 @@
 
 image: gcc
 
+variables:
+  LC_ALL: "C.UTF-8"
+
 geocalc:linux:
   stage: build
   before_script:

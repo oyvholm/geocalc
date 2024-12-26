@@ -30,6 +30,10 @@ v0.x.x - 202x-xx-xx
   `--selftest`/`--valgrind` argument in all relevant `make` commands.
 - Add `make tlokall`, prints the result of `make tlok` with and without 
   `exec` and `func` tests.
+- Add new source code checks: `make longlines` (>79 chars per line, was 
+  in `testsrc`) and `make dupdesc` (duplicated test descriptions). Both 
+  are now part of `make testsrc`, and `testsrc` is now part of 
+  `testall`.
 - `--valgrind`: Verify that Valgrind is installed on the system.
 - Clean up stderr when the tests are executed, remove "got/expected" 
   output and obsolete info, tweak descriptions.
