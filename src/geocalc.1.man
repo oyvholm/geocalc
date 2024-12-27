@@ -7,7 +7,7 @@ geocalc \- Calculate various geographic data
 .B geocalc
 [\fIOPTIONS\fP] <\fICOMMAND\fP> [\fIARGS\fP]
 .SH DESCRIPTION
-geocalc is a program that calculates various geographic data. It receives 
+Geocalc is a program that calculates various geographic data. It receives 
 parameters and values via the command line, and prints accurate and strict 
 values to standard output. This makes it suitable for use in scripts and quick 
 manual calculations.

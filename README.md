@@ -1,11 +1,11 @@
-# geocalc
+# Geocalc
 
 A command-line utility for geographic calculations using decimal 
 degrees.
 
 ## Overview
 
-**geocalc** is a program that calculates various geographic data. It 
+**Geocalc** is a program that calculates various geographic data. It 
 receives parameters and values via the command line, and prints accurate 
 and strict values to standard output. This makes it suitable for use in 
 scripts and quick manual calculations.
