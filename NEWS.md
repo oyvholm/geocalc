@@ -7,7 +7,7 @@ Summary of changes in Geocalc
 For a complete log of changes, please refer to the Git commit log in the 
 repositories mentioned in `README.md`.
 
-v0.x.x - 202x-xx-xx
+v0.2.0 - 2024-12-27
 -------------------
 
 - Add the `randpos` command with the `--count` and `--seed` option.
