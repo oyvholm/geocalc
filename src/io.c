@@ -143,7 +143,7 @@ int streams_exec(struct streams *dest, char *cmd[])
 	struct sigaction old_action, new_action;
 
 	assert(cmd);
-	if (opt.verbose >= 10) {
+	if (opt.verbose >= (VerboseLevel)10) {
 		int i = -1; /* gncov */
 
 		fprintf(stderr, "# %s(", __func__); /* gncov */
