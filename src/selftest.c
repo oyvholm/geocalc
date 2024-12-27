@@ -2072,6 +2072,12 @@ static int test_seed_option(void)
 	        EXIT_SUCCESS,
 	        "--format gpx --seed 19999 --count 4 randpos");
 
+	r += sc(chp{ progname, "--seed", "", "randpos", NULL },
+	        "",
+	        ": : Invalid --seed argument\n",
+	        EXIT_FAILURE,
+	        "Empty argument to --seed");
+
 	r += sc(chp{ progname, "--seed", "9.14", "randpos", NULL },
 	        "",
 	        ": 9.14: Invalid --seed argument\n",

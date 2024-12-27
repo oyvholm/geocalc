@@ -327,9 +327,9 @@ static int choose_opt_action(const int c, const struct option *opts)
 			opt.count = strtol(optarg, &endptr, 10);
 			if (errno || endptr == optarg || *endptr
 			    || opt.count < 0) {
+				errno = 0;
 				myerror("%s: Invalid --count argument",
 				        optarg);
-				errno = 0;
 				return 1;
 			}
 		} else if (!strcmp(opts->name, "km")) {
@@ -342,9 +342,9 @@ static int choose_opt_action(const int c, const struct option *opts)
 			errno = 0;
 			opt.seedval = strtol(opt.seed, &endptr, 10);
 			if (errno || endptr == opt.seed || *endptr) {
+				errno = 0;
 				myerror("%s: Invalid --seed argument",
 				        opt.seed);
-				errno = 0;
 				return 1;
 			}
 		} else if (!strcmp(opts->name, "selftest")) {
