@@ -197,6 +197,8 @@ static int usage(const int retval)
 		print_version();
 		puts("");
 	}
+	printf("Calculates various geographic data.\n");
+	printf("\n");
 	printf("Usage: %s [options] <command> [args]\n", progname);
 	printf("\n");
 	printf("Commands:\n");
