@@ -23,6 +23,7 @@ CFLAGS += $$(test -n "$(PROF)" && echo -n "-pg")
 CFLAGS += $(DEVFLAGS_STR)
 CFLAGS += -Wall
 CFLAGS += -c
+CFLAGS += -fverbose-asm
 DEPS = version.h $(HFILES) Makefile
 DEVFLAGS += $$(test "$$(uname -o)" = "Android" || echo -fcf-protection=full)
 DEVFLAGS += -Wcast-align
@@ -162,6 +163,7 @@ clean:
 	rm -f $(MANPAGE) $(MANPAGE).tmp
 	rm -f $(PDFFILE) $(PDFFILE).tmp
 	rm -f *.gcda *.gcno *.gcov
+	rm -f *.s
 	rm -f gmon.out gmon.sum
 	rm -f version.h
 
