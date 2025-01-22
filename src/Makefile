@@ -113,6 +113,14 @@ $(PDFFILE): $(MANPAGE)
 	man -Tpdf ./$(MANPAGE) >$@.tmp
 	mv $@.tmp $@
 
+$(PREFIX)/bin/$(EXEC): $(EXEC)
+	mkdir -p $(PREFIX)/bin
+	install $(EXEC) $(PREFIX)/bin/$(EXEC)
+
+$(PREFIX)/share/man/man1/$(MANPAGE): $(MANPAGE)
+	mkdir -p $(PREFIX)/share/man/man1
+	install $(MANPAGE) $(PREFIX)/share/man/man1/$(MANPAGE)
+
 version.h: Gen-version $(CFILES) $(HFILES) Makefile
 	./Gen-version
 
@@ -139,6 +147,9 @@ selftest.o: selftest.c $(DEPS)
 
 strings.o: strings.c $(DEPS)
 	$(CC) $(CFLAGS) strings.c
+
+tags: $(CFILES) $(HFILES)
+	ctags $(CFILES) $(HFILES)
 
 .PHONY: cflags
 cflags:
@@ -203,17 +214,6 @@ longlines:
 .PHONY: pdf
 pdf: $(PDFFILE)
 
-$(PREFIX)/bin/$(EXEC): $(EXEC)
-	mkdir -p $(PREFIX)/bin
-	install $(EXEC) $(PREFIX)/bin/$(EXEC)
-
-$(PREFIX)/share/man/man1/$(MANPAGE): $(MANPAGE)
-	mkdir -p $(PREFIX)/share/man/man1
-	install $(MANPAGE) $(PREFIX)/share/man/man1/$(MANPAGE)
-
-tags: $(CFILES) $(HFILES)
-	ctags $(CFILES) $(HFILES)
-
 .PHONY: test
 test: $(EXEC)
 	./$(EXEC) --selftest $(TESTS)
@@ -271,8 +271,7 @@ uninstall:
 .PHONY: valgrind
 valgrind: $(EXEC)
 	./$(EXEC) --valgrind $(TESTS)
-	$(CMD_VALGRIND) ./$(EXEC) --selftest $(TESTS) \
-	| grep -v ^ok
+	$(CMD_VALGRIND) ./$(EXEC) --selftest $(TESTS) | grep -v ^ok
 
 .PHONY: valgrindall
 valgrindall:
