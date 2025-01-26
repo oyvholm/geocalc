@@ -34,7 +34,7 @@ struct Options opt;
  * Returns the number of characters written.
  */
 
-int msg(const VerboseLevel verbose, const char *format, ...)
+int msg(const int verbose, const char *format, ...)
 {
 	int retval = 0;
 
@@ -157,7 +157,7 @@ static int print_version(void)
 	if (p) { }
 #endif
 
-	if (opt.verbose <= VERBOSE_QUIET) {
+	if (opt.verbose < 0) {
 		puts(EXEC_VERSION);
 		return EXIT_SUCCESS;
 	}
@@ -368,9 +368,8 @@ static int choose_opt_action(const int c, const struct option *opts)
 		opt.verbose++;
 		break;
 	default:
-		msg(VERBOSE_DEBUG,
-		    "%s(): getopt_long() returned character code %d",
-		    __func__, c);
+		msg(4, "%s(): getopt_long() returned character code %d",
+		       __func__, c);
 		retval = 1;
 		break;
 	}
@@ -465,7 +464,7 @@ static int process_args(int argc, char *argv[])
 	const int numargs = argc - optind;
 	const char *cmd = argv[optind];
 
-	msg(VERBOSE_DEBUG, "%s(): cmd = %s", __func__, cmd);
+	msg(4, "%s(): cmd = %s", __func__, cmd);
 
 	if (!strcmp(cmd, "bear") || !strcmp(cmd, "dist")) {
 		if (wrong_argcount(3, numargs))
@@ -528,8 +527,7 @@ static int process_args(int argc, char *argv[])
 static int setup_options(struct Options *o, const int argc, char *argv[])
 {
 	if (o->format) {
-		msg(VERBOSE_DEBUG, "%s(): o.format = \"%s\"",
-		                   __func__, o->format);
+		msg(4, "%s(): o.format = \"%s\"", __func__, o->format);
 		if (!strlen(o->format) || !strcmp(o->format, "default")) {
 			o->outpformat = OF_DEFAULT;
 		} else if (!strcmp(o->format, "gpx")) {
@@ -578,10 +576,8 @@ int main(int argc, char *argv[])
 	}
 	srand48(opt.seedval);
 
-	msg(VERBOSE_DEBUG, "%s(): Using verbose level %d",
-	                   __func__, opt.verbose);
-	msg(VERBOSE_DEBUG, "%s(): argc = %d, optind = %d",
-	                   __func__, argc, optind);
+	msg(4, "%s(): Using verbose level %d", __func__, opt.verbose);
+	msg(4, "%s(): argc = %d, optind = %d", __func__, argc, optind);
 
 	if (setup_options(&opt, argc, argv))
 		return EXIT_FAILURE;
@@ -595,22 +591,19 @@ int main(int argc, char *argv[])
 	if (opt.license)
 		return print_license();
 
-	msg(VERBOSE_TRACE, "argc = %d, optind = %d, argv[optind] = %s\n",
-	                   argc, optind, argv[optind]);
+	msg(7, "argc = %d, optind = %d, argv[optind] = %s\n",
+	       argc, optind, argv[optind]);
 	if (optind >= argc) {
 		myerror("No arguments specified");
 		return usage(EXIT_FAILURE);
 	}
 
-	for (t = optind; t < argc; t++) {
-		msg(VERBOSE_DEBUG, "%s(): Non-option arg %d: %s",
-		                   __func__, t, argv[t]);
-	}
+	for (t = optind; t < argc; t++)
+		msg(4, "%s(): Non-option arg %d: %s", __func__, t, argv[t]);
 	retval = process_args(argc, argv);
 	check_errno;
 
-	msg(VERBOSE_DEBUG, "Returning from %s() with value %d",
-	                   __func__, retval);
+	msg(4, "Returning from %s() with value %d", __func__, retval);
 	return retval;
 }
 

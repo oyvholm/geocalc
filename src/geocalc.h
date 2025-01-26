@@ -48,8 +48,8 @@
 #define PROJ_URL  "https://gitlab.com/oyvholm/geocalc"
 
 #if 1
-#  define DEBL  msg(VERBOSE_TRACE, "DEBL: %s, line %u in %s()", \
-                                   __FILE__, __LINE__, __func__)
+#  define DEBL  msg(2, "DEBL: %s, line %u in %s()", \
+                       __FILE__, __LINE__, __func__)
 #else
 #  define DEBL  ;
 #endif
@@ -57,61 +57,6 @@
 	myerror("%s():%s:%d: errno = %d (\"%s\")", \
 	        __func__, __FILE__, __LINE__, errno, strerror(errno)); \
 }
-
-/*
- * Verbose levels:
- *
- * VERBOSE_QUIET:
- *   - Used when the program should be as quiet as possible.
- *   - Only the most essential output, such as the version number or critical 
- *     error messages, should be displayed at this level.
- *   - This level is typically used when the program is invoked by scripts or 
- *     other automated processes that require minimal output.
- *
- * VERBOSE_NONE:
- *   - Default level when no verbose flags are set.
- *   - Only critical error messages that prevent the program from running 
- *     should be displayed at this level.
- *
- * VERBOSE_ERROR:
- *   - Used to display error messages indicating that something has gone wrong, 
- *     but not necessarily stopping the program.
- *   - Example: Errors when opening a file, invalid input, etc.
- *
- * VERBOSE_WARN:
- *   - For warnings about potential problems or unexpected situations.
- *   - These messages indicate something that might be problematic, but not 
- *     necessarily an error.
- *   - Example: Use of deprecated functions, unexpected input format that can 
- *     still be handled, etc.
- *
- * VERBOSE_INFO:
- *   - General information about the program's progress or state.
- *   - Used to give the user insight into what the program is doing without 
- *     going into technical details.
- *   - Example: "Calculation started", "File loaded", "Result saved", etc.
- *
- * VERBOSE_DEBUG:
- *   - Detailed messages for debugging.
- *   - Includes information such as variable values, intermediate results, and 
- *     function calls.
- *   - Primarily used by developers to understand the program's internal state.
- *
- * VERBOSE_TRACE:
- *   - Extremely detailed messages that trace the program's flow.
- *   - Includes entry and exit from functions, loop iterations, etc.
- *   - Used for in-depth debugging and analysis of program flow.
- */
-
-typedef enum {
-	VERBOSE_QUIET = -1,
-	VERBOSE_NONE,
-	VERBOSE_ERROR,
-	VERBOSE_WARN,
-	VERBOSE_INFO,
-	VERBOSE_DEBUG,
-	VERBOSE_TRACE
-} VerboseLevel;
 
 typedef enum {
 	OF_DEFAULT = 0,
@@ -130,7 +75,7 @@ struct Options {
 	bool testexec;
 	bool testfunc;
 	bool valgrind;
-	VerboseLevel verbose;
+	int verbose;
 	bool version;
 	OutputFormat outpformat;
 };
@@ -154,7 +99,7 @@ int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s);
 int cmd_randpos(const char *coor, const char *maxdist, const char *mindist);
 
 /* geocalc.c */
-int msg(const VerboseLevel verbose, const char *format, ...);
+int msg(const int verbose, const char *format, ...);
 const char *std_strerror(const int errnum);
 int myerror(const char *format, ...);
 

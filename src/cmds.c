@@ -144,8 +144,7 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 	assert(coor1);
 	assert(coor2);
 
-	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\")",
-	    __func__, cmd, coor1, coor2);
+	msg(7, "%s(\"%s\", \"%s\", \"%s\")", __func__, cmd, coor1, coor2);
 
 	if (parse_coordinate(coor1, &lat1, &lon1)
 	    || parse_coordinate(coor2, &lat2, &lon2)) {
@@ -179,8 +178,8 @@ int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
 	double lat, lon, bearing, dist, nlat, nlon;
 	int result;
 
-	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\")",
-	    __func__, coor, bearing_s, dist_s);
+	msg(7, "%s(\"%s\", \"%s\", \"%s\")",
+	       __func__, coor, bearing_s, dist_s);
 
 	if (parse_coordinate(coor, &lat, &lon)
 	    || string_to_double(bearing_s, &bearing)
@@ -209,8 +208,8 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 	double lat1, lon1, lat2, lon2, numpoints, nlat = 0.0, nlon = 0.0;
 	int i, result, retval = EXIT_SUCCESS;
 
-	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\")",
-	    __func__, coor1, coor2, numpoints_s);
+	msg(7, "%s(\"%s\", \"%s\", \"%s\")",
+	       __func__, coor1, coor2, numpoints_s);
 
 	if (parse_coordinate(coor1, &lat1, &lon1)
 	    || parse_coordinate(coor2, &lat2, &lon2)
@@ -267,8 +266,8 @@ int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s)
 {
 	double lat1, lon1, lat2, lon2, fracdist, nlat, nlon;
 
-	msg(VERBOSE_TRACE, "%s(\"%s\", \"%s\", \"%s\")",
-	    __func__, coor1, coor2, fracdist_s);
+	msg(7, "%s(\"%s\", \"%s\", \"%s\")",
+	       __func__, coor1, coor2, fracdist_s);
 
 	if (parse_coordinate(coor1, &lat1, &lon1)
 	    || parse_coordinate(coor2, &lat2, &lon2)
