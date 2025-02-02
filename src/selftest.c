@@ -1736,7 +1736,9 @@ static int chk_coor_outp(const OutputFormat format, const char *output,
 	int r = 0;
 	regex_t regex;
 	char *regstr, *pattern;
+	static int count = 0;
 
+	count++;
 	if (format == OF_DEFAULT && coor)
 		r += verify_coor_dist(output, coor, mindist, maxdist);
 
@@ -1778,7 +1780,8 @@ static int chk_coor_outp(const OutputFormat format, const char *output,
 		goto cleanup; /* gncov */
 	}
 
-	r += regexec(&regex, output, 0, NULL, 0);
+	r += ok(!!regexec(&regex, output, 0, NULL, 0),
+	                  "Regexp matches, count = %d", count);
 	regfree(&regex);
 
 cleanup:
