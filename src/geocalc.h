@@ -116,7 +116,7 @@ int streams_exec(struct streams *dest, char *cmd[]);
 int exec_output(struct binbuf *dest, char *cmd[]);
 
 /* selftest.c */
-int opt_selftest(void);
+int opt_selftest(char *execname);
 
 /* strings.c */
 void *mymalloc(const size_t size);
