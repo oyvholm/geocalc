@@ -2123,7 +2123,6 @@ static int test_functions(void)
 	r += ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
 	r += test_allocstr();
 	r += test_rand_pos();
-	r += test_streams_exec();
 	r += test_parse_coordinate();
 	r += test_are_antipodal();
 	r += test_xml_escape_string();
@@ -2147,6 +2146,7 @@ static int test_executable(void)
 
 	diag("Test the executable");
 	r += test_valgrind_option();
+	r += test_streams_exec();
 	r += sc(chp{ progname, "abc", NULL },
 	        "",
 	        ": Unknown command: abc\n",
