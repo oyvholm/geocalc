@@ -119,7 +119,8 @@ static char *diag_output_va(const char *format, va_list ap)
 
 /*
  * diag_output() - Frontend against diag_output_va(), used by the tests. 
- * Returns number of failed tests.
+ * Returns the value from diag_output_va(); a pointer to the allocated string, 
+ * or NULL if anything failed.
  */
 
 static char *diag_output(const char *format, ...)
@@ -274,19 +275,20 @@ static int valgrind_lines(const char *s)
 /*
  * test_command() - Run the executable with arguments in `cmd` and verify 
  * stdout, stderr and the return value against `exp_stdout`, `exp_stderr` and 
- * `exp_retval`. Returns the number of failed tests, or 1 if `cmd` is NULL.
+ * `exp_retval`. Returns nothing.
  */
 
-static int test_command(const char identical, char *cmd[],
-                        const char *exp_stdout, const char *exp_stderr,
-                        const int exp_retval, const char *desc)
+static void test_command(const char identical, char *cmd[],
+                         const char *exp_stdout, const char *exp_stderr,
+                         const int exp_retval, const char *desc)
 {
-	int r = 0;
 	struct streams ss;
 
 	assert(cmd);
-	if (!cmd)
-		return 1; /* gncov */
+	if (!cmd) {
+		ok(1, "%s(): cmd is NULL", __func__); /* gncov */
+		return; /* gncov */
+	}
 
 	if (opt.verbose >= 4) {
 		int i = -1; /* gncov */
@@ -300,60 +302,55 @@ static int test_command(const char identical, char *cmd[],
 	streams_init(&ss);
 	streams_exec(&ss, cmd);
 	if (exp_stdout) {
-		r += ok(tc_cmp(identical, ss.out.buf, exp_stdout),
-		        "%s (stdout)", desc);
+		ok(tc_cmp(identical, ss.out.buf, exp_stdout),
+		   "%s (stdout)", desc);
 		if (tc_cmp(identical, ss.out.buf, exp_stdout))
 			print_gotexp(ss.out.buf, exp_stdout); /* gncov */
 	}
 	if (exp_stderr) {
-		r += ok(tc_cmp(identical, ss.err.buf, exp_stderr),
-		        "%s (stderr)", desc);
+		ok(tc_cmp(identical, ss.err.buf, exp_stderr),
+		   "%s (stderr)", desc);
 		if (tc_cmp(identical, ss.err.buf, exp_stderr))
 			print_gotexp(ss.err.buf, exp_stderr); /* gncov */
 	}
-	r += ok(!(ss.ret == exp_retval), "%s (retval)", desc);
+	ok(!(ss.ret == exp_retval), "%s (retval)", desc);
 	if (ss.ret != exp_retval) {
 		char *g = allocstr("%d", ss.ret), /* gncov */
 		     *e = allocstr("%d", exp_retval); /* gncov */
 		if (!g || !e) /* gncov */
-			r += ok(1, "%s(): allocstr() failed", /* gncov */
-			           __func__); /* gncov */
+			ok(1, "%s(): allocstr() failed", __func__); /* gncov */
 		else
 			print_gotexp(g, e); /* gncov */
 		free(e); /* gncov */
 		free(g); /* gncov */
 	}
 	if (valgrind_lines(ss.err.buf))
-		r += ok(1, "Found valgrind output"); /* gncov */
+		ok(1, "Found valgrind output"); /* gncov */
 	streams_free(&ss);
-
-	return r;
 }
 
 /*
  * sc() - Execute command `cmd` and verify that stdout, stderr and the return 
  * value corresponds to the expected values. The `exp_*` variables are 
- * substrings that must occur in the actual output. Returns the number of 
- * failed tests.
+ * substrings that must occur in the actual output. Returns nothing.
  */
 
-static int sc(char *cmd[], const char *exp_stdout, const char *exp_stderr,
-              const int exp_retval, const char *desc)
+static void sc(char *cmd[], const char *exp_stdout, const char *exp_stderr,
+               const int exp_retval, const char *desc)
 {
-	return test_command(0, cmd, exp_stdout, exp_stderr, exp_retval, desc);
+	test_command(0, cmd, exp_stdout, exp_stderr, exp_retval, desc);
 }
 
 /*
  * tc() - Execute command `cmd` and verify that stdout, stderr and the return 
  * value are identical to the expected values. The `exp_*` variables are 
- * strings that must be identical to the actual output. Returns the number of 
- * failed tests.
+ * strings that must be identical to the actual output. Returns nothing.
  */
 
-static int tc(char *cmd[], const char *exp_stdout, const char *exp_stderr,
-              const int exp_retval, const char *desc)
+static void tc(char *cmd[], const char *exp_stdout, const char *exp_stderr,
+               const int exp_retval, const char *desc)
 {
-	return test_command(1, cmd, exp_stdout, exp_stderr, exp_retval, desc);
+	test_command(1, cmd, exp_stdout, exp_stderr, exp_retval, desc);
 }
 
 /*
@@ -370,13 +367,11 @@ static int tc(char *cmd[], const char *exp_stdout, const char *exp_stderr,
  * verify_definitions() - Check that certain constants are unmodified. Some of 
  * these constants are used in the tests themselves, so the tests will be 
  * automatically updated to match the new text or value. This function contains 
- * hardcoded versions of the expected output or return values. Returns the 
- * number of failed tests.
+ * hardcoded versions of the expected output or return values. Returns nothing.
  */
 
-static int verify_definitions(void)
+static void verify_definitions(void)
 {
-	int r = 0;
 	const char *e;
 
 	diag("Verify format definitions");
@@ -387,36 +382,34 @@ static int verify_definitions(void)
 	    " version=\"1.1\""
 	    " creator=\"Geocalc - https://gitlab.com/oyvholm/geocalc\""
 	    ">\n";
-	r += ok(!!strcmp(GPX_HEADER, e), "GPX_HEADER is correct");
+	ok(!!strcmp(GPX_HEADER, e), "GPX_HEADER is correct");
 	print_gotexp(GPX_HEADER, e);
 
 	e = "Geocalc";
-	r += ok(!!strcmp(PROJ_NAME, e), "PROJ_NAME is correct");
+	ok(!!strcmp(PROJ_NAME, e), "PROJ_NAME is correct");
 	print_gotexp(PROJ_NAME, e);
 
 	e = "https://gitlab.com/oyvholm/geocalc";
-	r += ok(!!strcmp(PROJ_URL, e), "PROJ_URL is correct");
+	ok(!!strcmp(PROJ_URL, e), "PROJ_URL is correct");
 	print_gotexp(PROJ_URL, e);
-
-	return r;
 }
 
 /*
  * test_diag_big() - Tests diag_output() with a string larger than BUFSIZ. 
- * Returns the number of failed tests.
+ * Returns nothing.
  */
 
-static int test_diag_big(void)
+static void test_diag_big(void)
 {
-	int r = 0;
 	size_t size;
 	char *p, *outp;
 
 	size = BUFSIZ * 2;
 	p = malloc(size + 1);
 	if (!p) {
-		return ok(1, "%s(): malloc(%zu) failed", /* gncov */
-		             __func__, size + 1);
+		ok(1, "%s(): malloc(%zu) failed", /* gncov */
+		       __func__, size + 1);
+		return; /* gncov */
 	}
 
 	memset(p, 'a', size);
@@ -425,102 +418,89 @@ static int test_diag_big(void)
 	p[size] = '\0';
 
 	outp = diag_output("%s", p);
-	r += ok(!outp, "diag_big: diag_output() returns ok");
-	r += ok(!(strlen(outp) == size + 2),
-	        "diag_big: String length is correct");
-	r += ok(!!strncmp(outp, "# aaabcaaa", 10),
-	        "diag_big: Beginning is ok");
+	ok(!outp, "diag_big: diag_output() returns ok");
+	ok(!(strlen(outp) == size + 2), "diag_big: String length is correct");
+	ok(!!strncmp(outp, "# aaabcaaa", 10), "diag_big: Beginning is ok");
 	free(outp);
 	free(p);
-
-	return r;
 }
 
 /*
  * test_diag() - Tests the diag_output() function. diag() can't be tested 
- * directly because it would pollute the the test output. Returns the number of 
- * failed tests.
+ * directly because it would pollute the the test output. Returns nothing.
  */
 
-static int test_diag(void) {
-	int r = 0;
+static void test_diag(void) {
 	char *p, *s;
 
 	diag("Test diag()");
 
-	r += ok(!diag(NULL), "diag(NULL)");
-	r += ok(!(diag_output(NULL) == NULL), "diag_output() receives NULL");
+	ok(!diag(NULL), "diag(NULL)");
+	ok(!(diag_output(NULL) == NULL), "diag_output() receives NULL");
 
 	p = diag_output("Text with\nnewline");
-	r += ok(!p, "diag_output() with newline didn't return NULL");
+	ok(!p, "diag_output() with newline didn't return NULL");
 	s = "# Text with\n# newline";
-	r += ok(p ? !!strcmp(p, s) : 1,
-	        "diag_output() with newline, output is ok");
+	ok(p ? !!strcmp(p, s) : 1, "diag_output() with newline, output is ok");
 	print_gotexp(p, s);
 	free(p);
 
 	p = diag_output("%d = %s, %d = %s, %d = %s",
 	                1, "one", 2, "two", 3, "three");
-	r += ok(!p, "diag_output() with %%d and %%s didn't return NULL");
+	ok(!p, "diag_output() with %%d and %%s didn't return NULL");
 	s = "# 1 = one, 2 = two, 3 = three";
-	r += ok(p ? !!strcmp(p, s) : 1, "diag_output() with %%d and %%s");
+	ok(p ? !!strcmp(p, s) : 1, "diag_output() with %%d and %%s");
 	print_gotexp(p, s);
 	free(p);
 
-	r += test_diag_big();
-
-	return r;
+	test_diag_big();
 }
 
 /*
  * test_gotexp_output() - Tests the gotexp_output() function. print_gotexp() 
- * can't be tested directly because it would pollute stderr. Returns the number 
- * of failed tests.
+ * can't be tested directly because it would pollute stderr. Returns nothing.
  */
 
-static int test_gotexp_output(void)
+static void test_gotexp_output(void)
 {
-	int r = 0;
 	char *p, *s;
 
 	diag("Test gotexp_output()");
 
-	r += ok(!!gotexp_output(NULL, "a"), "gotexp_output(NULL, \"a\")");
+	ok(!!gotexp_output(NULL, "a"), "gotexp_output(NULL, \"a\")");
 
-	r += ok(!!strcmp((p = gotexp_output("got this", "expected this")),
-	                 "         got: 'got this'\n"
-	                 "    expected: 'expected this'"),
-	        "gotexp_output(\"got this\", \"expected this\")");
+	ok(!!strcmp((p = gotexp_output("got this", "expected this")),
+	            "         got: 'got this'\n"
+	            "    expected: 'expected this'"),
+	   "gotexp_output(\"got this\", \"expected this\")");
 	free(p);
 
-	r += ok(!print_gotexp(NULL, "expected this"),
-	        "print_gotexp(): Arg is NULL");
+	ok(!print_gotexp(NULL, "expected this"),
+	   "print_gotexp(): Arg is NULL");
 
 	s = "gotexp_output(\"a\", \"a\")";
-	r += ok(!(p = gotexp_output("a", "a")), "%s doesn't return NULL", s);
-	r += ok(!!strcmp(p, "         got: 'a'\n    expected: 'a'"),
-	        "%s: Contents is ok", s);
+	ok(!(p = gotexp_output("a", "a")), "%s doesn't return NULL", s);
+	ok(!!strcmp(p, "         got: 'a'\n    expected: 'a'"),
+	   "%s: Contents is ok", s);
 	free(p);
 
 	s = "gotexp_output() with newline";
-	r += ok(!(p = gotexp_output("with\nnewline", "also with\nnewline")),
-	        "%s: Doesn't return NULL", s);
-	r += ok(!!strcmp(p, "         got: 'with\nnewline'\n"
-	                    "    expected: 'also with\nnewline'"),
-	        "%s: Contents is ok", s);
+	ok(!(p = gotexp_output("with\nnewline", "also with\nnewline")),
+	   "%s: Doesn't return NULL", s);
+	ok(!!strcmp(p, "         got: 'with\nnewline'\n"
+	               "    expected: 'also with\nnewline'"),
+	   "%s: Contents is ok", s);
 	free(p);
-
-	return r;
 }
 
 /*
- * test_valgrind_lines() - Test the behavior of valgrind_lines(). Returns the 
- * number of failed tests.
+ * test_valgrind_lines() - Test the behavior of valgrind_lines(). Returns 
+ * nothing.
  */
 
-static int test_valgrind_lines(void)
+static void test_valgrind_lines(void)
 {
-	int r = 0, i;
+	int i;
 	const char
 	*has[] = {
 		"\n==123==",
@@ -551,19 +531,17 @@ static int test_valgrind_lines(void)
 
 	i = 0;
 	while (has[i]) {
-		r += ok(!valgrind_lines(has[i]),
-		        "valgrind_lines(): Has valgrind marker, string %d", i);
+		ok(!valgrind_lines(has[i]),
+		   "valgrind_lines(): Has valgrind marker, string %d", i);
 		i++;
 	}
 
 	i = 0;
 	while (hasnot[i]) {
-		r += ok(valgrind_lines(hasnot[i]),
-		        "valgrind_lines(): No valgrind marker, string %d", i);
+		ok(valgrind_lines(hasnot[i]),
+		   "valgrind_lines(): No valgrind marker, string %d", i);
 		i++;
 	}
-
-	return r;
 }
 
 /*
@@ -571,34 +549,31 @@ static int test_valgrind_lines(void)
  */
 
 /*
- * test_allocstr() - Tests the allocstr() function. Returns the number of 
- * failed tests.
+ * test_allocstr() - Tests the allocstr() function. Returns nothing.
  */
 
-static int test_allocstr(void)
+static void test_allocstr(void)
 {
 	const size_t bufsize = BUFSIZ * 2 + 1;
 	char *p, *p2, *p3;
-	int r = 0;
 	size_t alen;
 
 	diag("Test allocstr()");
 	p = malloc(bufsize);
 	if (!p) {
-		r += ok(1, "%s(): malloc() failed", __func__); /* gncov */
-		return r; /* gncov */
+		ok(1, "%s(): malloc() failed", __func__); /* gncov */
+		return; /* gncov */
 	}
 	memset(p, 'a', bufsize - 1);
 	p[bufsize - 1] = '\0';
 	p2 = allocstr("%s", p);
 	if (!p2) {
-		r += ok(1, "%s(): allocstr() failed" /* gncov */
-		           " with BUFSIZ * 2",
-		           __func__);
+		ok(1, "%s(): allocstr() failed with BUFSIZ * 2", /* gncov */
+		      __func__);
 		goto free_p; /* gncov */
 	}
 	alen = strlen(p2);
-	r += ok(!(alen == BUFSIZ * 2), "allocstr(): strlen is correct");
+	ok(!(alen == BUFSIZ * 2), "allocstr(): strlen is correct");
 	p3 = p2;
 	while (*p3) {
 		if (*p3 != 'a') {
@@ -607,48 +582,47 @@ static int test_allocstr(void)
 		}
 		p3++;
 	}
-	r += ok(!(p3 != NULL), "allocstr(): Content of string is correct");
+	ok(!(p3 != NULL), "allocstr(): Content of string is correct");
 	free(p2);
 free_p:
 	free(p);
-
-	return r;
 }
 
 /*
  * chk_rand_pos() - Used by test_rand_pos(). Executes rand_pos() with the 
  * values in `coor`, `maxdist` and `mindist` and checks that they're in the 
- * range defined by `exp_maxdist` and `exp_mindist`. Returns the number of 
- * failed tests.
+ * range defined by `exp_maxdist` and `exp_mindist`. Returns nothing.
  */
 
-static int chk_rand_pos(const char *coor,
-                        const double maxdist, const double mindist,
-                        const double exp_maxdist, const double exp_mindist)
+static void chk_rand_pos(const char *coor,
+                         const double maxdist, const double mindist,
+                         const double exp_maxdist, const double exp_mindist)
 {
-	int r = 0, maxtests = 20;
+	int errcount = 0, maxtests = 20;
 	unsigned long l, numloop = 1e+5;
 	double r_exp_max = round(exp_maxdist), r_exp_min = round(exp_mindist);
 
 	for (l = 0; l < numloop; l++) {
 		double clat = 1000.0, clon = 1000.0, rlat, rlon, dist, r_dist;
 		if (coor && parse_coordinate(coor, &clat, &clon)) {
-			return r + ok(1, "%s(): parse_coordinate()" /* gncov */
-			                 " failed, coor = \"%s\"",
-			                 __func__, coor);
+			ok(1, "%s(): parse_coordinate() failed," /* gncov */
+			      " coor = \"%s\"", __func__, coor);
+			return; /* gncov */
 		}
 		rand_pos(&rlat, &rlon, clat, clon, maxdist, mindist);
 		if (fabs(rlat) > 90.0) {
-			r += ok(1, "rand_pos(): Coordinate %lu:" /* gncov */
-			           " lat is outside [-90,90] range,"
-			           " lat = %.15f", l, rlat);
+			ok(1, "rand_pos(): Coordinate %lu:" /* gncov */
+			      " lat is outside [-90,90] range,"
+			      " lat = %.15f", l, rlat);
+			errcount++; /* gncov */
 		}
 		if (fabs(rlon) > 180.0) {
-			r += ok(1, "rand_pos(): Coordinate %lu:" /* gncov */
-			           " lon is outside [-180,180] range,"
-			           " lon = %.15f", l, rlon);
+			ok(1, "rand_pos(): Coordinate %lu:" /* gncov */
+			      " lon is outside [-180,180] range,"
+			      " lon = %.15f", l, rlon);
+			errcount++; /* gncov */
 		}
-		if (r >= maxtests) {
+		if (errcount >= maxtests) {
 			diag("Aborting rand_pos() range test after" /* gncov */
 			     " %d errors", maxtests);
 			break; /* gncov */
@@ -658,59 +632,51 @@ static int chk_rand_pos(const char *coor,
 		dist = haversine(clat, clon, rlat, rlon);
 		r_dist = round(dist);
 		if (r_dist < r_exp_min || r_dist > r_exp_max) {
-			r += r <= maxtests /* gncov */
-			     ? ok(1, "randpos out of range (%.0f" /* gncov */
-			             " to %.0f m), center = %f,%f randpos ="
-			             " %f,%f dist = %f",
-			             exp_mindist, exp_maxdist, clat, clon,
-			             rlat, rlon, dist)
-			     : 1; /* gncov */
+			errcount <= maxtests /* gncov */
+			? ok(1, "randpos out of range (%.0f" /* gncov */
+			        " to %.0f m), center = %f,%f randpos ="
+			        " %f,%f dist = %f",
+			        exp_mindist, exp_maxdist, clat, clon,
+			        rlat, rlon, dist)
+			: 1; /* gncov */
 		}
 	}
-	r += ok(!!r, "rand_pos(): All %lu coordinates %.0f-%.0f m are in"
-	             " range, failed = %lu (%f%%)",
-	             numloop, exp_mindist, exp_maxdist, r,
-	             100.0 * (double)r / (double)numloop);
-
-	return r;
+	ok(!!errcount, "rand_pos(): All %lu coordinates %.0f-%.0f m are in"
+	               " range, failed = %lu (%f%%)",
+	               numloop, exp_mindist, exp_maxdist, errcount,
+	               100.0 * (double)errcount / (double)numloop);
 }
 
 /*
- * test_rand_pos() - Tests the rand_pos() function. Returns the number of 
- * failed tests.
+ * test_rand_pos() - Tests the rand_pos() function. Returns nothing.
  */
 
-static int test_rand_pos(void)
+static void test_rand_pos(void)
 {
-	int r = 0;
 	double MED = MAX_EARTH_DISTANCE;
 
 	diag("Test rand_pos()");
 
-	r += chk_rand_pos("-3.14,-123.45", 1e+20, 1e+20, MED, MED);
-	r += chk_rand_pos("-3.14,-123.45", 1e+20, 1e+7, MED, 1e+7);
-	r += chk_rand_pos("-3.14,-123.45", 1e+7 + 1, 1e+20, MED, 1e+7 + 1);
-	r += chk_rand_pos("-55.91,-107.32", 0, 2e+7, MED, 2e+7);
-	r += chk_rand_pos("-59.2105,44.47485", 1000.0, 1000.0, 1000.0, 1000.0);
-	r += chk_rand_pos("-90,0", 10.0, 0.0, 10.0, 0.0);
-	r += chk_rand_pos("12,34", 0.1, 0.0, 0.0, 0.0);
-	r += chk_rand_pos("12,34", 1.0, 0.0, 1.0, 0.0);
-	r += chk_rand_pos("12,34", 10.0, 20.0, 20.0, 10.0);
-	r += chk_rand_pos("65,7", 2000.0, 1000.0, 2000.0, 1000.0);
-	r += chk_rand_pos("90,0", 0.0, 1e+6, MED, 1e+6);
-	r += chk_rand_pos(NULL, 0.0, 0.0, MED, 0.0);
-
-	return r;
+	chk_rand_pos("-3.14,-123.45", 1e+20, 1e+20, MED, MED);
+	chk_rand_pos("-3.14,-123.45", 1e+20, 1e+7, MED, 1e+7);
+	chk_rand_pos("-3.14,-123.45", 1e+7 + 1, 1e+20, MED, 1e+7 + 1);
+	chk_rand_pos("-55.91,-107.32", 0, 2e+7, MED, 2e+7);
+	chk_rand_pos("-59.2105,44.47485", 1000.0, 1000.0, 1000.0, 1000.0);
+	chk_rand_pos("-90,0", 10.0, 0.0, 10.0, 0.0);
+	chk_rand_pos("12,34", 0.1, 0.0, 0.0, 0.0);
+	chk_rand_pos("12,34", 1.0, 0.0, 1.0, 0.0);
+	chk_rand_pos("12,34", 10.0, 20.0, 20.0, 10.0);
+	chk_rand_pos("65,7", 2000.0, 1000.0, 2000.0, 1000.0);
+	chk_rand_pos("90,0", 0.0, 1e+6, MED, 1e+6);
+	chk_rand_pos(NULL, 0.0, 0.0, MED, 0.0);
 }
 
 /*
- * test_streams_exec() - Tests the streams_exec() function. Returns the number 
- * of failed tests.
+ * test_streams_exec() - Tests the streams_exec() function. Returns nothing.
  */
 
-static int test_streams_exec(char *execname)
+static void test_streams_exec(char *execname)
 {
-	int r = 0;
 	bool orig_valgrind;
 	struct streams ss;
 	char *s;
@@ -725,182 +691,164 @@ static int test_streams_exec(char *execname)
 	streams_exec(&ss, chp{ execname, NULL });
 	opt.valgrind = orig_valgrind;
 	s = "streams_exec(execname) with stdin data";
-	r += ok(!!strcmp(ss.out.buf, ""), "%s (stdout)", s);
-	r += ok(!strstr(ss.err.buf, ": No arguments specified\n"),
-	        "%s (stderr)", s);
-	r += ok(!(ss.ret == EXIT_FAILURE), "%s (retval)", s);
+	ok(!!strcmp(ss.out.buf, ""), "%s (stdout)", s);
+	ok(!strstr(ss.err.buf, ": No arguments specified\n"),
+	   "%s (stderr)", s);
+	ok(!(ss.ret == EXIT_FAILURE), "%s (retval)", s);
 	streams_free(&ss);
-
-	return r;
 }
 
 /*
  * chk_coor() - Try to parse the coordinate in `s` with `parse_coordinate()` 
  * and test that `parse_coordinate()` returns the expected values.
- * Returns the number of failed tests.
+ * Returns nothing.
  */
 
-static int chk_coor(const char *s, const int exp_ret,
-                    const double exp_lat, const double exp_lon)
+static void chk_coor(const char *s, const int exp_ret,
+                     const double exp_lat, const double exp_lon)
 {
 	double lat, lon;
-	int result, r = 0;
+	int result;
 
 	result = parse_coordinate(s, &lat, &lon);
-	r += ok(!(result == exp_ret),
-	        "parse_coordinate(\"%s\"), expected to %s",
-	        s, exp_ret ? "fail" : "succeed");
+	ok(!(result == exp_ret), "parse_coordinate(\"%s\"), expected to %s",
+	                         s, exp_ret ? "fail" : "succeed");
 
 	if (result)
-		return r;
+		return;
 
-	r += ok(!(lat == exp_lat), "parse_coordinate(\"%s\"): lat is ok", s);
-	r += ok(!(lon == exp_lon), "parse_coordinate(\"%s\"): lon is ok", s);
-
-	return r;
+	ok(!(lat == exp_lat), "parse_coordinate(\"%s\"): lat is ok", s);
+	ok(!(lon == exp_lon), "parse_coordinate(\"%s\"): lon is ok", s);
 }
 
 /*
  * test_parse_coordinate() - Various tests for `parse_coordinate()`. Returns 
- * the number of failed tests.
+ * nothing.
  */
 
-static int test_parse_coordinate(void) {
-	int r = 0;
-
+static void test_parse_coordinate(void) {
 	diag("Test parse_coordinate()");
-	r += chk_coor("12.34,56.78", 0, 12.34, 56.78);
-	r += chk_coor("12.34", 1, 0, 0);
-	r += chk_coor("", 1, 0, 0);
-	r += chk_coor("995.456,,456.345", 1, 0, 0);
-	r += chk_coor("56,78", 0, 56, 78);
-	r += chk_coor("-56,-78", 0, -56, -78);
-	r += chk_coor("-56.234,-78.345", 0, -56.234, -78.345);
-	r += chk_coor(" -56.234,-78.345", 0, -56.234, -78.345);
-	r += chk_coor("-56.234, -78.345", 0, -56.234, -78.345);
-	r += chk_coor("56.2r4,-78.345", 1, 0, 0);
-	r += chk_coor("+56.24,-78.345", 0, 56.24, -78.345);
-	r += chk_coor(NULL, 1, 0, 0);
-
-	return r;
+	chk_coor("12.34,56.78", 0, 12.34, 56.78);
+	chk_coor("12.34", 1, 0, 0);
+	chk_coor("", 1, 0, 0);
+	chk_coor("995.456,,456.345", 1, 0, 0);
+	chk_coor("56,78", 0, 56, 78);
+	chk_coor("-56,-78", 0, -56, -78);
+	chk_coor("-56.234,-78.345", 0, -56.234, -78.345);
+	chk_coor(" -56.234,-78.345", 0, -56.234, -78.345);
+	chk_coor("-56.234, -78.345", 0, -56.234, -78.345);
+	chk_coor("56.2r4,-78.345", 1, 0, 0);
+	chk_coor("+56.24,-78.345", 0, 56.24, -78.345);
+	chk_coor(NULL, 1, 0, 0);
 }
 
 /*
  * chk_xmlesc() - Helper function used by test_xml_escape_string(). `s` is the 
- * string to test, and `exp` is the expected outcome. Returns the number of 
- * failed tests.
+ * string to test, and `exp` is the expected outcome. Returns nothing.
  */
 
-static int chk_xmlesc(const char *s, const char *exp)
+static void chk_xmlesc(const char *s, const char *exp)
 {
-	int r = 0;
 	char *got;
 
 	assert(s);
 	assert(exp);
-	if (!s || !exp)
-		return ok(1, "%s() received NULL", __func__); /* gncov */
+	if (!s || !exp) {
+		ok(1, "%s() received NULL", __func__); /* gncov */
+		return; /* gncov */
+	}
 
 	got = xml_escape_string(s);
-	if (!got)
-		return ok(1, "xml_escape_string() failed"); /* gncov */
-	r += ok(!!strcmp(got, exp), "xml escape: \"%s\"", s);
+	if (!got) {
+		ok(1, "xml_escape_string() failed"); /* gncov */
+		return; /* gncov */
+	}
+	ok(!!strcmp(got, exp), "xml escape: \"%s\"", s);
 	free(got);
-
-	return r;
 }
 
 /*
  * chk_antip() - Used by test_are_antipodal(), checks that are_antipodal() 
  * returns the correct answer for the coordinates. The expected return value is 
- * stored in `exp`. Returns the number of failed tests.
+ * stored in `exp`. Returns nothing.
  */
 
-static int chk_antip(const char *coor1, const char *coor2, const int exp)
+static void chk_antip(const char *coor1, const char *coor2, const int exp)
 {
-	int r = 0, result;
+	int result;
 	double lat1, lon1, lat2, lon2;
 	char *s;
 
 	if (!coor1 || !coor2) {
-		return r + ok(1, "%s(): coor1 or coor2 is NULL", /* gncov */
-		                 __func__);
+		ok(1, "%s(): coor1 or coor2 is NULL", __func__); /* gncov */
+		return; /* gncov */
 	}
 
 	if (parse_coordinate(coor1, &lat1, &lon1)
-	    || parse_coordinate(coor2, &lat2, &lon2))
-		return r + ok(1, "parse_coordinate() failed"); /* gncov */
+	    || parse_coordinate(coor2, &lat2, &lon2)) {
+		ok(1, "parse_coordinate() failed"); /* gncov */
+		return; /* gncov */
+	}
 
 	s = allocstr("are_antipodal(): \"%s\" and \"%s\", expects %s",
 	             coor1, coor2, exp ? "yes" : "no");
-	if (!s)
-		return r + ok(1, "allocstr() failed"); /* gncov */
+	if (!s) {
+		ok(1, "allocstr() failed"); /* gncov */
+		return; /* gncov */
+	}
 	result = are_antipodal(lat1, lon1, lat2, lon2);
-	r += ok(!(result == exp), s);
+	ok(!(result == exp), s);
 	free(s);
-
-	return r;
 }
 
 /*
- * test_are_antipodal() - Tests the are_antipodal() function. Returns number of 
- * failed tests.
+ * test_are_antipodal() - Tests the are_antipodal() function. Returns nothing.
  */
 
-static int test_are_antipodal(void)
+static void test_are_antipodal(void)
 {
-	int r = 0;
-
-	r += chk_antip("-0.00000000001,0", "0,180.0", 1);
-	r += chk_antip("-0.0000000001,0", "0,180.0", 0);
-	r += chk_antip("0,0", "0,179.999999999", 0);
-	r += chk_antip("0,0", "0,179.9999999999", 1);
-	r += chk_antip("0,0", "0,180", 1);
-	r += chk_antip("0.00000000001,0", "0,180.0", 1);
-	r += chk_antip("0.0000000001,0", "0,180.0", 0);
-	r += chk_antip("36.988716,-9.604127", "-36.988716,170.395873", 1);
-	r += chk_antip("36.988716,-9.6041270001", "-36.988716,170.395873", 1);
-	r += chk_antip("36.988716,-9.604127001", "-36.988716,170.395873", 0);
-	r += chk_antip("60,5", "-60,-175", 1);
-	r += chk_antip("89.9999999999,0", "-90,0", 0);
-	r += chk_antip("89.99999999999,0", "-90,0", 1);
-	r += chk_antip("90,0", "-90,0", 1);
-
-	return r;
+	chk_antip("-0.00000000001,0", "0,180.0", 1);
+	chk_antip("-0.0000000001,0", "0,180.0", 0);
+	chk_antip("0,0", "0,179.999999999", 0);
+	chk_antip("0,0", "0,179.9999999999", 1);
+	chk_antip("0,0", "0,180", 1);
+	chk_antip("0.00000000001,0", "0,180.0", 1);
+	chk_antip("0.0000000001,0", "0,180.0", 0);
+	chk_antip("36.988716,-9.604127", "-36.988716,170.395873", 1);
+	chk_antip("36.988716,-9.6041270001", "-36.988716,170.395873", 1);
+	chk_antip("36.988716,-9.604127001", "-36.988716,170.395873", 0);
+	chk_antip("60,5", "-60,-175", 1);
+	chk_antip("89.9999999999,0", "-90,0", 0);
+	chk_antip("89.99999999999,0", "-90,0", 1);
+	chk_antip("90,0", "-90,0", 1);
 }
 
 /*
  * test_xml_escape_string() - Tests the xml_escape_string() function. Returns 
- * the number of failed tests.
+ * nothing.
  */
 
-static int test_xml_escape_string(void)
+static void test_xml_escape_string(void)
 {
-	int r = 0;
-
 	diag("Test xml_escape_string()");
-	r += chk_xmlesc("", "");
-	r += chk_xmlesc("&", "&amp;");
-	r += chk_xmlesc("<", "&lt;");
-	r += chk_xmlesc(">", "&gt;");
-	r += chk_xmlesc("\\", "\\");
-	r += chk_xmlesc("a&c", "a&amp;c");
-	r += chk_xmlesc("a<c", "a&lt;c");
-	r += chk_xmlesc("a>c", "a&gt;c");
-	r += chk_xmlesc("abc", "abc");
-	r += ok(!!xml_escape_string(NULL), "xml_escape_string(NULL)");
-
-	return r;
+	chk_xmlesc("", "");
+	chk_xmlesc("&", "&amp;");
+	chk_xmlesc("<", "&lt;");
+	chk_xmlesc(">", "&gt;");
+	chk_xmlesc("\\", "\\");
+	chk_xmlesc("a&c", "a&amp;c");
+	chk_xmlesc("a<c", "a&lt;c");
+	chk_xmlesc("a>c", "a&gt;c");
+	chk_xmlesc("abc", "abc");
+	ok(!!xml_escape_string(NULL), "xml_escape_string(NULL)");
 }
 
 /*
- * test_gpx_wpt() - Tests the gpx_wpt() function. Returns the number of failed 
- * tests.
+ * test_gpx_wpt() - Tests the gpx_wpt() function. Returns nothing.
  */
 
-static int test_gpx_wpt(void)
+static void test_gpx_wpt(void)
 {
-	int r = 0;
 	char *p, /* String sent to gpx_wpt() */
 	     *c, /* Converted version of `p` */
 	     *e, /* Expected string from gpx_wpt() */
@@ -913,7 +861,7 @@ static int test_gpx_wpt(void)
 	    "    <cmt>ghi jkl MN</cmt>\n"
 	    "  </wpt>\n";
 	s = gpx_wpt(12.34, 56.78, "abc def", "ghi jkl MN");
-	r += ok((s ? !!strcmp(s, e) : 1), "gpx_wpt() without special chars");
+	ok((s ? !!strcmp(s, e) : 1), "gpx_wpt() without special chars");
 	print_gotexp(s, e);
 	free(s);
 
@@ -922,7 +870,7 @@ static int test_gpx_wpt(void)
 	    "    <cmt>&amp;</cmt>\n"
 	    "  </wpt>\n";
 	s = gpx_wpt(12.34, 56.78, "&", "&");
-	r += ok((s ? !!strcmp(s, e) : 1), "gpx_wpt() with ampersand");
+	ok((s ? !!strcmp(s, e) : 1), "gpx_wpt() with ampersand");
 	print_gotexp(s, e);
 	free(s);
 
@@ -931,7 +879,7 @@ static int test_gpx_wpt(void)
 	    "    <cmt>&lt;</cmt>\n"
 	    "  </wpt>\n";
 	s = gpx_wpt(12.34, 56.78, "<", "<");
-	r += ok((s ? !!strcmp(s, e) : 1), "gpx_wpt() with lt");
+	ok((s ? !!strcmp(s, e) : 1), "gpx_wpt() with lt");
 	print_gotexp(s, e);
 	free(s);
 
@@ -940,7 +888,7 @@ static int test_gpx_wpt(void)
 	    "    <cmt>&gt;</cmt>\n"
 	    "  </wpt>\n";
 	s = gpx_wpt(12.34, 56.78, ">", ">");
-	r += ok((s ? !!strcmp(s, e) : 1), "gpx_wpt() with gt");
+	ok((s ? !!strcmp(s, e) : 1), "gpx_wpt() with gt");
 	print_gotexp(s, e);
 	free(s);
 
@@ -957,8 +905,7 @@ static int test_gpx_wpt(void)
 	             "    <cmt>%s</cmt>\n"
 	             "  </wpt>\n", c, c);
 	s = gpx_wpt(12.34, 56.78, p, p);
-	r += ok((s ? !!strcmp(s, e) : 1),
-	        "gpx_wpt() with amp, gt, lt, and more");
+	ok((s ? !!strcmp(s, e) : 1), "gpx_wpt() with amp, gt, lt, and more");
 	print_gotexp(s, e);
 	free(s);
 	free(e);
@@ -966,30 +913,28 @@ static int test_gpx_wpt(void)
 	p = NULL;
 	e = NULL;
 	s = gpx_wpt(12.34, 56.78, p, p);
-	r += ok(!!s, "gpx_wpt() with NULL in name and cmt");
+	ok(!!s, "gpx_wpt() with NULL in name and cmt");
 	print_gotexp(s, e);
 	if (s) {
-		r += ok(1, "%s():%d: `s` was allocated", /* gncov */
-		           __func__, __LINE__);
+		ok(1, "%s():%d: `s` was allocated", /* gncov */
+		      __func__, __LINE__);
 		free(s); /* gncov */
 	}
 
 	p = NULL;
 	e = NULL;
 	s = gpx_wpt(12.34, 56.78, p, "def");
-	r += ok(!!s, "gpx_wpt() with NULL in name");
+	ok(!!s, "gpx_wpt() with NULL in name");
 	print_gotexp(s, e);
 	if (s) {
-		r += ok(1, "%s():%d: `s` was allocated", /* gncov */
-		           __func__, __LINE__);
+		ok(1, "%s():%d: `s` was allocated", /* gncov */
+		      __func__, __LINE__);
 		free(s); /* gncov */
 	}
 
 	s = gpx_wpt(12.34, 56.78, "abc", NULL);
-	r += ok(!s, "gpx_wpt() with NULL in cmt");
+	ok(!s, "gpx_wpt() with NULL in cmt");
 	free(s);
-
-	return r;
 }
 
 /*
@@ -1000,12 +945,11 @@ static int test_gpx_wpt(void)
 
 /*
  * test_valgrind_option() - Tests the --valgrind command line option. Returns 
- * the number of failed tests.
+ * nothing.
  */
 
-static int test_valgrind_option(char *execname)
+static void test_valgrind_option(char *execname)
 {
-	int r = 0;
 	struct streams ss;
 
 	diag("Test --valgrind");
@@ -1016,8 +960,8 @@ static int test_valgrind_option(char *execname)
 		streams_exec(&ss, chp{"valgrind", "--version", /* gncov */
 		                      NULL});
 		if (!strstr(ss.out.buf, "valgrind-")) { /* gncov */
-			r += ok(1, "Valgrind is not installed," /* gncov */
-			           " disabling Valgrind checks.");
+			ok(1, "Valgrind is not installed," /* gncov */
+			      " disabling Valgrind checks.");
 		} else {
 			ok(0, "Valgrind is installed"); /* gncov */
 			opt.valgrind = true; /* gncov */
@@ -1025,264 +969,248 @@ static int test_valgrind_option(char *execname)
 		streams_free(&ss); /* gncov */
 	}
 
-	r += sc(chp{execname, "--valgrind", "-h", NULL},
-	        "Show this",
-	        "",
-	        EXIT_SUCCESS,
-	        "--valgrind -h");
-
-	return r;
+	sc(chp{execname, "--valgrind", "-h", NULL},
+	   "Show this",
+	   "",
+	   EXIT_SUCCESS,
+	   "--valgrind -h");
 }
 
 /*
  * test_standard_options() - Tests the various generic options available in 
- * most programs. Returns the number of failed tests.
+ * most programs. Returns nothing.
  */
 
-static int test_standard_options(char *execname) {
-	int r = 0;
+static void test_standard_options(char *execname)
+{
 	char *s;
 
 	diag("Test standard options");
 
 	diag("Test -h/--help");
-	r += sc(chp{ execname, "-h", NULL },
-	        "  Show this help",
-	        "",
-	        EXIT_SUCCESS,
-	        "-h");
-	r += sc(chp{ execname, "--help", NULL },
-	        "  Show this help",
-	        "",
-	        EXIT_SUCCESS,
-	        "--help");
+	sc(chp{ execname, "-h", NULL },
+	   "  Show this help",
+	   "",
+	   EXIT_SUCCESS,
+	   "-h");
+	sc(chp{ execname, "--help", NULL },
+	   "  Show this help",
+	   "",
+	   EXIT_SUCCESS,
+	   "--help");
 
 	diag("Test -v/--verbose");
-	r += sc(chp{ execname, "-h", "--verbose", NULL },
-	        "  Show this help",
-	        "",
-	        EXIT_SUCCESS,
-	        "-hv: Help text is displayed");
-	r += sc(chp{ execname, "-hv", NULL },
-	        EXEC_VERSION,
-	        "",
-	        EXIT_SUCCESS,
-	        "-hv: Version number is printed along with the help text");
-	r += sc(chp{ execname, "-vvv", "--verbose", NULL },
-	        "",
-	        ": main(): Using verbose level 4\n",
-	        EXIT_FAILURE,
-	        "-vvv --verbose: Using correct verbose level");
-	r += sc(chp{ execname, "-vvvvq", "--verbose", "--verbose", NULL },
-	        "",
-	        ": main(): Using verbose level 5\n",
-	        EXIT_FAILURE,
-	        "--verbose: One -q reduces the verbosity level");
+	sc(chp{ execname, "-h", "--verbose", NULL },
+	   "  Show this help",
+	   "",
+	   EXIT_SUCCESS,
+	   "-hv: Help text is displayed");
+	sc(chp{ execname, "-hv", NULL },
+	   EXEC_VERSION,
+	   "",
+	   EXIT_SUCCESS,
+	   "-hv: Version number is printed along with the help text");
+	sc(chp{ execname, "-vvv", "--verbose", NULL },
+	   "",
+	   ": main(): Using verbose level 4\n",
+	   EXIT_FAILURE,
+	   "-vvv --verbose: Using correct verbose level");
+	sc(chp{ execname, "-vvvvq", "--verbose", "--verbose", NULL },
+	   "",
+	   ": main(): Using verbose level 5\n",
+	   EXIT_FAILURE,
+	   "--verbose: One -q reduces the verbosity level");
 
 	diag("Test --version");
 	s = allocstr("%s %s (%s)\n", execname, EXEC_VERSION, EXEC_DATE);
 	if (s) {
-		r += sc(chp{ execname, "--version", NULL },
-		        s,
-		        "",
-		        EXIT_SUCCESS,
-		        "--version");
+		sc(chp{ execname, "--version", NULL },
+		   s,
+		   "",
+		   EXIT_SUCCESS,
+		   "--version");
 		free(s);
 	} else {
-		r += ok(1, "%s(): allocstr() 1 failed", __func__); /* gncov */
+		ok(1, "%s(): allocstr() 1 failed", __func__); /* gncov */
 	}
 	s = EXEC_VERSION "\n";
-	r += tc(chp{ execname, "--version", "-q", NULL },
-	        s,
-	        "",
-	        EXIT_SUCCESS,
-	        "--version with -q shows only the version number");
+	tc(chp{ execname, "--version", "-q", NULL },
+	   s,
+	   "",
+	   EXIT_SUCCESS,
+	   "--version with -q shows only the version number");
 
 	diag("Test --license");
-	r += sc(chp{ execname, "--license", NULL },
-	        "GNU General Public License",
-	        "",
-	        EXIT_SUCCESS,
-	        "--license: It's GPL");
-	r += sc(chp{ execname, "--license", NULL },
-	        "either version 2 of the License",
-	        "",
-	        EXIT_SUCCESS,
-	        "--license: It's version 2 of the GPL");
+	sc(chp{ execname, "--license", NULL },
+	   "GNU General Public License",
+	   "",
+	   EXIT_SUCCESS,
+	   "--license: It's GPL");
+	sc(chp{ execname, "--license", NULL },
+	   "either version 2 of the License",
+	   "",
+	   EXIT_SUCCESS,
+	   "--license: It's version 2 of the GPL");
 
 	diag("Unknown option");
-	r += sc(chp{ execname, "--gurgle", NULL },
-	        "",
-	        ": Option error\n",
-	        EXIT_FAILURE,
-	        "Unknown option: \"Option error\" message is printed");
-	r += sc(chp{ execname, "--gurgle", NULL },
-	        "",
-	        " --help\" for help screen. Returning with value 1.\n",
-	        EXIT_FAILURE,
-	        "Unknown option mentions --help");
-
-	return r;
+	sc(chp{ execname, "--gurgle", NULL },
+	   "",
+	   ": Option error\n",
+	   EXIT_FAILURE,
+	   "Unknown option: \"Option error\" message is printed");
+	sc(chp{ execname, "--gurgle", NULL },
+	   "",
+	   " --help\" for help screen. Returning with value 1.\n",
+	   EXIT_FAILURE,
+	   "Unknown option mentions --help");
 }
 
 /*
- * test_format_option() - Tests the -F/--format option. Returns the number of 
- * failed tests.
+ * test_format_option() - Tests the -F/--format option. Returns nothing.
  */
 
-static int test_format_option(char *execname)
+static void test_format_option(char *execname)
 {
-	int r = 0;
-
 	diag("Test -F/--format");
-	r += sc(chp{execname, "-vvvv", "-F", "FoRmAt", NULL},
-	        "",
-	        ": setup_options(): o.format = \"FoRmAt\"\n",
-	        EXIT_FAILURE,
-	        "-vvvv -F FoRmAt: o.format is correct");
-	r += sc(chp{execname, "-vvvv", "--format", "FoRmAt", NULL},
-	        "",
-	        ": setup_options(): o.format = \"FoRmAt\"\n",
-	        EXIT_FAILURE,
-	        "-vvvv --format FoRmAt: o.format is correct");
-	r += sc(chp{execname, "-vvvv", "-F", "FoRmAt", NULL},
-	        NULL,
-	        ": FoRmAt: Unknown output format\n",
-	        EXIT_FAILURE,
-	        "-vvvv -F FoRmAt: It says it's unknown");
-	r += tc(chp{execname, "-vvvv", "-F", "", "lpos", "54,7", "12,22",
-	            "0.23", NULL},
-	        "44.531328,12.145870\n",
-	        NULL,
-	        EXIT_SUCCESS,
-	        "-F with an empty argument");
-
-	return r;
+	sc(chp{execname, "-vvvv", "-F", "FoRmAt", NULL},
+	   "",
+	   ": setup_options(): o.format = \"FoRmAt\"\n",
+	   EXIT_FAILURE,
+	   "-vvvv -F FoRmAt: o.format is correct");
+	sc(chp{execname, "-vvvv", "--format", "FoRmAt", NULL},
+	   "",
+	   ": setup_options(): o.format = \"FoRmAt\"\n",
+	   EXIT_FAILURE,
+	   "-vvvv --format FoRmAt: o.format is correct");
+	sc(chp{execname, "-vvvv", "-F", "FoRmAt", NULL},
+	   NULL,
+	   ": FoRmAt: Unknown output format\n",
+	   EXIT_FAILURE,
+	   "-vvvv -F FoRmAt: It says it's unknown");
+	tc(chp{execname, "-vvvv", "-F", "", "lpos", "54,7", "12,22",
+	       "0.23", NULL},
+	   "44.531328,12.145870\n",
+	   NULL,
+	   EXIT_SUCCESS,
+	   "-F with an empty argument");
 }
 
 /*
- * test_cmd_bpos() - Tests the `bpos` command. Returns the number of failed 
- * tests.
+ * test_cmd_bpos() - Tests the `bpos` command. Returns nothing.
  */
 
-static int test_cmd_bpos(char *execname)
+static void test_cmd_bpos(char *execname)
 {
-	int r = 0;
-
 	diag("Test bpos command");
-	r += tc(chp{ execname, "bpos", "45,0", "45", "1000", NULL },
-	        "45.006359,0.008994\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "bpos 45,0 45 1000");
-	r += tc(chp{ execname, "--km", "bpos", "45,0", "45", "1", NULL },
-	        "45.006359,0.008994\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "--km bpos 45,0 45 1");
-	r += tc(chp{ execname, "bpos", "0,0", "90.0000001", "1", NULL },
-	        "0.000000,0.000009\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "bpos: No negative zero in lat");
-	r += tc(chp{ execname, "bpos", "0,0", "359.9999999", "1", NULL },
-	        "0.000009,0.000000\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "bpos: No negative zero in lon");
-	r += tc(chp{ execname, "--km", "bpos", "-34,179", "2", "19716", NULL },
-	        "36.688059,-1.117018\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "bpos: Longitude is normalized");
-	r += tc(chp{ execname, "--km", "bpos", "90,0", "180", "20000", NULL },
-	        "-89.864321,0.000000\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "bpos: North Pole, point is moved 1 cm");
-	r += tc(chp{ execname, "bpos", "90,97.97", "180", "1234567.89", NULL },
-	        "78.897264,97.970000\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "bpos: North Pole, longitude is kept");
-	r += tc(chp{ execname, "--km", "bpos", "-90,0", "359", "7000", NULL },
-	        "-27.047487,-1.000000\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "bpos: South Pole, bearing 359");
-	r += sc(chp{ execname, "bpos", "1,2", "r", "1000", NULL },
-	        "",
-	        ": Invalid number specified: Invalid argument\n",
-	        EXIT_FAILURE,
-	        "bpos: bearing is not a number");
-	r += sc(chp{ execname, "bpos", "1,2w", "3", "4", NULL },
-	        "",
-	        ": Invalid number specified: Invalid argument\n",
-	        EXIT_FAILURE,
-	        "bpos: lon has trailing letter");
-	r += sc(chp{ execname, "bpos", "90.0000000001,2", "3", "4", NULL },
-	        "",
-	        ": Value out of range\n",
-	        EXIT_FAILURE,
-	        "bpos: lat is out of range");
-	r += sc(chp{ execname, "bpos", "1,2", "3", "4", "5", NULL },
-	        "",
-	        ": Too many arguments\n",
-	        EXIT_FAILURE,
-	        "bpos: 1 extra argument");
-	r += tc(chp{ execname, "-F", "default", "bpos", "40.80542,-73.96546",
-	             "188.7", "4817.84", NULL },
-	        "40.762590,-73.974113\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "-F default bpos");
-	r += tc(chp{ execname, "--format", "gpx", "bpos", "40.80542,-73.96546",
-	             "188.7", "4817.84", NULL },
-	              GPX_HEADER
-	              "  <wpt lat=\"40.762590\" lon=\"-73.974113\">\n"
-	              "    <name>bpos</name>\n"
-	              "    <cmt>bpos 40.80542,-73.96546 188.7 4817.84</cmt>\n"
-	              "  </wpt>\n"
-	              "</gpx>\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "--format gpx bpos");
-
-	return r;
+	tc(chp{ execname, "bpos", "45,0", "45", "1000", NULL },
+	   "45.006359,0.008994\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "bpos 45,0 45 1000");
+	tc(chp{ execname, "--km", "bpos", "45,0", "45", "1", NULL },
+	   "45.006359,0.008994\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--km bpos 45,0 45 1");
+	tc(chp{ execname, "bpos", "0,0", "90.0000001", "1", NULL },
+	   "0.000000,0.000009\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "bpos: No negative zero in lat");
+	tc(chp{ execname, "bpos", "0,0", "359.9999999", "1", NULL },
+	   "0.000009,0.000000\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "bpos: No negative zero in lon");
+	tc(chp{ execname, "--km", "bpos", "-34,179", "2", "19716", NULL },
+	   "36.688059,-1.117018\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "bpos: Longitude is normalized");
+	tc(chp{ execname, "--km", "bpos", "90,0", "180", "20000", NULL },
+	   "-89.864321,0.000000\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "bpos: North Pole, point is moved 1 cm");
+	tc(chp{ execname, "bpos", "90,97.97", "180", "1234567.89", NULL },
+	   "78.897264,97.970000\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "bpos: North Pole, longitude is kept");
+	tc(chp{ execname, "--km", "bpos", "-90,0", "359", "7000", NULL },
+	   "-27.047487,-1.000000\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "bpos: South Pole, bearing 359");
+	sc(chp{ execname, "bpos", "1,2", "r", "1000", NULL },
+	   "",
+	   ": Invalid number specified: Invalid argument\n",
+	   EXIT_FAILURE,
+	   "bpos: bearing is not a number");
+	sc(chp{ execname, "bpos", "1,2w", "3", "4", NULL },
+	   "",
+	   ": Invalid number specified: Invalid argument\n",
+	   EXIT_FAILURE,
+	   "bpos: lon has trailing letter");
+	sc(chp{ execname, "bpos", "90.0000000001,2", "3", "4", NULL },
+	   "",
+	   ": Value out of range\n",
+	   EXIT_FAILURE,
+	   "bpos: lat is out of range");
+	sc(chp{ execname, "bpos", "1,2", "3", "4", "5", NULL },
+	   "",
+	   ": Too many arguments\n",
+	   EXIT_FAILURE,
+	   "bpos: 1 extra argument");
+	tc(chp{ execname, "-F", "default", "bpos", "40.80542,-73.96546",
+	        "188.7", "4817.84", NULL },
+	   "40.762590,-73.974113\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-F default bpos");
+	tc(chp{ execname, "--format", "gpx", "bpos", "40.80542,-73.96546",
+	        "188.7", "4817.84", NULL },
+	         GPX_HEADER
+	         "  <wpt lat=\"40.762590\" lon=\"-73.974113\">\n"
+	         "    <name>bpos</name>\n"
+	         "    <cmt>bpos 40.80542,-73.96546 188.7 4817.84</cmt>\n"
+	         "  </wpt>\n"
+	         "</gpx>\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--format gpx bpos");
 }
 
 /*
- * test_cmd_course() - Tests the `course` command. Returns the number of failed 
- * tests.
+ * test_cmd_course() - Tests the `course` command. Returns nothing.
  */
 
-static int test_cmd_course(char *execname)
+static void test_cmd_course(char *execname)
 {
-	int r = 0;
 	char *exp_stdout;
 
 	diag("Test course command");
-	r += tc(chp{ execname, "course", "45,0", "45,180", "1", NULL },
-	        "45.000000,0.000000\n"
-	        "90.000000,0.000000\n"
-	        "45.000000,180.000000\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "course: Across the North Pole");
-	r += sc(chp{ execname, "course", "0,0", "0,180", "7", NULL },
-	        "",
-	        ": Antipodal points, answer is undefined\n",
-	        EXIT_FAILURE,
-	        "course 0,0 0,180 7");
-	r += tc(chp{ execname, "course", "90,0", "0,0", "3", NULL },
-	        "90.000000,0.000000\n"
-	        "67.500000,0.000000\n"
-	        "45.000000,0.000000\n"
-	        "22.500000,0.000000\n"
-	        "0.000000,0.000000\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "course 90,0 0,0 3");
+	tc(chp{ execname, "course", "45,0", "45,180", "1", NULL },
+	   "45.000000,0.000000\n"
+	   "90.000000,0.000000\n"
+	   "45.000000,180.000000\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "course: Across the North Pole");
+	sc(chp{ execname, "course", "0,0", "0,180", "7", NULL },
+	   "",
+	   ": Antipodal points, answer is undefined\n",
+	   EXIT_FAILURE,
+	   "course 0,0 0,180 7");
+	tc(chp{ execname, "course", "90,0", "0,0", "3", NULL },
+	   "90.000000,0.000000\n"
+	   "67.500000,0.000000\n"
+	   "45.000000,0.000000\n"
+	   "22.500000,0.000000\n"
+	   "0.000000,0.000000\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "course 90,0 0,0 3");
 	exp_stdout = "60.392990,5.324150\n"
 	             "66.169926,16.700678\n"
 	             "70.664233,33.818071\n"
@@ -1294,406 +1222,396 @@ static int test_cmd_course(char *execname)
 	             "49.752575,131.215240\n"
 	             "42.795549,135.979229\n"
 	             "35.681389,139.766944\n";
-	r += tc(chp{ execname, "course", "60.39299,5.32415",
-	             "35.681389,139.766944", "9", NULL },
-	        exp_stdout,
-	        "",
-	        EXIT_SUCCESS,
-	        "course: From Bergen to Tokyo");
-	r += tc(chp{ execname, "--km", "course", "60.39299,5.32415",
-	             "35.681389,139.766944", "9", NULL },
-	        exp_stdout,
-	        "",
-	        EXIT_SUCCESS,
-	        "--km course: From Bergen to Tokyo");
-	r += sc(chp{ execname, "course", "1,2", "3,4", NULL },
-	        "",
-	        ": Missing arguments\n",
-	        EXIT_FAILURE,
-	        "course: Missing 1 argument");
-	r += sc(chp{ execname, "course", "1,2", "3,4", "5", "6", NULL },
-	        "",
-	        ": Too many arguments\n",
-	        EXIT_FAILURE,
-	        "course: 1 argument too much");
-	r += sc(chp{ execname, "course", "90.00001,0", "12,34", "1", NULL },
-	        "",
-	        ": Value out of range\n",
-	        EXIT_FAILURE,
-	        "course: lat1 is outside range");
-	r += sc(chp{ execname, "course", "17,0", "12,34", "-1", NULL },
-	        "",
-	        ": Value out of range\n",
-	        EXIT_FAILURE,
-	        "course: numpoints is -1");
-	r += sc(chp{ execname, "course", "17,6", "12,34", "-0.5", NULL },
-	        "",
-	        ": Value out of range\n",
-	        EXIT_FAILURE,
-	        "course: numpoints is -0.5");
-	r += tc(chp{ execname, "course", "22,33", "44,55", "0", NULL },
-	        "22.000000,33.000000\n"
-	        "44.000000,55.000000\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "course: numpoints is 0");
-	r += sc(chp{ execname, "course", "17,6%", "12,34", "-1", NULL },
-	        "",
-	        ": Invalid number specified: Invalid argument\n",
-	        EXIT_FAILURE,
-	        "course: lon1 is invalid number");
-	r += tc(chp{execname, "-F", "default", "course",
-	            "52.3731,4.891", "35.681,139.767", "5", NULL},
-	        "52.373100,4.891000\n"
-	        "62.685860,22.579780\n"
-	        "68.869393,53.549146\n"
-	        "67.245712,91.173953\n"
-	        "59.021383,116.487394\n"
-	        "47.913547,130.771879\n"
-	        "35.681000,139.767000\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "-F default course, Amsterdam to Tokyo");
-	r += tc(chp{execname, "-F", "gpx", "course",
-	            "52.3731,4.891", "35.681,139.767", "5", NULL},
-	        GPX_HEADER
-	        "  <rte>\n"
-	        "    <rtept lat=\"52.373100\" lon=\"4.891000\">\n"
-	        "    </rtept>\n"
-	        "    <rtept lat=\"62.685860\" lon=\"22.579780\">\n"
-	        "    </rtept>\n"
-	        "    <rtept lat=\"68.869393\" lon=\"53.549146\">\n"
-	        "    </rtept>\n"
-	        "    <rtept lat=\"67.245712\" lon=\"91.173953\">\n"
-	        "    </rtept>\n"
-	        "    <rtept lat=\"59.021383\" lon=\"116.487394\">\n"
-	        "    </rtept>\n"
-	        "    <rtept lat=\"47.913547\" lon=\"130.771879\">\n"
-	        "    </rtept>\n"
-	        "    <rtept lat=\"35.681000\" lon=\"139.767000\">\n"
-	        "    </rtept>\n"
-	        "  </rte>\n"
-	        "</gpx>\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "-F gpx course, Amsterdam to Tokyo");
-
-	return r;
+	tc(chp{ execname, "course", "60.39299,5.32415",
+	        "35.681389,139.766944", "9", NULL },
+	   exp_stdout,
+	   "",
+	   EXIT_SUCCESS,
+	   "course: From Bergen to Tokyo");
+	tc(chp{ execname, "--km", "course", "60.39299,5.32415",
+	        "35.681389,139.766944", "9", NULL },
+	   exp_stdout,
+	   "",
+	   EXIT_SUCCESS,
+	   "--km course: From Bergen to Tokyo");
+	sc(chp{ execname, "course", "1,2", "3,4", NULL },
+	   "",
+	   ": Missing arguments\n",
+	   EXIT_FAILURE,
+	   "course: Missing 1 argument");
+	sc(chp{ execname, "course", "1,2", "3,4", "5", "6", NULL },
+	   "",
+	   ": Too many arguments\n",
+	   EXIT_FAILURE,
+	   "course: 1 argument too much");
+	sc(chp{ execname, "course", "90.00001,0", "12,34", "1", NULL },
+	   "",
+	   ": Value out of range\n",
+	   EXIT_FAILURE,
+	   "course: lat1 is outside range");
+	sc(chp{ execname, "course", "17,0", "12,34", "-1", NULL },
+	   "",
+	   ": Value out of range\n",
+	   EXIT_FAILURE,
+	   "course: numpoints is -1");
+	sc(chp{ execname, "course", "17,6", "12,34", "-0.5", NULL },
+	   "",
+	   ": Value out of range\n",
+	   EXIT_FAILURE,
+	   "course: numpoints is -0.5");
+	tc(chp{ execname, "course", "22,33", "44,55", "0", NULL },
+	   "22.000000,33.000000\n"
+	   "44.000000,55.000000\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "course: numpoints is 0");
+	sc(chp{ execname, "course", "17,6%", "12,34", "-1", NULL },
+	   "",
+	   ": Invalid number specified: Invalid argument\n",
+	   EXIT_FAILURE,
+	   "course: lon1 is invalid number");
+	tc(chp{execname, "-F", "default", "course",
+	       "52.3731,4.891", "35.681,139.767", "5", NULL},
+	   "52.373100,4.891000\n"
+	   "62.685860,22.579780\n"
+	   "68.869393,53.549146\n"
+	   "67.245712,91.173953\n"
+	   "59.021383,116.487394\n"
+	   "47.913547,130.771879\n"
+	   "35.681000,139.767000\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-F default course, Amsterdam to Tokyo");
+	tc(chp{execname, "-F", "gpx", "course",
+	       "52.3731,4.891", "35.681,139.767", "5", NULL},
+	   GPX_HEADER
+	   "  <rte>\n"
+	   "    <rtept lat=\"52.373100\" lon=\"4.891000\">\n"
+	   "    </rtept>\n"
+	   "    <rtept lat=\"62.685860\" lon=\"22.579780\">\n"
+	   "    </rtept>\n"
+	   "    <rtept lat=\"68.869393\" lon=\"53.549146\">\n"
+	   "    </rtept>\n"
+	   "    <rtept lat=\"67.245712\" lon=\"91.173953\">\n"
+	   "    </rtept>\n"
+	   "    <rtept lat=\"59.021383\" lon=\"116.487394\">\n"
+	   "    </rtept>\n"
+	   "    <rtept lat=\"47.913547\" lon=\"130.771879\">\n"
+	   "    </rtept>\n"
+	   "    <rtept lat=\"35.681000\" lon=\"139.767000\">\n"
+	   "    </rtept>\n"
+	   "  </rte>\n"
+	   "</gpx>\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-F gpx course, Amsterdam to Tokyo");
 }
 
 /*
- * test_cmd_lpos() - Tests the `lpos` command. Returns the number of failed 
- * tests.
+ * test_cmd_lpos() - Tests the `lpos` command. Returns nothing.
  */
 
-static int test_cmd_lpos(char *execname)
+static void test_cmd_lpos(char *execname)
 {
-	int r = 0;
-
 	diag("Test lpos command");
-	r += tc(chp{ execname, "lpos", "45,0", "45,180", "0.5", NULL },
-	        "90.000000,0.000000\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "lpos: At the North Pole");
-	r += tc(chp{ execname, "--km", "lpos", "45,0", "45,180", "0.5", NULL },
-	        "90.000000,0.000000\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "--km lpos: At the North Pole");
-	r += tc(chp{ execname, "--format", "gpx", "lpos", "45,0", "45,180",
-	             "0.5", NULL },
-	                  GPX_HEADER
-	                  "  <wpt lat=\"90.000000\" lon=\"0.000000\">\n"
-	                  "    <name>lpos</name>\n"
-	                  "    <cmt>lpos 45,0 45,180 0.5</cmt>\n"
-	                  "  </wpt>\n"
-	                  "</gpx>\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "--format gpx lpos: At the North Pole");
-	r += tc(chp{ execname, "lpos", "0,0", "-0.0000001,0", "1", NULL },
-	        "0.000000,0.000000\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "lpos: No negative zero in lat");
-	r += tc(chp{ execname, "lpos", "0,0", "0,-0.0000001", "1", NULL },
-	        "0.000000,0.000000\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "lpos: No negative zero in lon");
-	r += tc(chp{ execname, "--km", "lpos", "-24.598059,178.290755",
-	             "-12.500692,163.651473", "9.8", NULL },
-	        "24.508273,-1.833156\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "lpos: Longitude is normalized");
-	r += tc(chp{ execname, "lpos", "90,0", "0,0", "0.5", NULL },
-	        "45.000000,0.000000\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "lpos: Point is moved 1 cm");
-	r += sc(chp{ execname, "lpos", "-90,0", "90,0", "3", NULL },
-	        "",
-	        ": Antipodal points, answer is undefined\n",
-	        EXIT_FAILURE,
-	        "lpos: South Pole to the North Pole");
-	r += sc(chp{ execname, "lpos", "1,2", "3,4", NULL },
-	        "",
-	        ": Missing arguments\n",
-	        EXIT_FAILURE,
-	        "lpos: Missing 1 argument");
-	r += sc(chp{ execname, "lpos", "1,2", "3,4", "5", "6", NULL },
-	        "",
-	        ": Too many arguments\n",
-	        EXIT_FAILURE,
-	        "lpos: 1 argument too much");
-	r += sc(chp{ execname, "lpos", "-90.00001,0", "12,34", "1", NULL },
-	        "",
-	        ": Value out of range\n",
-	        EXIT_FAILURE,
-	        "lpos: lat1 is outside range");
-	r += sc(chp{ execname, "lpos", "17,6%", "12,34", "-1", NULL },
-	        "",
-	        ": Invalid number specified: Invalid argument\n",
-	        EXIT_FAILURE,
-	        "lpos: lon1 is invalid number");
-	r += tc(chp{ execname, "lpos", "1,2", "3,4", "0", NULL },
-	        "1.000000,2.000000\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "lpos: fracdist is 0");
-	r += tc(chp{ execname, "lpos", "11.231,-34.55", "29.97777,47.311001",
-	             "1", NULL },
-	        "29.977770,47.311001\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "lpos: fracdist is 1");
-	r += tc(chp{ execname, "--km", "lpos", "11.231,-34.55",
-	             "29.97777,47.311001", "1", NULL },
-	        "29.977770,47.311001\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "--km lpos: fracdist is 1");
-	r += sc(chp{ execname, "lpos", "1,2", "3,4", "INF", NULL },
-	        "",
-	        ": Invalid number specified: Numerical result out of range\n",
-	        EXIT_FAILURE,
-	        "lpos: fracdist is INF");
-	r += sc(chp{ execname, "lpos", "0,0", "0,180", "0.5", NULL },
-	        "",
-	        ": Antipodal points, answer is undefined\n",
-	        EXIT_FAILURE,
-	        "lpos: Antipodal positions, 0,0 and 0,180");
-	r += sc(chp{ execname, "lpos", "90,0", "-90,0", "0.5", NULL },
-	        "",
-	        ": Antipodal points, answer is undefined\n",
-	        EXIT_FAILURE,
-	        "lpos: Antipodal positions, 90,0 and -90,0");
-
-	return r;
+	tc(chp{ execname, "lpos", "45,0", "45,180", "0.5", NULL },
+	   "90.000000,0.000000\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "lpos: At the North Pole");
+	tc(chp{ execname, "--km", "lpos", "45,0", "45,180", "0.5", NULL },
+	   "90.000000,0.000000\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--km lpos: At the North Pole");
+	tc(chp{ execname, "--format", "gpx", "lpos", "45,0", "45,180",
+	        "0.5", NULL },
+	             GPX_HEADER
+	             "  <wpt lat=\"90.000000\" lon=\"0.000000\">\n"
+	             "    <name>lpos</name>\n"
+	             "    <cmt>lpos 45,0 45,180 0.5</cmt>\n"
+	             "  </wpt>\n"
+	             "</gpx>\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--format gpx lpos: At the North Pole");
+	tc(chp{ execname, "lpos", "0,0", "-0.0000001,0", "1", NULL },
+	   "0.000000,0.000000\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "lpos: No negative zero in lat");
+	tc(chp{ execname, "lpos", "0,0", "0,-0.0000001", "1", NULL },
+	   "0.000000,0.000000\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "lpos: No negative zero in lon");
+	tc(chp{ execname, "--km", "lpos", "-24.598059,178.290755",
+	        "-12.500692,163.651473", "9.8", NULL },
+	   "24.508273,-1.833156\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "lpos: Longitude is normalized");
+	tc(chp{ execname, "lpos", "90,0", "0,0", "0.5", NULL },
+	   "45.000000,0.000000\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "lpos: Point is moved 1 cm");
+	sc(chp{ execname, "lpos", "-90,0", "90,0", "3", NULL },
+	   "",
+	   ": Antipodal points, answer is undefined\n",
+	   EXIT_FAILURE,
+	   "lpos: South Pole to the North Pole");
+	sc(chp{ execname, "lpos", "1,2", "3,4", NULL },
+	   "",
+	   ": Missing arguments\n",
+	   EXIT_FAILURE,
+	   "lpos: Missing 1 argument");
+	sc(chp{ execname, "lpos", "1,2", "3,4", "5", "6", NULL },
+	   "",
+	   ": Too many arguments\n",
+	   EXIT_FAILURE,
+	   "lpos: 1 argument too much");
+	sc(chp{ execname, "lpos", "-90.00001,0", "12,34", "1", NULL },
+	   "",
+	   ": Value out of range\n",
+	   EXIT_FAILURE,
+	   "lpos: lat1 is outside range");
+	sc(chp{ execname, "lpos", "17,6%", "12,34", "-1", NULL },
+	   "",
+	   ": Invalid number specified: Invalid argument\n",
+	   EXIT_FAILURE,
+	   "lpos: lon1 is invalid number");
+	tc(chp{ execname, "lpos", "1,2", "3,4", "0", NULL },
+	   "1.000000,2.000000\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "lpos: fracdist is 0");
+	tc(chp{ execname, "lpos", "11.231,-34.55", "29.97777,47.311001",
+	        "1", NULL },
+	   "29.977770,47.311001\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "lpos: fracdist is 1");
+	tc(chp{ execname, "--km", "lpos", "11.231,-34.55",
+	        "29.97777,47.311001", "1", NULL },
+	   "29.977770,47.311001\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--km lpos: fracdist is 1");
+	sc(chp{ execname, "lpos", "1,2", "3,4", "INF", NULL },
+	   "",
+	   ": Invalid number specified: Numerical result out of range\n",
+	   EXIT_FAILURE,
+	   "lpos: fracdist is INF");
+	sc(chp{ execname, "lpos", "0,0", "0,180", "0.5", NULL },
+	   "",
+	   ": Antipodal points, answer is undefined\n",
+	   EXIT_FAILURE,
+	   "lpos: Antipodal positions, 0,0 and 0,180");
+	sc(chp{ execname, "lpos", "90,0", "-90,0", "0.5", NULL },
+	   "",
+	   ": Antipodal points, answer is undefined\n",
+	   EXIT_FAILURE,
+	   "lpos: Antipodal positions, 90,0 and -90,0");
 }
 
 /*
- * test_multiple() - Tests the `bear` or `dist` command. Returns the number of 
- * failed tests.
+ * test_multiple() - Tests the `bear` or `dist` command. Returns nothing.
  */
 
-static int test_multiple(char *execname, char *cmd)
+static void test_multiple(char *execname, char *cmd)
 {
-	int r = 0;
 	char *p1;
 
 	assert(cmd);
-	if (!cmd)
-		return ok(1, "%s(): cmd is NULL", __func__); /* gncov */
+	if (!cmd) {
+		ok(1, "%s(): cmd is NULL", __func__); /* gncov */
+		return; /* gncov */
+	}
 
 	diag("Test %s command", !strcmp(cmd, "bear") ? "bear" : "dist");
-	r += sc(chp{ execname, "-vv", cmd, NULL },
-	        "",
-	        ": Missing arguments\n",
-	        EXIT_FAILURE,
-	        (p1 = allocstr("%s with no arguments", cmd)));
+	sc(chp{ execname, "-vv", cmd, NULL },
+	   "",
+	   ": Missing arguments\n",
+	   EXIT_FAILURE,
+	   (p1 = allocstr("%s with no arguments", cmd)));
 	free(p1);
-	r += sc(chp{ execname, cmd, "1,2", "3", NULL },
-	        "",
-	        ": Invalid number specified\n",
-	        EXIT_FAILURE,
-	        (p1 = allocstr("%s: Argument 2 is not a coordinate", cmd)));
+	sc(chp{ execname, cmd, "1,2", "3", NULL },
+	   "",
+	   ": Invalid number specified\n",
+	   EXIT_FAILURE,
+	   (p1 = allocstr("%s: Argument 2 is not a coordinate", cmd)));
 	free(p1);
-	r += tc(chp{ execname, cmd, "1,2", "3,4", NULL },
-	        !strcmp(cmd, "bear") ? "44.951998\n" : "314402.951024\n",
-	        "",
-	        EXIT_SUCCESS,
-	        (p1 = allocstr("%s 1,2 3,4", cmd)));
-	free(p1);
-	if (!strcmp(cmd, "bear")) {
-		r += sc(chp{ execname, "bear", "12,34", "-12,-146", NULL },
-		        "",
-		        ": Antipodal points, answer is undefined\n",
-		        EXIT_FAILURE,
-		        "bear 12,34 -12,-146 - antipodal points");
-	} else {
-		r += tc(chp{ execname, "dist", "12,34", "-12,-146", NULL },
-		        "20015086.796021\n",
-		        "",
-		        EXIT_SUCCESS,
-		        "dist 12,34 -12,-146 - antipodal points");
-	}
-	r += sc(chp{ execname, cmd, "1,2", "3,4", "5", NULL },
-	        "",
-	        ": Too many arguments\n",
-	        EXIT_FAILURE,
-	        (p1 = allocstr("%s with 1 argument too much", cmd)));
-	free(p1);
-	r += sc(chp{ execname, cmd, "1,2", "3,1e+900", NULL },
-	        "",
-	        ": Invalid number specified:"
-	        " Numerical result out of range\n",
-	        EXIT_FAILURE,
-	        (p1 = allocstr("%s with 1 number too large", cmd)));
-	free(p1);
-	r += sc(chp{ execname, cmd, "1,2", "urgh,4", NULL },
-	        "",
-	        ": Invalid number specified:"
-	        " Invalid argument\n",
-	        EXIT_FAILURE,
-	        (p1 = allocstr("%s with 1 non-number", cmd)));
-	free(p1);
-	r += sc(chp{ execname, cmd, "1,2.9y", "3,4", NULL },
-	        "",
-	        ": Invalid number specified:"
-	        " Invalid argument\n",
-	        EXIT_FAILURE,
-	        (p1 = allocstr("%s with non-digit after number", cmd)));
-	free(p1);
-	r += sc(chp{ execname, cmd, "1,2 g", "3,4", NULL },
-	        "",
-	        ": Invalid number specified:"
-	        " Invalid argument\n",
-	        EXIT_FAILURE,
-	        (p1 = allocstr("%s with whitespace and non-digit after number",
-	                       cmd)));
-	free(p1);
-	r += tc(chp{ execname, cmd, "10,2,", "3,4", NULL },
-	        !strcmp(cmd, "bear") ? "164.027619\n" : "809080.682265\n",
-	        "",
-	        EXIT_SUCCESS,
-	        (p1 = allocstr("%s with comma after number", cmd)));
-	free(p1);
-	r += sc(chp{ execname, cmd, "1,2", "3,NAN", NULL },
-	        "",
-	        ": Invalid number specified:"
-	        " Invalid argument\n",
-	        EXIT_FAILURE,
-	        (p1 = allocstr("%s with NAN", cmd)));
-	free(p1);
-	r += sc(chp{ execname, cmd, "1,2", "3,INF", NULL },
-	        "",
-	        ": Invalid number specified:"
-	        " Numerical result out of range\n",
-	        EXIT_FAILURE,
-	        (p1 = allocstr("%s with INF", cmd)));
-	free(p1);
-	r += sc(chp{ execname, cmd, "1,2", "", NULL },
-	        "",
-	        ": Invalid number specified\n",
-	        EXIT_FAILURE,
-	        (p1 = allocstr("%s with empty argument", cmd)));
-	free(p1);
-	r += sc(chp{ execname, cmd, "1,180.001", "3,4", NULL },
-	        "",
-	        ": Value out of range\n",
-	        EXIT_FAILURE,
-	        (p1 = allocstr("%s: lon1 out of range", cmd)));
+	tc(chp{ execname, cmd, "1,2", "3,4", NULL },
+	   !strcmp(cmd, "bear") ? "44.951998\n" : "314402.951024\n",
+	   "",
+	   EXIT_SUCCESS,
+	   (p1 = allocstr("%s 1,2 3,4", cmd)));
 	free(p1);
 	if (!strcmp(cmd, "bear")) {
-		r += sc(chp{ execname, "bear", "90,0", "-90,0", NULL },
-		        "",
-		        ": Antipodal points, answer is undefined",
-		        EXIT_FAILURE,
-		        "bear 90,0 -90,0");
-		r += sc(chp{ execname, "--km", cmd, "90,0", "-90,0", NULL },
-		        "",
-		        ": Antipodal points, answer is undefined\n",
-		        EXIT_FAILURE,
-		        "--km bear 90,0 -90,0");
+		sc(chp{ execname, "bear", "12,34", "-12,-146", NULL },
+		   "",
+		   ": Antipodal points, answer is undefined\n",
+		   EXIT_FAILURE,
+		   "bear 12,34 -12,-146 - antipodal points");
 	} else {
-		r += tc(chp{ execname, "dist", "90,0", "-90,0", NULL },
-		        "20015086.796021\n",
-		        "",
-		        EXIT_SUCCESS,
-		        "dist 90,0 -90,0");
-		r += tc(chp{ execname, "--km", cmd, "90,0", "-90,0", NULL },
-		        "20015.086796\n",
-		        "",
-		        EXIT_SUCCESS,
-		        "--km dist 90,0 -90,0");
+		tc(chp{ execname, "dist", "12,34", "-12,-146", NULL },
+		   "20015086.796021\n",
+		   "",
+		   EXIT_SUCCESS,
+		   "dist 12,34 -12,-146 - antipodal points");
 	}
-	r += tc(chp{ execname, "-F", "default", cmd, "34,56", "-78,9", NULL },
-	        !strcmp(cmd, "bear") ? "189.693136\n" : "12835310.777042\n",
-	        "",
-	        EXIT_SUCCESS,
-	        (p1 = allocstr("-F default %s", cmd)));
+	sc(chp{ execname, cmd, "1,2", "3,4", "5", NULL },
+	   "",
+	   ": Too many arguments\n",
+	   EXIT_FAILURE,
+	   (p1 = allocstr("%s with 1 argument too much", cmd)));
 	free(p1);
-	r += sc(chp{ execname, "--format", "gpx", cmd, "34,56", "-78,9",
-	             NULL },
-	        "",
-	        ": No way to display this info in GPX format\n",
-	        EXIT_FAILURE,
-	        (p1 = allocstr("--format gpx %s", cmd)));
+	sc(chp{ execname, cmd, "1,2", "3,1e+900", NULL },
+	   "",
+	   ": Invalid number specified: Numerical result out of range\n",
+	   EXIT_FAILURE,
+	   (p1 = allocstr("%s with 1 number too large", cmd)));
 	free(p1);
-
-	return r;
+	sc(chp{ execname, cmd, "1,2", "urgh,4", NULL },
+	   "",
+	   ": Invalid number specified: Invalid argument\n",
+	   EXIT_FAILURE,
+	   (p1 = allocstr("%s with 1 non-number", cmd)));
+	free(p1);
+	sc(chp{ execname, cmd, "1,2.9y", "3,4", NULL },
+	   "",
+	   ": Invalid number specified: Invalid argument\n",
+	   EXIT_FAILURE,
+	   (p1 = allocstr("%s with non-digit after number", cmd)));
+	free(p1);
+	sc(chp{ execname, cmd, "1,2 g", "3,4", NULL },
+	   "",
+	   ": Invalid number specified: Invalid argument\n",
+	   EXIT_FAILURE,
+	   (p1 = allocstr("%s with whitespace and non-digit after number",
+	                  cmd)));
+	free(p1);
+	tc(chp{ execname, cmd, "10,2,", "3,4", NULL },
+	   !strcmp(cmd, "bear") ? "164.027619\n" : "809080.682265\n",
+	   "",
+	   EXIT_SUCCESS,
+	   (p1 = allocstr("%s with comma after number", cmd)));
+	free(p1);
+	sc(chp{ execname, cmd, "1,2", "3,NAN", NULL },
+	   "",
+	   ": Invalid number specified:"
+	   " Invalid argument\n",
+	   EXIT_FAILURE,
+	   (p1 = allocstr("%s with NAN", cmd)));
+	free(p1);
+	sc(chp{ execname, cmd, "1,2", "3,INF", NULL },
+	   "",
+	   ": Invalid number specified: Numerical result out of range\n",
+	   EXIT_FAILURE,
+	   (p1 = allocstr("%s with INF", cmd)));
+	free(p1);
+	sc(chp{ execname, cmd, "1,2", "", NULL },
+	   "",
+	   ": Invalid number specified\n",
+	   EXIT_FAILURE,
+	   (p1 = allocstr("%s with empty argument", cmd)));
+	free(p1);
+	sc(chp{ execname, cmd, "1,180.001", "3,4", NULL },
+	   "",
+	   ": Value out of range\n",
+	   EXIT_FAILURE,
+	   (p1 = allocstr("%s: lon1 out of range", cmd)));
+	free(p1);
+	if (!strcmp(cmd, "bear")) {
+		sc(chp{ execname, "bear", "90,0", "-90,0", NULL },
+		   "",
+		   ": Antipodal points, answer is undefined",
+		   EXIT_FAILURE,
+		   "bear 90,0 -90,0");
+		sc(chp{ execname, "--km", cmd, "90,0", "-90,0", NULL },
+		   "",
+		   ": Antipodal points, answer is undefined\n",
+		   EXIT_FAILURE,
+		   "--km bear 90,0 -90,0");
+	} else {
+		tc(chp{ execname, "dist", "90,0", "-90,0", NULL },
+		   "20015086.796021\n",
+		   "",
+		   EXIT_SUCCESS,
+		   "dist 90,0 -90,0");
+		tc(chp{ execname, "--km", cmd, "90,0", "-90,0", NULL },
+		   "20015.086796\n",
+		   "",
+		   EXIT_SUCCESS,
+		   "--km dist 90,0 -90,0");
+	}
+	tc(chp{ execname, "-F", "default", cmd, "34,56", "-78,9", NULL },
+	   !strcmp(cmd, "bear") ? "189.693136\n" : "12835310.777042\n",
+	   "",
+	   EXIT_SUCCESS,
+	   (p1 = allocstr("-F default %s", cmd)));
+	free(p1);
+	sc(chp{ execname, "--format", "gpx", cmd, "34,56", "-78,9", NULL },
+	   "",
+	   ": No way to display this info in GPX format\n",
+	   EXIT_FAILURE,
+	   (p1 = allocstr("--format gpx %s", cmd)));
+	free(p1);
 }
 
 /*
  * verify_coor_dist() - Verifies that the distance between `coor` and all 
  * "\n"-separated coordinates in `str` are in the range `mindist`-`maxdist` 
- * meters. Returns the number of failed tests.
+ * meters. Returns nothing.
  */
 
-static int verify_coor_dist(const char *str, const char *coor,
-                            const double mindist, const double maxdist)
+static void verify_coor_dist(const char *str, const char *coor,
+                             const double mindist, const double maxdist)
 {
-	int r = 0, errcount = 0;
+	int errcount = 0;
 	char *s, *p;
 	double clat, clon,
 	       mindist_r = round(mindist), maxdist_r = round(maxdist);
 	unsigned long coorcount = 0;
 
-	if (!str || !coor)
-		return r + ok(1, "%s(): `str` or `coor` is NULL", /* gncov */
-		                 __func__);
-	if (!strchr(str, '\n'))
-		return r + ok(1, "%s(): No '\\n' found in `str`", /* gncov */
-		                 __func__);
+	if (!str || !coor) {
+		ok(1, "%s(): `str` or `coor` is NULL", /* gncov */
+		      __func__);
+		return; /* gncov */
+	}
+	if (!strchr(str, '\n')) {
+		ok(1, "%s(): No '\\n' found in `str`", /* gncov */
+		      __func__);
+		return; /* gncov */
+	}
 	if (parse_coordinate(coor, &clat, &clon)) {
-		r += ok(1, "%s(): parse_coordinate() failed", /* gncov */
-		           __func__);
+		ok(1, "%s(): parse_coordinate() failed", /* gncov */
+		      __func__);
 		diag("%s(): coor = \"%s\"", __func__, coor); /* gncov */
-		return r; /* gncov */
+		return; /* gncov */
 	}
 
 	s = mystrdup(str);
-	if (!s)
-		return r + ok(1, "%s(): mystrdup() failed", /* gncov */
-		                 __func__);
+	if (!s) {
+		ok(1, "%s(): mystrdup() failed", __func__); /* gncov */
+		return; /* gncov */
+	}
 	p = strtok(s, "\n");
 	while (p) {
 		double lat, lon, dist;
 		coorcount++;
 		if (parse_coordinate(p, &lat, &lon)) {
-			r += ok(1, "%s(): parse_coordinate()" /* gncov */
-			           " failed", __func__);
+			ok(1, "%s(): parse_coordinate()" /* gncov */
+			      " failed", __func__);
 			diag("%s(): p = \"%s\"", __func__, p); /* gncov */
 			errcount++; /* gncov */
 			goto next; /* gncov */
 		}
 		dist = haversine(clat, clon, lat, lon);
 		if (dist == -1.0) {
-			r += ok(1, "%s(): haversine() failed," /* gncov */
-			           " values out of range", __func__);
+			ok(1, "%s(): haversine() failed," /* gncov */
+			      " values out of range", __func__);
 			diag("%s(): coor = \"%s\", lat = %f," /* gncov */
 			     " lon = %f", __func__, coor, lat, lon);
 			errcount++; /* gncov */
@@ -1701,48 +1619,46 @@ static int verify_coor_dist(const char *str, const char *coor,
 		}
 		dist = round(dist);
 		if (dist < mindist_r || dist > maxdist_r) {
-			r += errcount < 11 /* gncov */
-			     ? ok(1, "Coordinate out of range (%f" /* gncov */
-			             " to %f m). center: %f,%f, coor = %f,%f,"
-			             " dist = %f",
-			             mindist, maxdist,
-			             clat, clon, lat, lon, dist)
-			     : 1; /* gncov */
+			errcount < 11 /* gncov */
+			? ok(1, "Coordinate out of range (%f" /* gncov */
+			        " to %f m). center: %f,%f, coor = %f,%f,"
+			        " dist = %f",
+			        mindist, maxdist,
+			        clat, clon, lat, lon, dist)
+			: 1; /* gncov */
 			errcount++; /* gncov */
 		}
 next:
 		if (errcount >= 10) {
-			r += ok(1, "Aborting this test after 10" /* gncov */
-			           " errors");
+			ok(1, "Aborting this test after 10" /* gncov */
+			      " errors");
 			break; /* gncov */
 		}
 		p = strtok(NULL, "\n");
 	}
-	r += ok(!!errcount, "randpos: All %lu coordinates were inside range of"
-	                    " %.0f to %.0f meters.",
-	                    coorcount, mindist, maxdist);
+	ok(!!errcount, "randpos: All %lu coordinates were inside range of"
+	               " %.0f to %.0f meters.",
+	               coorcount, mindist, maxdist);
 	free(s);
-
-	return r;
 }
 
 /*
- * chk_coor_outp() - Verify the output from the randpos command. Returns the 
- * number of failed tests.
+ * chk_coor_outp() - Verify the output from the randpos command. Returns 
+ * 1 if any error, 0 if everything is ok.
  */
 
 static int chk_coor_outp(const OutputFormat format, const char *output,
                          const unsigned int num, const char *coor,
                          const double mindist, const double maxdist)
 {
-	int r = 0;
+	int errcount = 0;
 	regex_t regex;
 	char *regstr, *pattern;
 	static int count = 0;
 
 	count++;
 	if (format == OF_DEFAULT && coor)
-		r += verify_coor_dist(output, coor, mindist, maxdist);
+		verify_coor_dist(output, coor, mindist, maxdist);
 
 	switch (format) {
 	case OF_DEFAULT:
@@ -1773,234 +1689,229 @@ static int chk_coor_outp(const OutputFormat format, const char *output,
 	}
 
 	pattern = allocstr(regstr, num);
-	if (!pattern)
-		return r + ok(1, "%s(): allocstr() failed", /* gncov */
-		                 __func__);
+	if (!pattern) {
+		ok(1, "%s(): allocstr() failed", /* gncov */
+		      __func__);
+		return 1; /* gncov */
+	}
 
 	if (regcomp(&regex, pattern, REG_EXTENDED)) {
-		r += ok(1, "%s(): regcomp() failed", __func__); /* gncov */
+		ok(1, "%s(): regcomp() failed", __func__); /* gncov */
+		errcount++; /* gncov */
 		goto cleanup; /* gncov */
 	}
 
-	r += ok(!!regexec(&regex, output, 0, NULL, 0),
-	                  "Regexp matches, count = %d", count);
+	ok(!!regexec(&regex, output, 0, NULL, 0),
+	   "Regexp matches, count = %d", count);
 	regfree(&regex);
 
 cleanup:
 	free(pattern);
 
-	return r;
+	return !!errcount;
 }
 
 /*
  * te_randpos() - Execute `cmd` and verify that all coordinates are valid and 
- * inside the various ranges specified. Returns the number of failed tests.
+ * inside the various ranges specified. Returns nothing.
  */
 
-static int te_randpos(const OutputFormat format, char **cmd,
-                      const unsigned int num, const char *coor,
-                      const double mindist, const double maxdist,
-                      const char *desc)
+static void te_randpos(const OutputFormat format, char **cmd,
+                       const unsigned int num, const char *coor,
+                       const double mindist, const double maxdist,
+                       const char *desc)
 {
-	int r = 0;
 	struct streams ss;
 
 	streams_init(&ss);
 	streams_exec(&ss, cmd);
-	r += ok(chk_coor_outp(format, ss.out.buf, num, coor, mindist, maxdist),
-	        desc);
+	ok(chk_coor_outp(format, ss.out.buf, num, coor, mindist, maxdist),
+	   desc);
 	streams_free(&ss);
-
-	return r;
 }
 
 /*
- * test_cmd_randpos() - Tests the randpos command. Returns the number of failed 
- * tests.
+ * test_cmd_randpos() - Tests the randpos command. Returns nothing.
  */
 
-static int test_cmd_randpos(char *execname)
+static void test_cmd_randpos(char *execname)
 {
-	int r = 0, res;
+	int res;
 	struct streams ss;
 	double lat, lon;
 	char **as;
 
 	diag("Test randpos command");
 
-	r += sc(chp{ execname, "randpos", "1,2", "100", "90", "5", NULL },
-	        "",
-	        ": Too many arguments\n",
-	        EXIT_FAILURE,
-	        "randpos with 1 extra argument");
+	sc(chp{ execname, "randpos", "1,2", "100", "90", "5", NULL },
+	   "",
+	   ": Too many arguments\n",
+	   EXIT_FAILURE,
+	   "randpos with 1 extra argument");
 
 	streams_init(&ss);
 	streams_exec(&ss, chp{ execname, "randpos", NULL });
 	lat = lon = 0;
 	res = parse_coordinate(ss.out.buf, &lat, &lon);
-	r += ok(!!res, "randpos: Coordinate is valid");
-	r += ok(!(fabs(lat) <= 90), "randpos: lat is in range");
-	r += ok(!(fabs(lat) <= 180), "randpos: lon is in range");
+	ok(!!res, "randpos: Coordinate is valid");
+	ok(!(fabs(lat) <= 90), "randpos: lat is in range");
+	ok(!(fabs(lat) <= 180), "randpos: lon is in range");
 	streams_free(&ss);
 
 	as = chp{ execname, "--count", "5", "randpos", NULL };
-	r += te_randpos(OF_DEFAULT, as, 5, NULL, 0, 0,
-	                "--count 5 randpos, stdout is ok");
+	te_randpos(OF_DEFAULT, as, 5, NULL, 0, 0,
+	           "--count 5 randpos, stdout is ok");
 
 	as = chp{ execname, "-F", "gpx", "--count", "9", "randpos", NULL };
-	r += te_randpos(OF_GPX, as, 9, NULL, 0, 0,
-	                "-F gpx --count 9 randpos, stdout is ok");
+	te_randpos(OF_GPX, as, 9, NULL, 0, 0,
+	           "-F gpx --count 9 randpos, stdout is ok");
 
-	r += sc(chp{ execname, "--count", "", "randpos", NULL },
-	        "",
-	        ": : Invalid --count argument\n",
-	        EXIT_FAILURE,
-	        "Empty argument to --count");
-	r += sc(chp{ execname, "--count", "g", "randpos", NULL },
-	        "",
-	        ": g: Invalid --count argument\n",
-	        EXIT_FAILURE,
-	        "--count receives non-number");
-	r += sc(chp{ execname, "--count", "11y", "randpos", NULL },
-	        "",
-	        ": 11y: Invalid --count argument\n",
-	        EXIT_FAILURE,
-	        "--count 11y");
-	r += sc(chp{ execname, "--count", "11.3", "randpos", NULL },
-	        "",
-	        ": 11.3: Invalid --count argument\n",
-	        EXIT_FAILURE,
-	        "--count 11.3");
-	r += sc(chp{ execname, "--count", "-2", "randpos", NULL },
-	        "",
-	        ": -2: Invalid --count argument\n",
-	        EXIT_FAILURE,
-	        "--count -2");
-	r += tc(chp{ execname, "--count", "0", "randpos", NULL },
-	        "",
-	        "",
-	        EXIT_SUCCESS,
-	        "--count 0");
-	r += tc(chp{ execname, "-F", "gpx", "--count", "0", "randpos", NULL },
-	        GPX_HEADER "</gpx>\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "-F gpx --count 0");
+	sc(chp{ execname, "--count", "", "randpos", NULL },
+	   "",
+	   ": : Invalid --count argument\n",
+	   EXIT_FAILURE,
+	   "Empty argument to --count");
+	sc(chp{ execname, "--count", "g", "randpos", NULL },
+	   "",
+	   ": g: Invalid --count argument\n",
+	   EXIT_FAILURE,
+	   "--count receives non-number");
+	sc(chp{ execname, "--count", "11y", "randpos", NULL },
+	   "",
+	   ": 11y: Invalid --count argument\n",
+	   EXIT_FAILURE,
+	   "--count 11y");
+	sc(chp{ execname, "--count", "11.3", "randpos", NULL },
+	   "",
+	   ": 11.3: Invalid --count argument\n",
+	   EXIT_FAILURE,
+	   "--count 11.3");
+	sc(chp{ execname, "--count", "-2", "randpos", NULL },
+	   "",
+	   ": -2: Invalid --count argument\n",
+	   EXIT_FAILURE,
+	   "--count -2");
+	tc(chp{ execname, "--count", "0", "randpos", NULL },
+	   "",
+	   "",
+	   EXIT_SUCCESS,
+	   "--count 0");
+	tc(chp{ execname, "-F", "gpx", "--count", "0", "randpos", NULL },
+	   GPX_HEADER "</gpx>\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-F gpx --count 0");
 
 	diag("randpos with max_dist");
 
 	as = chp{ execname, "--count", "50", "randpos", "1.234,5.6789", "100",
 	          NULL };
-	r += te_randpos(OF_DEFAULT, as, 50, "1.234,5.6789", 0.0, 100.0,
-	                "randpos: 50 pos inside a radius of 100m");
+	te_randpos(OF_DEFAULT, as, 50, "1.234,5.6789", 0.0, 100.0,
+	           "randpos: 50 pos inside a radius of 100m");
 
 	as = chp{ execname, "--count", "51", "randpos", "1.234,5.6789",
 	          "100000000", NULL };
-	r += te_randpos(OF_DEFAULT, as, 51, "1.234,5.6789", 0.0,
-	                MAX_EARTH_DISTANCE,
-	                "randpos: max_dist is larger than MAX_EARTH_DISTANCE");
+	te_randpos(OF_DEFAULT, as, 51, "1.234,5.6789", 0.0,
+	           MAX_EARTH_DISTANCE,
+	           "randpos: max_dist is larger than MAX_EARTH_DISTANCE");
 
 	as = chp{ execname, "--count", "52", "randpos", "1.234,5.6789", "0",
 	          "100000000", NULL };
-	r += te_randpos(OF_DEFAULT, as, 52, "1.234,5.6789", 0.0,
-	                MAX_EARTH_DISTANCE,
-	                "randpos: min_dist is larger than MAX_EARTH_DISTANCE");
+	te_randpos(OF_DEFAULT, as, 52, "1.234,5.6789", 0.0,
+	           MAX_EARTH_DISTANCE,
+	           "randpos: min_dist is larger than MAX_EARTH_DISTANCE");
 
 	as = chp{ execname, "--count", "53", "randpos", "1.234,5.67",
 	          "100000000", "100000000", NULL };
-	r += te_randpos(OF_DEFAULT, as, 53, "1.234,5.67", MAX_EARTH_DISTANCE,
-	                MAX_EARTH_DISTANCE,
-	                "randpos: min_dist and max_dist are larger than"
-	                " MAX_EARTH_DISTANCE, stdout looks ok");
+	te_randpos(OF_DEFAULT, as, 53, "1.234,5.67", MAX_EARTH_DISTANCE,
+	           MAX_EARTH_DISTANCE,
+	           "randpos: min_dist and max_dist are larger than"
+	           " MAX_EARTH_DISTANCE, stdout looks ok");
 
 	as = chp{ execname, "-F", "gpx", "--count", "14", "randpos",
 	          "19.63,-19.70", "25", NULL };
-	r += te_randpos(OF_GPX, as, 14, NULL, 0, 0,
-	                "-F gpx --count 14 randpos 19.63,-19.70 25");
+	te_randpos(OF_GPX, as, 14, NULL, 0, 0,
+	           "-F gpx --count 14 randpos 19.63,-19.70 25");
 
 	as = chp{ execname, "--km", "--count", "50", "randpos", "1.234,5.6789",
 	          "100", NULL };
-	r += te_randpos(OF_DEFAULT, as, 50,
-	        "1.234,5.6789", 0.0, 100000.0,
-	        "--km randpos: 50 pos inside a radius of 100km, stdout looks"
-	        " ok");
+	te_randpos(OF_DEFAULT, as, 50,
+	           "1.234,5.6789", 0.0, 100000.0,
+	           "--km randpos: 50 pos inside a radius of 100km,"
+	           " stdout looks ok");
 
 	as = chp{ execname, "--km", "--count", "50", "randpos", "1.234,5.6789",
 	          "100000", NULL };
-	r += te_randpos(OF_DEFAULT, as, 50,
-	        "1.234,5.6789", 0.0, MAX_EARTH_DISTANCE,
-	        "--km randpos: max_dist is larger than MAX_EARTH_DISTANCE,"
-	        " stdout looks ok");
+	te_randpos(OF_DEFAULT, as, 50,
+	           "1.234,5.6789", 0.0, MAX_EARTH_DISTANCE,
+	           "--km randpos: max_dist is larger than MAX_EARTH_DISTANCE,"
+	           " stdout looks ok");
 
-	r += sc(chp{ execname, "randpos", "12.34,56.34y", "10", NULL },
-	        "",
-	        ": Error in center coordinate: Invalid argument\n",
-	        EXIT_FAILURE,
-	        "randpos with error in coordinate");
+	sc(chp{ execname, "randpos", "12.34,56.34y", "10", NULL },
+	   "",
+	   ": Error in center coordinate: Invalid argument\n",
+	   EXIT_FAILURE,
+	   "randpos with error in coordinate");
 
-	r += sc(chp{ execname, "randpos", "12.34,56.34", "10y", NULL },
-	        "",
-	        ": Error in max_dist argument: Invalid argument\n",
-	        EXIT_FAILURE,
-	        "randpos with error in max_dist");
+	sc(chp{ execname, "randpos", "12.34,56.34", "10y", NULL },
+	   "",
+	   ": Error in max_dist argument: Invalid argument\n",
+	   EXIT_FAILURE,
+	   "randpos with error in max_dist");
 
-	r += sc(chp{ execname, "randpos", "12.34,56.34", "-17.9", NULL },
-	        "",
-	        ": Distance can't be negative\n",
-	        EXIT_FAILURE,
-	        "randpos with negative max_dist");
+	sc(chp{ execname, "randpos", "12.34,56.34", "-17.9", NULL },
+	   "",
+	   ": Distance can't be negative\n",
+	   EXIT_FAILURE,
+	   "randpos with negative max_dist");
 
 	diag("randpos with max_dist and min_dist");
 
-	r += sc(chp{ execname, "randpos", "12.34,56.34", "10", "3y", NULL },
-	        "",
-	        ": Error in min_dist argument: Invalid argument\n",
-	        EXIT_FAILURE,
-	        "randpos with error in min_dist");
+	sc(chp{ execname, "randpos", "12.34,56.34", "10", "3y", NULL },
+	   "",
+	   ": Error in min_dist argument: Invalid argument\n",
+	   EXIT_FAILURE,
+	   "randpos with error in min_dist");
 
-	r += sc(chp{ execname, "randpos", "12.34,56.34", "9", "-2", NULL },
-	        "",
-	        ": Distance can't be negative\n",
-	        EXIT_FAILURE,
-	        "randpos with negative min_dist");
+	sc(chp{ execname, "randpos", "12.34,56.34", "9", "-2", NULL },
+	   "",
+	   ": Distance can't be negative\n",
+	   EXIT_FAILURE,
+	   "randpos with negative min_dist");
 
 	as = chp{ execname, "randpos", "12.34,56.78", "100", "200", NULL };
-	r += te_randpos(OF_DEFAULT, as, 1, "12.34,56.78", 100.0, 200.0,
-	                "randpos: min_dist is larger than max_dist");
+	te_randpos(OF_DEFAULT, as, 1, "12.34,56.78", 100.0, 200.0,
+	           "randpos: min_dist is larger than max_dist");
 
 	as = chp{ execname, "--count", "27", "randpos", "1.234,5.6789", "2000",
 	          "2000", NULL };
-	r += te_randpos(OF_DEFAULT, as, 27, "1.234,5.6789", 2000.0, 2000.0,
-	        "randpos: max_dist is equal to min_dist, stdout looks ok");
+	te_randpos(OF_DEFAULT, as, 27, "1.234,5.6789", 2000.0, 2000.0,
+	           "randpos: max_dist is equal to min_dist, stdout looks ok");
 	streams_free(&ss);
 
 	as = chp{ execname, "-F", "gpx", "--count", "21", "randpos",
 	          "90,0", "7741", "7777", NULL };
-	r += te_randpos(OF_GPX, as, 21, "90,0", 7741, 7777,
-	                "randpos, North Pole, 25 pos as GPX, dists swapped");
+	te_randpos(OF_GPX, as, 21, "90,0", 7741, 7777,
+	           "randpos, North Pole, 25 pos as GPX, dists swapped");
 
 	as = chp{ execname, "--count", "33", "randpos", "90,0", "10000",
 	          NULL };
-	r += te_randpos(OF_DEFAULT, as, 33, "90,0", 0.0, 10000.0,
-	                "randpos: Exactly at the North Pole");
+	te_randpos(OF_DEFAULT, as, 33, "90,0", 0.0, 10000.0,
+	           "randpos: Exactly at the North Pole");
 
 	as = chp{ execname, "--count", "34", "randpos", "-90,0", "10001",
 	          NULL };
-	r += te_randpos(OF_DEFAULT, as, 34, "-90,0", 0.0, 10001.0,
-	                "randpos: Exactly at the South Pole");
+	te_randpos(OF_DEFAULT, as, 34, "-90,0", 0.0, 10001.0,
+	           "randpos: Exactly at the South Pole");
 	streams_free(&ss);
-
-	return r;
 }
 
 /*
- * test_seed_option() - Tests the --seed option. Returns the number of failed 
- * tests.
+ * test_seed_option() - Tests the --seed option. Returns nothing.
  */
 
-static int test_seed_option(char *execname)
+static void test_seed_option(char *execname)
 {
-	int r = 0;
 	struct binbuf bb1, bb2, bb3;
 
 	diag("Test --seed");
@@ -2014,157 +1925,143 @@ static int test_seed_option(char *execname)
 	                       "--count", "20", "randpos", NULL });
 	exec_output(&bb3, chp{ execname, "--seed", "64738",
 	                       "--count", "20", "randpos", NULL });
-	r += ok(!strcmp(bb1.buf, bb2.buf),
-	        "randpos with seed 64738 and 64739 are different");
-	r += ok(!!strcmp(bb3.buf, bb1.buf),
-	        "randpos with seed 64738 is identical to the first");
+	ok(!strcmp(bb1.buf, bb2.buf),
+	   "randpos with seed 64738 and 64739 are different");
+	ok(!!strcmp(bb3.buf, bb1.buf),
+	   "randpos with seed 64738 is identical to the first");
 	binbuf_free(&bb3);
 	binbuf_free(&bb2);
 	binbuf_free(&bb1);
 
-	r += tc(chp{ execname, "--seed", "-29271", "--count", "10", "randpos",
-	             NULL },
-	        "56.398026,65.672317\n"
-	        "-62.545731,39.973376\n"
-	        "-12.953591,-109.219631\n"
-	        "71.625404,10.907732\n"
-	        "-49.720325,-97.898594\n"
-	        "-9.863466,161.067034\n"
-	        "-21.125676,-179.454884\n"
-	        "-20.152272,-58.458280\n"
-	        "11.179247,79.685331\n"
-	        "-47.058531,149.678499\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "--seed -29271 --count 10 randpos");
+	tc(chp{ execname, "--seed", "-29271", "--count", "10", "randpos",
+	        NULL },
+	   "56.398026,65.672317\n"
+	   "-62.545731,39.973376\n"
+	   "-12.953591,-109.219631\n"
+	   "71.625404,10.907732\n"
+	   "-49.720325,-97.898594\n"
+	   "-9.863466,161.067034\n"
+	   "-21.125676,-179.454884\n"
+	   "-20.152272,-58.458280\n"
+	   "11.179247,79.685331\n"
+	   "-47.058531,149.678499\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--seed -29271 --count 10 randpos");
 
-	r += tc(chp{ execname, "--seed", "29271", "--count", "10", "randpos",
-	             NULL },
-	        "-8.603169,114.257108\n"
-	        "-46.646685,-133.238413\n"
-	        "32.233828,-45.004903\n"
-	        "-10.383696,-105.396018\n"
-	        "14.981908,-85.632935\n"
-	        "-2.551390,93.617273\n"
-	        "-45.194786,6.814725\n"
-	        "-4.491350,-102.252955\n"
-	        "-54.462817,-25.117826\n"
-	        "-23.940993,-89.915442\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "--seed 29271 --count 10 randpos");
+	tc(chp{ execname, "--seed", "29271", "--count", "10", "randpos",
+	        NULL },
+	   "-8.603169,114.257108\n"
+	   "-46.646685,-133.238413\n"
+	   "32.233828,-45.004903\n"
+	   "-10.383696,-105.396018\n"
+	   "14.981908,-85.632935\n"
+	   "-2.551390,93.617273\n"
+	   "-45.194786,6.814725\n"
+	   "-4.491350,-102.252955\n"
+	   "-54.462817,-25.117826\n"
+	   "-23.940993,-89.915442\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--seed 29271 --count 10 randpos");
 
-	r += tc(chp{ execname, "--format", "gpx", "--seed", "19999",
-	             "--count", "4", "randpos", NULL },
-	        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-	        "<gpx xmlns=\"http://www.topografix.com/GPX/1/1\""
-	        " version=\"1.1\" creator=\"Geocalc -"
-	        " https://gitlab.com/oyvholm/geocalc\">\n"
-	        "  <wpt lat=\"-17.914770\" lon=\"127.654700\">\n"
-	        "    <name>Random 1, seed 19999</name>\n"
-	        "  </wpt>\n"
-	        "  <wpt lat=\"-27.493377\" lon=\"115.562443\">\n"
-	        "    <name>Random 2, seed 19999</name>\n"
-	        "  </wpt>\n"
-	        "  <wpt lat=\"-22.699248\" lon=\"152.244953\">\n"
-	        "    <name>Random 3, seed 19999</name>\n"
-	        "  </wpt>\n"
-	        "  <wpt lat=\"-52.359745\" lon=\"-142.812430\">\n"
-	        "    <name>Random 4, seed 19999</name>\n"
-	        "  </wpt>\n"
-	        "</gpx>\n",
-	        "",
-	        EXIT_SUCCESS,
-	        "--format gpx --seed 19999 --count 4 randpos");
+	tc(chp{ execname, "--format", "gpx", "--seed", "19999",
+	        "--count", "4", "randpos", NULL },
+	   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+	   "<gpx xmlns=\"http://www.topografix.com/GPX/1/1\""
+	   " version=\"1.1\" creator=\"Geocalc -"
+	   " https://gitlab.com/oyvholm/geocalc\">\n"
+	   "  <wpt lat=\"-17.914770\" lon=\"127.654700\">\n"
+	   "    <name>Random 1, seed 19999</name>\n"
+	   "  </wpt>\n"
+	   "  <wpt lat=\"-27.493377\" lon=\"115.562443\">\n"
+	   "    <name>Random 2, seed 19999</name>\n"
+	   "  </wpt>\n"
+	   "  <wpt lat=\"-22.699248\" lon=\"152.244953\">\n"
+	   "    <name>Random 3, seed 19999</name>\n"
+	   "  </wpt>\n"
+	   "  <wpt lat=\"-52.359745\" lon=\"-142.812430\">\n"
+	   "    <name>Random 4, seed 19999</name>\n"
+	   "  </wpt>\n"
+	   "</gpx>\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--format gpx --seed 19999 --count 4 randpos");
 
-	r += sc(chp{ execname, "--seed", "", "randpos", NULL },
-	        "",
-	        ": : Invalid --seed argument\n",
-	        EXIT_FAILURE,
-	        "Empty argument to --seed");
+	sc(chp{ execname, "--seed", "", "randpos", NULL },
+	   "",
+	   ": : Invalid --seed argument\n",
+	   EXIT_FAILURE,
+	   "Empty argument to --seed");
 
-	r += sc(chp{ execname, "--seed", "9.14", "randpos", NULL },
-	        "",
-	        ": 9.14: Invalid --seed argument\n",
-	        EXIT_FAILURE,
-	        "--seed 9.14 randpos");
-
-	return r;
+	sc(chp{ execname, "--seed", "9.14", "randpos", NULL },
+	   "",
+	   ": 9.14: Invalid --seed argument\n",
+	   EXIT_FAILURE,
+	   "--seed 9.14 randpos");
 }
 
 /*
- * test_functions() - Tests various functions directly. Returns the number of 
- * failed tests.
+ * test_functions() - Tests various functions directly. Returns nothing.
  */
 
-static int test_functions(void)
+static void test_functions(void)
 {
-	int r = 0;
-
 	if (!opt.testfunc)
-		return r; /* gncov */
+		return; /* gncov */
 
 	diag("Test selftest routines");
-	r += ok(!ok(0, NULL), "ok(0, NULL)");
-	r += verify_definitions();
-	r += test_diag();
-	r += test_gotexp_output();
-	r += test_valgrind_lines();
+	ok(!ok(0, NULL), "ok(0, NULL)");
+	verify_definitions();
+	test_diag();
+	test_gotexp_output();
+	test_valgrind_lines();
 
 	diag("Test myerror()");
 	errno = EACCES;
-	r += ok(!(myerror("errno is EACCES") > 37),
-	        "myerror(): errno is EACCES");
+	ok(!(myerror("errno is EACCES") > 37), "myerror(): errno is EACCES");
 	errno = 0;
 	diag("Test std_strerror()");
-	r += ok(!(std_strerror(0) != NULL), "std_strerror(0)");
-	r += ok(!!strcmp(std_strerror(EDOM),
-	                 "Numerical argument out of domain"),
-	        "std_strerror(EDOM) is as expected");
+	ok(!(std_strerror(0) != NULL), "std_strerror(0)");
+	ok(!!strcmp(std_strerror(EDOM), "Numerical argument out of domain"),
+	   "std_strerror(EDOM) is as expected");
 	diag("Test mystrdup()");
-	r += ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
-	r += test_allocstr();
-	r += test_rand_pos();
-	r += test_parse_coordinate();
-	r += test_are_antipodal();
-	r += test_xml_escape_string();
-	r += test_gpx_wpt();
-
-	return r;
+	ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
+	test_allocstr();
+	test_rand_pos();
+	test_parse_coordinate();
+	test_are_antipodal();
+	test_xml_escape_string();
+	test_gpx_wpt();
 }
 
 /*
  * test_executable() - Run various tests with the executable and verify that 
- * stdout, stderr and the return value are as expected. Returns the number of 
- * failed tests.
+ * stdout, stderr and the return value are as expected. Returns nothing.
  */
 
-static int test_executable(char *execname)
+static void test_executable(char *execname)
 {
-	int r = 0;
-
 	if (!opt.testexec)
-		return r; /* gncov */
+		return; /* gncov */
 
 	diag("Test the executable");
-	r += test_valgrind_option(execname);
-	r += test_streams_exec(execname);
-	r += sc(chp{ execname, "abc", NULL },
-	        "",
-	        ": Unknown command: abc\n",
-	        EXIT_FAILURE,
-	        "Unknown command");
-	r += test_standard_options(execname);
-	r += test_format_option(execname);
-	r += test_cmd_bpos(execname);
-	r += test_cmd_course(execname);
-	r += test_cmd_lpos(execname);
-	r += test_multiple(execname, "bear");
-	r += test_multiple(execname, "dist");
-	r += test_cmd_randpos(execname);
-	r += test_seed_option(execname);
-
-	return r;
+	test_valgrind_option(execname);
+	test_streams_exec(execname);
+	sc(chp{ execname, "abc", NULL },
+	   "",
+	   ": Unknown command: abc\n",
+	   EXIT_FAILURE,
+	   "Unknown command");
+	test_standard_options(execname);
+	test_format_option(execname);
+	test_cmd_bpos(execname);
+	test_cmd_course(execname);
+	test_cmd_lpos(execname);
+	test_multiple(execname, "bear");
+	test_multiple(execname, "dist");
+	test_cmd_randpos(execname);
+	test_seed_option(execname);
 }
 
 /*
@@ -2175,13 +2072,11 @@ static int test_executable(char *execname)
 
 int opt_selftest(char *execname)
 {
-	int r = 0;
-
 	diag("Running tests for %s %s (%s)",
 	     execname, EXEC_VERSION, EXEC_DATE);
 
-	r += test_functions();
-	r += test_executable(execname);
+	test_functions();
+	test_executable(execname);
 
 	printf("1..%d\n", testnum);
 	if (failcount) {
