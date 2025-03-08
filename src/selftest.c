@@ -28,6 +28,7 @@
 #define chp  (char *[])
 
 static int testnum = 0;
+static int failcount = 0;
 
 /*
  * ok() - Print a log line to stdout. If `i` is 0, an "ok" line is printed, 
@@ -49,6 +50,7 @@ static int ok(const int i, const char *desc, ...)
 	puts("");
 	va_end(ap);
 	fflush(stdout);
+	failcount += !!i;
 
 	return i;
 }
@@ -2182,12 +2184,13 @@ int opt_selftest(char *execname)
 	r += test_executable(execname);
 
 	printf("1..%d\n", testnum);
-	if (r) {
+	if (failcount) {
 		diag("Looks like you failed %d test%s of %d.", /* gncov */
-		     r, (r == 1) ? "" : "s", testnum);
+		     failcount, (failcount == 1) ? "" : "s", /* gncov */
+		     testnum);
 	}
 
-	return r ? EXIT_FAILURE : EXIT_SUCCESS;
+	return failcount ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
 #undef chp
