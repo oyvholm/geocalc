@@ -683,6 +683,7 @@ static void test_streams_exec(char *execname)
 
 	diag("Test streams_exec()");
 
+	diag("Send input to the program");
 	streams_init(&ss);
 	ss.in.buf = "This is sent to stdin.\n";
 	ss.in.len = strlen(ss.in.buf);
@@ -760,7 +761,8 @@ static void chk_xmlesc(const char *s, const char *exp)
 
 	got = xml_escape_string(s);
 	if (!got) {
-		ok(1, "xml_escape_string() failed"); /* gncov */
+		ok(1, "%s(): xml_escape_string() failed", /* gncov */
+		      __func__);
 		return; /* gncov */
 	}
 	ok(!!strcmp(got, exp), "xml escape: \"%s\"", s);
@@ -786,14 +788,14 @@ static void chk_antip(const char *coor1, const char *coor2, const int exp)
 
 	if (parse_coordinate(coor1, &lat1, &lon1)
 	    || parse_coordinate(coor2, &lat2, &lon2)) {
-		ok(1, "parse_coordinate() failed"); /* gncov */
+		ok(1, "%s(): parse_coordinate() failed", __func__); /* gncov */ 
 		return; /* gncov */
 	}
 
 	s = allocstr("are_antipodal(): \"%s\" and \"%s\", expects %s",
 	             coor1, coor2, exp ? "yes" : "no");
 	if (!s) {
-		ok(1, "allocstr() failed"); /* gncov */
+		ok(1, "%s(): allocstr() failed", __func__); /* gncov */
 		return; /* gncov */
 	}
 	result = are_antipodal(lat1, lon1, lat2, lon2);
@@ -807,6 +809,7 @@ static void chk_antip(const char *coor1, const char *coor2, const int exp)
 
 static void test_are_antipodal(void)
 {
+	diag("Test are_antipodal()");
 	chk_antip("-0.00000000001,0", "0,180.0", 1);
 	chk_antip("-0.0000000001,0", "0,180.0", 0);
 	chk_antip("0,0", "0,179.999999999", 0);
@@ -961,7 +964,7 @@ static void test_valgrind_option(char *execname)
 		                      NULL});
 		if (!strstr(ss.out.buf, "valgrind-")) { /* gncov */
 			ok(1, "Valgrind is not installed," /* gncov */
-			      " disabling Valgrind checks.");
+			      " disabling Valgrind checks");
 		} else {
 			ok(0, "Valgrind is installed"); /* gncov */
 			opt.valgrind = true; /* gncov */
@@ -1637,7 +1640,7 @@ next:
 		p = strtok(NULL, "\n");
 	}
 	ok(!!errcount, "randpos: All %lu coordinates were inside range of"
-	               " %.0f to %.0f meters.",
+	               " %.0f to %.0f meters",
 	               coorcount, mindist, maxdist);
 	free(s);
 }
@@ -2017,6 +2020,7 @@ static void test_functions(void)
 	test_gotexp_output();
 	test_valgrind_lines();
 
+	diag("Test various routines");
 	diag("Test myerror()");
 	errno = EACCES;
 	ok(!(myerror("errno is EACCES") > 37), "myerror(): errno is EACCES");
