@@ -1872,6 +1872,7 @@ static void test_cmd_randpos(char *execname)
 	te_randpos(OF_GPX, as, 9, NULL, 0, 0,
 	           "-F gpx --count 9 randpos, stdout is ok");
 
+	diag("--count with invalid argument");
 	sc(chp{ execname, "--count", "", "randpos", NULL },
 	   "",
 	   ": : Invalid --count argument\n",
@@ -1897,6 +1898,8 @@ static void test_cmd_randpos(char *execname)
 	   ": -2: Invalid --count argument\n",
 	   EXIT_FAILURE,
 	   "--count -2");
+
+	diag("--count 0");
 	tc(chp{ execname, "--count", "0", "randpos", NULL },
 	   "",
 	   "",
@@ -1909,6 +1912,8 @@ static void test_cmd_randpos(char *execname)
 	   "-F gpx --count 0");
 
 	test_randpos_dist(execname);
+
+	diag("randpos with max_dist, invalid arguments");
 
 	sc(chp{ execname, "randpos", "12.34,56.34y", "10", NULL },
 	   "",
@@ -1928,7 +1933,7 @@ static void test_cmd_randpos(char *execname)
 	   EXIT_FAILURE,
 	   "randpos with negative max_dist");
 
-	diag("randpos with max_dist and min_dist");
+	diag("randpos with max_dist and min_dist, invalid arguments");
 
 	sc(chp{ execname, "randpos", "12.34,56.34", "10", "3y", NULL },
 	   "",
