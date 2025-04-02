@@ -1734,6 +1734,108 @@ static void te_randpos(const OutputFormat format, char **cmd,
 }
 
 /*
+ * test_randpos_dist_max() - Test the randpos command with only the maximum 
+ * distance. Returns nothing.
+ */
+
+static void test_randpos_dist_max(char *execname)
+{
+	char **as;
+
+	diag("randpos with max_dist");
+
+	as = chp{ execname, "--count", "50", "randpos", "1.234,5.6789", "100",
+	          NULL };
+	te_randpos(OF_DEFAULT, as, 50, "1.234,5.6789", 0.0, 100.0,
+	           "randpos: 50 pos inside a radius of 100m");
+
+	as = chp{ execname, "--count", "51", "randpos", "1.234,5.6789",
+	          "100000000", NULL };
+	te_randpos(OF_DEFAULT, as, 51, "1.234,5.6789", 0.0,
+	           MAX_EARTH_DISTANCE,
+	           "randpos: max_dist is larger than MAX_EARTH_DISTANCE");
+
+	as = chp{ execname, "--count", "52", "randpos", "1.234,5.6789", "0",
+	          "100000000", NULL };
+	te_randpos(OF_DEFAULT, as, 52, "1.234,5.6789", 0.0,
+	           MAX_EARTH_DISTANCE,
+	           "randpos: min_dist is larger than MAX_EARTH_DISTANCE");
+
+	as = chp{ execname, "--count", "53", "randpos", "1.234,5.67",
+	          "100000000", "100000000", NULL };
+	te_randpos(OF_DEFAULT, as, 53, "1.234,5.67", MAX_EARTH_DISTANCE,
+	           MAX_EARTH_DISTANCE,
+	           "randpos: min_dist and max_dist are larger than"
+	           " MAX_EARTH_DISTANCE, stdout looks ok");
+
+	as = chp{ execname, "-F", "gpx", "--count", "14", "randpos",
+	          "19.63,-19.70", "25", NULL };
+	te_randpos(OF_GPX, as, 14, NULL, 0, 0,
+	           "-F gpx --count 14 randpos 19.63,-19.70 25");
+
+	as = chp{ execname, "--km", "--count", "50", "randpos", "1.234,5.6789",
+	          "100", NULL };
+	te_randpos(OF_DEFAULT, as, 50,
+	           "1.234,5.6789", 0.0, 100000.0,
+	           "--km randpos: 50 pos inside a radius of 100km,"
+	           " stdout looks ok");
+
+	as = chp{ execname, "--km", "--count", "50", "randpos", "1.234,5.6789",
+	          "100000", NULL };
+	te_randpos(OF_DEFAULT, as, 50,
+	           "1.234,5.6789", 0.0, MAX_EARTH_DISTANCE,
+	           "--km randpos: max_dist is larger than MAX_EARTH_DISTANCE,"
+	           " stdout looks ok");
+}
+
+/*
+ * test_randpos_dist_minmax() - Tests the randpos command with both maximum and 
+ * minimum distance. Returns nothing.
+ */
+
+static void test_randpos_dist_minmax(char *execname)
+{
+	char **as;
+
+	diag("randpos with max_dist and min_dist");
+
+	as = chp{ execname, "randpos", "12.34,56.78", "100", "200", NULL };
+	te_randpos(OF_DEFAULT, as, 1, "12.34,56.78", 100.0, 200.0,
+	           "randpos: min_dist is larger than max_dist");
+
+	as = chp{ execname, "--count", "27", "randpos", "1.234,5.6789", "2000",
+	          "2000", NULL };
+	te_randpos(OF_DEFAULT, as, 27, "1.234,5.6789", 2000.0, 2000.0,
+	           "randpos: max_dist is equal to min_dist, stdout looks ok");
+
+	as = chp{ execname, "-F", "gpx", "--count", "21", "randpos",
+	          "90,0", "7741", "7777", NULL };
+	te_randpos(OF_GPX, as, 21, "90,0", 7741, 7777,
+	           "randpos, North Pole, 25 pos as GPX, dists swapped");
+
+	as = chp{ execname, "--count", "33", "randpos", "90,0", "10000",
+	          NULL };
+	te_randpos(OF_DEFAULT, as, 33, "90,0", 0.0, 10000.0,
+	           "randpos: Exactly at the North Pole");
+
+	as = chp{ execname, "--count", "34", "randpos", "-90,0", "10001",
+	          NULL };
+	te_randpos(OF_DEFAULT, as, 34, "-90,0", 0.0, 10001.0,
+	           "randpos: Exactly at the South Pole");
+}
+
+/*
+ * test_randpos_dist() - Tests the randpos command with maximum and minimum 
+ * distance. Returns nothing.
+ */
+
+static void test_randpos_dist(char *execname)
+{
+	test_randpos_dist_max(execname);
+	test_randpos_dist_minmax(execname);
+}
+
+/*
  * test_cmd_randpos() - Tests the randpos command. Returns nothing.
  */
 
@@ -1805,50 +1907,7 @@ static void test_cmd_randpos(char *execname)
 	   EXIT_SUCCESS,
 	   "-F gpx --count 0");
 
-	diag("randpos with max_dist");
-
-	as = chp{ execname, "--count", "50", "randpos", "1.234,5.6789", "100",
-	          NULL };
-	te_randpos(OF_DEFAULT, as, 50, "1.234,5.6789", 0.0, 100.0,
-	           "randpos: 50 pos inside a radius of 100m");
-
-	as = chp{ execname, "--count", "51", "randpos", "1.234,5.6789",
-	          "100000000", NULL };
-	te_randpos(OF_DEFAULT, as, 51, "1.234,5.6789", 0.0,
-	           MAX_EARTH_DISTANCE,
-	           "randpos: max_dist is larger than MAX_EARTH_DISTANCE");
-
-	as = chp{ execname, "--count", "52", "randpos", "1.234,5.6789", "0",
-	          "100000000", NULL };
-	te_randpos(OF_DEFAULT, as, 52, "1.234,5.6789", 0.0,
-	           MAX_EARTH_DISTANCE,
-	           "randpos: min_dist is larger than MAX_EARTH_DISTANCE");
-
-	as = chp{ execname, "--count", "53", "randpos", "1.234,5.67",
-	          "100000000", "100000000", NULL };
-	te_randpos(OF_DEFAULT, as, 53, "1.234,5.67", MAX_EARTH_DISTANCE,
-	           MAX_EARTH_DISTANCE,
-	           "randpos: min_dist and max_dist are larger than"
-	           " MAX_EARTH_DISTANCE, stdout looks ok");
-
-	as = chp{ execname, "-F", "gpx", "--count", "14", "randpos",
-	          "19.63,-19.70", "25", NULL };
-	te_randpos(OF_GPX, as, 14, NULL, 0, 0,
-	           "-F gpx --count 14 randpos 19.63,-19.70 25");
-
-	as = chp{ execname, "--km", "--count", "50", "randpos", "1.234,5.6789",
-	          "100", NULL };
-	te_randpos(OF_DEFAULT, as, 50,
-	           "1.234,5.6789", 0.0, 100000.0,
-	           "--km randpos: 50 pos inside a radius of 100km,"
-	           " stdout looks ok");
-
-	as = chp{ execname, "--km", "--count", "50", "randpos", "1.234,5.6789",
-	          "100000", NULL };
-	te_randpos(OF_DEFAULT, as, 50,
-	           "1.234,5.6789", 0.0, MAX_EARTH_DISTANCE,
-	           "--km randpos: max_dist is larger than MAX_EARTH_DISTANCE,"
-	           " stdout looks ok");
+	test_randpos_dist(execname);
 
 	sc(chp{ execname, "randpos", "12.34,56.34y", "10", NULL },
 	   "",
@@ -1881,32 +1940,6 @@ static void test_cmd_randpos(char *execname)
 	   ": Distance can't be negative\n",
 	   EXIT_FAILURE,
 	   "randpos with negative min_dist");
-
-	as = chp{ execname, "randpos", "12.34,56.78", "100", "200", NULL };
-	te_randpos(OF_DEFAULT, as, 1, "12.34,56.78", 100.0, 200.0,
-	           "randpos: min_dist is larger than max_dist");
-
-	as = chp{ execname, "--count", "27", "randpos", "1.234,5.6789", "2000",
-	          "2000", NULL };
-	te_randpos(OF_DEFAULT, as, 27, "1.234,5.6789", 2000.0, 2000.0,
-	           "randpos: max_dist is equal to min_dist, stdout looks ok");
-	streams_free(&ss);
-
-	as = chp{ execname, "-F", "gpx", "--count", "21", "randpos",
-	          "90,0", "7741", "7777", NULL };
-	te_randpos(OF_GPX, as, 21, "90,0", 7741, 7777,
-	           "randpos, North Pole, 25 pos as GPX, dists swapped");
-
-	as = chp{ execname, "--count", "33", "randpos", "90,0", "10000",
-	          NULL };
-	te_randpos(OF_DEFAULT, as, 33, "90,0", 0.0, 10000.0,
-	           "randpos: Exactly at the North Pole");
-
-	as = chp{ execname, "--count", "34", "randpos", "-90,0", "10001",
-	          NULL };
-	te_randpos(OF_DEFAULT, as, 34, "-90,0", 0.0, 10001.0,
-	           "randpos: Exactly at the South Pole");
-	streams_free(&ss);
 }
 
 /*
