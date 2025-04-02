@@ -114,23 +114,6 @@ static int print_eor_coor(const double lat, const double lon, const char *cmd,
 }
 
 /*
- * print_eor_number() - Prints "end of run" number. Same philosophy as 
- * print_eor_coor(). Returns 1 if the output format is gpx, otherwise it 
- * returns 0.
- */
-
-static int print_eor_number(const double num)
-{
-	if (opt.outpformat == OF_GPX) {
-		myerror("No way to display this info in GPX format");
-		return 1;
-	}
-	printf("%f\n", num);
-
-	return 0;
-}
-
-/*
  * cmd_bear_dist() - Executes the `bear` or `dist` commands, specified in 
  * `cmd`. Returns `EXIT_SUCCESS` or `EXIT_FAILURE`.
  */
@@ -145,6 +128,11 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 	assert(coor2);
 
 	msg(7, "%s(\"%s\", \"%s\", \"%s\")", __func__, cmd, coor1, coor2);
+
+	if (opt.outpformat == OF_GPX) {
+		myerror("No way to display this info in GPX format");
+		return EXIT_FAILURE;
+	}
 
 	if (parse_coordinate(coor1, &lat1, &lon1)
 	    || parse_coordinate(coor2, &lat2, &lon2)) {
@@ -164,8 +152,9 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 	}
 	if (opt.km && !strcmp(cmd, "dist"))
 		result /= 1000.0;
+	printf("%f\n", result);
 
-	return print_eor_number(result) ? EXIT_FAILURE : EXIT_SUCCESS;
+	return EXIT_SUCCESS;
 }
 
 /*
