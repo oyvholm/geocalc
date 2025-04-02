@@ -639,6 +639,7 @@ static void chk_rand_pos(const char *coor,
 			        exp_mindist, exp_maxdist, clat, clon,
 			        rlat, rlon, dist)
 			: 1; /* gncov */
+			errcount++; /* gncov */
 		}
 	}
 	ok(!!errcount, "rand_pos(): All %lu coordinates %.0f-%.0f m are in"
