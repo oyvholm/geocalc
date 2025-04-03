@@ -92,6 +92,7 @@ struct streams {
  */
 
 /* cmds.c */
+void round_number(double *dest, const int decimals);
 int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2);
 int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s);
 int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s);

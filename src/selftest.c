@@ -589,6 +589,56 @@ free_p:
 }
 
 /*
+ * chk_round() - Used by test_round_number(). Verifies that `round_number(num, 
+ * decimals)` results in `exp_result`. Returns nothing.
+ */
+
+static void chk_round(const double num, const int decimals,
+                      const double exp_result)
+{
+	double res = num;
+	char *s;
+
+	round_number(&res, decimals);
+	s = allocstr("round_number(%.13f, %d)", num, decimals);
+	if (!s) {
+		ok(1, "%s():%d: allocstr() failed", /* gncov */
+		      __func__, __LINE__);
+		return; /* gncov */
+	}
+	ok(!(res == exp_result), s);
+	if (res != exp_result) {
+		diag("got: %.13f", res); /* gncov */
+		diag("exp: %.13f", exp_result); /* gncov */
+	}
+	free(s);
+}
+
+/*
+ * test_round_number() - Tests the round_number() function. Returns nothing.
+ */
+
+static void test_round_number(void)
+{
+	diag("Test round_number()");
+
+	chk_round(-0.0, 0, 0.0);
+	chk_round(-0.0, 2, 0.0);
+	chk_round(-0.0000001, 2, 0.0);
+	chk_round(-13.124, 2, -13.12);
+	chk_round(-13.125, 2, -13.13);
+	chk_round(-99.9949999, 3, -99.995);
+	chk_round(-99.9959999, 2, -100.0);
+	chk_round(-99.999999, 0, -100.0);
+	chk_round(1.124, 2, 1.12);
+	chk_round(1.125, 2, 1.13);
+	chk_round(91.123, 0, 91.0);
+	chk_round(99.999499, 3, 99.999);
+	chk_round(99.999999, 3, 100.0);
+	chk_round(99.999999999999, 9, 100.0);
+}
+
+/*
  * chk_rand_pos() - Used by test_rand_pos(). Executes rand_pos() with the 
  * values in `coor`, `maxdist` and `mindist` and checks that they're in the 
  * range defined by `exp_maxdist` and `exp_mindist`. Returns nothing.
@@ -2071,6 +2121,7 @@ static void test_functions(void)
 	diag("Test mystrdup()");
 	ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
 	test_allocstr();
+	test_round_number();
 	test_rand_pos();
 	test_parse_coordinate();
 	test_are_antipodal();

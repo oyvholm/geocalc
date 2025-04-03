@@ -25,7 +25,7 @@
  * and gets rid of negative zero. Returns nothing.
  */
 
-static void round_number(double *dest, const int decimals)
+void round_number(double *dest, const int decimals)
 {
 	double m = pow(10.0, (double)decimals);
 
