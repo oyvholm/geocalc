@@ -7,6 +7,18 @@ Summary of changes in Geocalc
 For a complete log of changes, please refer to the Git commit log in the 
 repositories mentioned in `README.md`.
 
+v0.x.x - 2025-xx-xx
+-------------------
+
+- Remove errno messages if invalid numbers were specified certain 
+  places.
+- Remove errno message on FreeBSD when `--count` and `--seed` got empty 
+  arg.
+- Send the output of `--version` to stderr in the test output.
+- Limit the output of "not ok" lines if the "randpos out of range" tests 
+  fail.
+- Various changes and fixes, no functional changes.
+
 v0.2.0 - 2024-12-27
 -------------------
 
