@@ -217,6 +217,13 @@ static int usage(const int retval)
 	printf("  bear <coor1> <coor2>\n"
 	       "    Print initial compass bearing (0-360) between"
 	       " two points.\n");
+	printf("  bench [seconds]\n"
+	       "    Execute various benchmarks and report the results. The"
+	       " optional \n"
+	       "    `seconds` argument specifies the duration of the loops."
+	       " Default \n"
+	       "    value is %u second%s.\n",
+	       BENCH_LOOP_SECS, BENCH_LOOP_SECS == 1 ? "" : "s");
 	printf("  bpos <coor> <bearing> <length>\n"
 	       "    Find the new geographic position after moving a certain"
 	       " amount of \n"
@@ -471,6 +478,18 @@ static int process_args(int argc, char *argv[])
 			return EXIT_FAILURE;
 		retval = cmd_bear_dist(cmd,
 		                       argv[optind + 1], argv[optind + 2]);
+	} else if (!strcmp(cmd, "bench")) {
+		switch (numargs) {
+		case 1: /* gncov */
+			retval = cmd_bench(NULL); /* gncov */
+			break; /* gncov */
+		case 2:
+			retval = cmd_bench(argv[optind + 1]);
+			break;
+		default:
+			wrong_argcount(2, numargs);
+			return EXIT_FAILURE;
+		}
 	} else if (!strcmp(cmd, "bpos")) {
 		if (wrong_argcount(4, numargs))
 			return EXIT_FAILURE;

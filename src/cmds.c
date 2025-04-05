@@ -343,4 +343,125 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 	return EXIT_SUCCESS;
 }
 
+/*
+ * bench_dist_func() - Used by cmd_bench(). Executes the function specified by 
+ * the function pointer `fnc` in a loop that lasts for `dur` seconds.
+ *
+ * Parameters:
+ * - `name`: The name of the function, displayed to the user.
+ * - `fnc`: Function pointer to the distance function to use.
+ * - `br`: Pointer to a `struct bench_result` where the results are stored. The 
+ *   members `lat1`, `lon1`, `lat2`, and `lon2` are expected to already be set 
+ *   to the coordinate pair to use.
+ *
+ * Returns 1 if something failed, or 0 if ok.
+ */
+
+static int bench_dist_func(const char *name,
+                           double (*fnc)(const double, const double,
+                                         const double, const double),
+                           const time_t dur,
+                           struct bench_result *br)
+{
+	fprintf(stderr, "Looping %s() for %ld second%s...",
+	                name, dur, dur == 1 ? "" : "s");
+	fflush(stderr);
+
+	br->name = name;
+	br->rounds = 0L;
+	if (clock_gettime(CLOCK_MONOTONIC, &br->start)) {
+		myerror("%s():%d: clock_gettime() failed", /* gncov */
+		        __func__, __LINE__);
+		return 1; /* gncov */
+	}
+	do {
+		fnc(br->lat1, br->lon1, br->lat2, br->lon2);
+		br->rounds++;
+		if (clock_gettime(CLOCK_MONOTONIC, &br->end)) {
+			myerror("%s():%d: clock_gettime() failed", /* gncov */
+			        __func__, __LINE__);
+			return 1; /* gncov */
+		}
+		if ((br->end.tv_sec - br->start.tv_sec > dur)
+		    || (br->end.tv_sec - br->start.tv_sec == dur
+		        && br->end.tv_nsec >= br->start.tv_nsec)) {
+			break;
+		}
+	} while (1);
+	fputs("done\n", stderr);
+
+	br->start_d = (double)br->start.tv_sec
+	              + (double)br->start.tv_nsec / 1e9;
+	br->end_d = (double)br->end.tv_sec + (double)br->end.tv_nsec / 1e9;
+	br->secs = br->end_d - br->start_d;
+	br->dist = fnc(br->lat1, br->lon1, br->lat2, br->lon2);
+	fprintf(stderr, "%s(): %lu rounds, ran for %f seconds. dist = %.8f\n",
+	                name, br->rounds, br->end_d - br->start_d, br->dist);
+
+	return 0;
+}
+
+/*
+ * cmd_bench_cmp_rounds() - Used as comparison function for qsort() in 
+ * cmd_bench(). Returns the descending sort value for the `rounds` member in 
+ * `bench_result`.
+ */
+
+static int cmd_bench_cmp_rounds(const void *s1, const void *s2) /* gncov */
+{
+	const struct bench_result *br1, *br2;
+
+	assert(s1); /* gncov */
+	assert(s2); /* gncov */
+
+	br1 = (const struct bench_result *)s1; /* gncov */
+	br2 = (const struct bench_result *)s2; /* gncov */
+
+	return (int)(br2->rounds - br1->rounds); /* gncov */
+}
+
+/*
+ * cmd_bench() - Run various benchmarks and report the result. Returns 
+ * EXIT_SUCCESS or EXIT_FAILURE.
+ */
+
+int cmd_bench(const char *seconds)
+{
+	time_t secs = seconds ? atoi(seconds) : BENCH_LOOP_SECS;
+	struct bench_result br[1];
+	const size_t arrsize = sizeof(br) / sizeof(br[0]);
+	size_t i;
+	int r = 0;
+	unsigned long totrounds = 0UL;
+	double lat1, lon1, lat2, lon2;
+
+	rand_pos(&lat1, &lon1, 1000, 1000, 0, 0);
+	rand_pos(&lat2, &lon2, 1000, 1000, 0, 0);
+	fprintf(stderr, "Random coordinates: %.15f,%.15f %.15f,%.15f\n",
+	                lat1, lon1, lat2, lon2);
+	for (i = 0; i < arrsize; i++) {
+		br[i] = (struct bench_result){
+			.lat1 = lat1, .lon1 = lon1, .lat2 = lat2, .lon2 = lon2
+		};
+	}
+
+	r += bench_dist_func("haversine", haversine, secs, &br[0]);
+	fputs("\n", stderr);
+
+	for (i = 0; i < arrsize; i++)
+		totrounds += br[i].rounds;
+
+	qsort(br, arrsize, sizeof(struct bench_result), cmd_bench_cmp_rounds);
+	for (i = 0; i < arrsize; i++) {
+		printf("%lu (%f%%) %f %.8f %s\n",
+		       br[i].rounds,
+		       totrounds ? 100.0 * (double)br[i].rounds
+		                   / (double)totrounds
+		                 : 0.0,
+		       br[i].secs, br[i].dist, br[i].name);
+	}
+
+	return r ? EXIT_FAILURE : EXIT_SUCCESS;
+}
+
 /* vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 : */

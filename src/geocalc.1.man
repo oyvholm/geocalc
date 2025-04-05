@@ -82,6 +82,10 @@ and \-180..180, separated by a comma. The decimal comma must be a period, '.'.
 \fBbear\fP <\fIcoor1\fP> <\fIcoor2\fP>
 Prints initial compass bearing (0\-360) between two points.
 .TP
+\fBbench\fP [\fIseconds\fP]
+Executes various benchmarks and reports the results. The optional \fIseconds\fP 
+argument specifies the duration of the loops. Default value is 2 seconds.
+.TP
 \fBbpos\fP <\fIcoor\fP> <\fIbearing\fP> <\fIdistance\fP>
 Calculates the new geographic position after moving \fIdistance\fP meters from 
 the position \fIcoor\fP in direction \fIbearing\fP. Negative values for 

@@ -28,6 +28,8 @@ Contains the following commands:
 
 - **`bear`**\
   Prints initial compass bearing (0-360) between two points.
+- **`bench`**\
+  Executes various benchmarks and reports the results.
 - **`bpos`**\
   Calculates the new geographic position after moving a certain amount 
   of meters or kilometers from the start position in a specific 

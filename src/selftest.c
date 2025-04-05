@@ -1150,6 +1150,25 @@ static void test_format_option(char *execname)
 }
 
 /*
+ * test_cmd_bench() - Tests the `bench` command. Returns nothing.
+ */
+
+static void test_cmd_bench(char *execname)
+{
+	diag("Test bench command");
+	sc(chp{ execname, "bench", "0", NULL },
+	   " haversine\n",
+	   "\nLooping haversine() for ",
+	   EXIT_SUCCESS,
+	   "bench 0");
+	sc(chp{ execname, "bench", "0", "0", NULL },
+	   "",
+	   ": Too many arguments\n",
+	   EXIT_FAILURE,
+	   "bench has 1 extra argument");
+}
+
+/*
  * test_cmd_bpos() - Tests the `bpos` command. Returns nothing.
  */
 
@@ -2176,6 +2195,7 @@ static void test_executable(char *execname)
 	   "Unknown command");
 	test_standard_options(execname);
 	test_format_option(execname);
+	test_cmd_bench(execname);
 	test_cmd_bpos(execname);
 	test_cmd_course(execname);
 	test_cmd_lpos(execname);

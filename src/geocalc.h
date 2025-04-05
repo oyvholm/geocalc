@@ -47,6 +47,8 @@
 #define PROJ_NAME  "Geocalc"
 #define PROJ_URL  "https://gitlab.com/oyvholm/geocalc"
 
+#define BENCH_LOOP_SECS  2
+
 #if 1
 #  define DEBL  msg(2, "DEBL: %s, line %u in %s()", \
                        __FILE__, __LINE__, __func__)
@@ -87,6 +89,21 @@ struct streams {
 	int ret;
 };
 
+struct bench_result {
+	const char *name;
+	struct timespec start;
+	struct timespec end;
+	double start_d;
+	double end_d;
+	double secs;
+	unsigned long rounds;
+	double lat1;
+	double lon1;
+	double lat2;
+	double lon2;
+	double dist;
+};
+
 /*
  * Public function prototypes
  */
@@ -98,6 +115,7 @@ int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s);
 int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s);
 int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s);
 int cmd_randpos(const char *coor, const char *maxdist, const char *mindist);
+int cmd_bench(const char *seconds);
 
 /* geocalc.c */
 int msg(const int verbose, const char *format, ...);
