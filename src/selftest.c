@@ -364,17 +364,17 @@ static void tc(char *cmd[], const char *exp_stdout, const char *exp_stderr,
  */
 
 /*
- * verify_definitions() - Check that certain constants are unmodified. Some of 
+ * verify_constants() - Check that certain constants are unmodified. Some of 
  * these constants are used in the tests themselves, so the tests will be 
  * automatically updated to match the new text or value. This function contains 
  * hardcoded versions of the expected output or return values. Returns nothing.
  */
 
-static void verify_definitions(void)
+static void verify_constants(void)
 {
 	const char *e;
 
-	diag("Verify format definitions");
+	diag("Verify constants");
 
 	e = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 	    "<gpx"
@@ -2123,7 +2123,7 @@ static void test_functions(void)
 
 	diag("Test selftest routines");
 	ok(!ok(0, NULL), "ok(0, NULL)");
-	verify_definitions();
+	verify_constants();
 	test_diag();
 	test_gotexp_output();
 	test_valgrind_lines();
