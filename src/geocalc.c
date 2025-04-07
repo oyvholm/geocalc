@@ -222,7 +222,7 @@ static int usage(const int retval)
 	       " optional \n"
 	       "    `seconds` argument specifies the duration of the loops."
 	       " Default \n"
-	       "    value is %u second%s.\n",
+	       "    value is %d second%s.\n",
 	       BENCH_LOOP_SECS, BENCH_LOOP_SECS == 1 ? "" : "s");
 	printf("  bpos <coor> <bearing> <length>\n"
 	       "    Find the new geographic position after moving a certain"
