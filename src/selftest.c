@@ -2113,6 +2113,29 @@ static void test_seed_option(char *execname)
 }
 
 /*
+ * test_haversine_option() - Tests the -H/--haversine option. Returns nothing.
+ */
+
+static void test_haversine_option(char *execname)
+{
+	diag("Test -H/--haversine");
+
+	sc(chp{ execname, "-H", "dist", "13.389820,-71.453489",
+	        "-24.171099,-162.897613", NULL },
+	   "10755873.395009\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-H dist 13.389820,-71.453489 -24.171099,-162.897613");
+
+	sc(chp{ execname, "--haversine", "dist", "-51.548124,19.706076",
+	        "-35.721304,13.064358", NULL },
+	   "1837351.151434\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--haversine dist -51.548124,19.706076 -35.721304,13.064358");
+}
+
+/*
  * test_functions() - Tests various functions directly. Returns nothing.
  */
 
@@ -2203,6 +2226,7 @@ static void test_executable(char *execname)
 	test_multiple(execname, "dist");
 	test_cmd_randpos(execname);
 	test_seed_option(execname);
+	test_haversine_option(execname);
 	print_version_info(execname);
 }
 

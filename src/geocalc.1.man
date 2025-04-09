@@ -37,6 +37,12 @@ When used with \fBrandpos\fP, print \fINUM\fP random points.
 Create output of type \fIFORMAT\fP. Available formats: \fBdefault\fP,\& 
 \fBgpx\fP.
 .TP
+\fB\-H\fP, \fB\-\-haversine\fP
+Use the Haversine formula (spherical Earth model) for the \fBdist\fP command. 
+This formula is the default due to its compatibility with other Geocalc 
+commands, other software, and most GPS units. It is accurate enough for most 
+practical uses.
+.TP
 \fB\-h\fP, \fB\-\-help\fP
 Show a help summary.
 .TP

@@ -274,6 +274,14 @@ static int usage(const int retval)
 	printf("  -F <format>, --format <format>\n"
 	       "    Output in a specific format. Available formats:"
 	       " default, gpx.\n");
+	printf("  -H, --haversine\n"
+	       "    Use the Haversine formula (spherical Earth model) for the"
+	       " dist \n"
+	       "    command. This formula is the default due to its"
+	       " compatibility with \n"
+	       "    other %s commands, other software, and most GPS"
+	       " units. It is \n"
+	       "    accurate enough for most practical uses.\n", PROJ_NAME);
 	printf("  -h, --help\n"
 	       "    Show this help.\n");
 	printf("  --km\n"
@@ -365,6 +373,9 @@ static int choose_opt_action(const int c, const struct option *opts)
 	case 'F':
 		opt.format = optarg;
 		break;
+	case 'H':
+		opt.distformula = FRM_HAVERSINE;
+		break;
 	case 'h':
 		opt.help = true;
 		break;
@@ -396,6 +407,7 @@ static int parse_options(const int argc, char * const argv[])
 	assert(argv);
 
 	opt.count = 1;
+	opt.distformula = FRM_HAVERSINE;
 	opt.format = NULL;
 	opt.help = false;
 	opt.km = false;
@@ -416,6 +428,7 @@ static int parse_options(const int argc, char * const argv[])
 		static const struct option long_options[] = {
 			{"count", required_argument, NULL, 0},
 			{"format", required_argument, NULL, 'F'},
+			{"haversine", no_argument, NULL, 'H'},
 			{"help", no_argument, NULL, 'h'},
 			{"km", no_argument, NULL, 0},
 			{"license", no_argument, NULL, 0},
@@ -431,6 +444,7 @@ static int parse_options(const int argc, char * const argv[])
 		c = getopt_long(argc, argv,
 		                "+"  /* Stop parsing after first non-option */
 		                "F:" /* --format */
+		                "H"  /* --haversine */
 		                "h"  /* --help */
 		                "q"  /* --quiet */
 		                "v"  /* --verbose */

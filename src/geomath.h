@@ -27,6 +27,10 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+typedef enum {
+	FRM_HAVERSINE
+} DistFormula;
+
 extern const double MAX_EARTH_DISTANCE;
 
 int are_antipodal(const double lat1, const double lon1,

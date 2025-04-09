@@ -67,6 +67,7 @@ typedef enum {
 
 struct Options {
 	long count;
+	DistFormula distformula;
 	bool help;
 	bool km;
 	bool license;
