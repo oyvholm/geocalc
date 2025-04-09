@@ -198,6 +198,25 @@ double haversine(const double lat1, const double lon1,
 }
 
 /*
+ * distance() - Calculate the distance between 2 locations with the formula 
+ * specified in `formula`. Returns the distance in meters.
+ */
+
+double distance(const DistFormula formula,
+                const double lat1, const double lon1,
+                const double lat2, const double lon2)
+{
+	switch (formula) {
+	case FRM_HAVERSINE:
+		return haversine(lat1, lon1, lat2, lon2);
+	default: /* gncov */
+		myerror("%s() received unknown formula %d", /* gncov */
+		        __func__, formula);
+		return nan(""); /* gncov */
+	}
+}
+
+/*
  * initial_bearing() - Calculate the initial bearing from point `lat1, lon1` to 
  * point `lat2, lon2`. Returns bearing in degrees: 0 = north, 90 = east, 180 = 
  * south, 270 = west.

@@ -141,7 +141,8 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 	}
 
 	result = !strcmp(cmd, "bear") ? initial_bearing(lat1, lon1, lat2, lon2)
-	                              : haversine(lat1, lon1, lat2, lon2);
+	                              : distance(opt.distformula,
+	                                         lat1, lon1, lat2, lon2);
 	if (result == -1.0) {
 		myerror("Value out of range");
 		return EXIT_FAILURE;

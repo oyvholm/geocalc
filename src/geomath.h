@@ -40,6 +40,9 @@ int bearing_position(const double lat, const double lon,
                      double *new_lat, double *new_lon);
 double haversine(const double lat1, const double lon1,
                  const double lat2, const double lon2);
+double distance(const DistFormula formula,
+                const double lat1, const double lon1,
+                const double lat2, const double lon2);
 double initial_bearing(const double lat1, const double lon1,
                        const double lat2, const double lon2);
 int rand_pos(double *dlat, double *dlon,
