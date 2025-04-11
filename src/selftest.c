@@ -2262,14 +2262,14 @@ static void test_haversine_option(char *execname)
 {
 	diag("Test -H/--haversine");
 
-	sc(chp{ execname, "-H", "dist", "13.389820,-71.453489",
+	tc(chp{ execname, "-H", "dist", "13.389820,-71.453489",
 	        "-24.171099,-162.897613", NULL },
 	   "10755873.395009\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "-H dist 13.389820,-71.453489 -24.171099,-162.897613");
 
-	sc(chp{ execname, "--haversine", "dist", "-51.548124,19.706076",
+	tc(chp{ execname, "--haversine", "dist", "-51.548124,19.706076",
 	        "-35.721304,13.064358", NULL },
 	   "1837351.151434\n",
 	   "",
@@ -2285,22 +2285,22 @@ static void test_karney_option(char *execname)
 {
 	diag("Test -K/--karney");
 
-	sc(chp{ execname, "-K", "dist", "13.389820,-71.453489",
+	tc(chp{ execname, "-K", "dist", "13.389820,-71.453489",
 	        "-24.171099,-162.897613", NULL },
 	   "10759030.94409290\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "-K dist 13.389820,-71.453489 -24.171099,-162.897613");
 
-	sc(chp{ execname, "--karney", "dist", "-51.548124,19.706076",
+	tc(chp{ execname, "--karney", "dist", "-51.548124,19.706076",
 	        "-35.721304,13.064358", NULL },
 	   "1836406.16934653\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "--karney dist -51.548124,19.706076 -35.721304,13.064358");
 
-	sc(chp{ execname, "-K", "dist", "12.34,56.789", "12.34,56.789", NULL },
-	   "0.00000000",
+	tc(chp{ execname, "-K", "dist", "12.34,56.789", "12.34,56.789", NULL },
+	   "0.00000000\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "-K dist: Coincident points");
