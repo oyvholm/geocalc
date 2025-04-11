@@ -41,8 +41,8 @@ Contains the following commands:
   locations.
 - **`dist`**\
   Calculates the distance between two geographic coordinates, using the 
-  Haversine formula. The result (in meters or kilometers) is printed to 
-  stdout.
+  Haversine or Karney formula. The result (in meters or kilometers) is 
+  printed to stdout.
 - **`lpos`**\
   Prints the position of a point on a straight line between the 
   positions, where `fracdist` is a fraction that specifies how far along 

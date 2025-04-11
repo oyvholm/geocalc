@@ -198,6 +198,98 @@ double haversine(const double lat1, const double lon1,
 }
 
 /*
+ * karney_distance() - Calculates the distance between 2 locations, using the 
+ * Karney formula. This formula models the Earth as an ellipsoid and provides 
+ * significantly higher accuracy than the default Haversine formula, which 
+ * assumes a spherical Earth. It achieves an accuracy of 10-15 nanometers for 
+ * distance calculations, making it suitable for high-precision applications.
+ * Returns the distance in meters.
+ */
+
+double karney_distance(double lat1, double lon1, double lat2, double lon2)
+{
+	/* Convert to radians */
+	lat1 *= M_PI / 180.0;
+	lon1 *= M_PI / 180.0;
+	lat2 *= M_PI / 180.0;
+	lon2 *= M_PI / 180.0;
+
+	const double a = 6378137.0;
+	const double f = 1.0 / 298.257223563;
+	const double b = (a * (1.0 - f));
+	const double L = lon2 - lon1;
+	const double U1 = atan((1.0 - f) * tan(lat1));
+	const double U2 = atan((1.0 - f) * tan(lat2));
+	const double sinU1 = sin(U1), cosU1 = cos(U1);
+	const double sinU2 = sin(U2), cosU2 = cos(U2);
+
+	double lambda = L, lambdaP;
+	double sin_lambda, cos_lambda, sin_sigma, cos_sigma, sigma, sin_alpha,
+	       cos_sq_alpha, cos2_sigma_m;
+	int iter_limit = 100;
+
+	do {
+		double C;
+
+		sin_lambda = sin(lambda);
+		cos_lambda = cos(lambda);
+		sin_sigma = sqrt((cosU2 * sin_lambda) * (cosU2 * sin_lambda)
+		                 + (cosU1 * sinU2 - sinU1 * cosU2 * cos_lambda)
+		                   * (cosU1 * sinU2
+		                      - sinU1 * cosU2 * cos_lambda));
+
+		if (sin_sigma == 0.0)
+			return 0; /* Coincident points */
+
+		cos_sigma = sinU1 * sinU2 + cosU1 * cosU2 * cos_lambda;
+		sigma = atan2(sin_sigma, cos_sigma);
+		sin_alpha = cosU1 * cosU2 * sin_lambda / sin_sigma;
+		cos_sq_alpha = 1.0 - sin_alpha * sin_alpha;
+		cos2_sigma_m = cos_sigma - 2.0 * sinU1 * sinU2 / cos_sq_alpha;
+
+		if (isnan(cos2_sigma_m))
+			cos2_sigma_m = 0.0; /* Equatorial lines */
+
+		C = f / 16.0 * cos_sq_alpha
+		    * (4.0 + f * (4.0 - 3.0 * cos_sq_alpha));
+		lambdaP = lambda;
+		lambda = L + (1.0 - C) * f * sin_alpha
+		             * (sigma
+		                + C * sin_sigma
+		                  * (cos2_sigma_m
+		                     + C * cos_sigma
+		                       * (-1.0 + 2.0 * cos2_sigma_m
+		                                 * cos2_sigma_m)));
+	} while (fabs(lambda - lambdaP) > 1e-12 && --iter_limit > 0.0);
+
+	if (iter_limit == 0)
+		return nan(""); /* The formula did not converge */
+
+	const double u_sq = cos_sq_alpha * (a * a - b * b) / (b * b);
+	const double A = 1.0 + u_sq / 16384.0
+	                       * (4096.0
+	                          + u_sq * (-768.0 + u_sq * (320.0
+	                                                     - 175.0 * u_sq)));
+	const double B = u_sq / 1024.0
+	                 * (256.0 + u_sq * (-128.0 + u_sq * (74.0
+	                                                     - 47.0 * u_sq)));
+	const double delta_sigma = B * sin_sigma
+	                           * (cos2_sigma_m
+	                              + B / 4.0 * (cos_sigma
+	                                           * (-1.0 + 2.0 * cos2_sigma_m
+	                                                     * cos2_sigma_m)
+	                                           - B / 6.0 * cos2_sigma_m
+	                                             * (-3.0
+	                                                + 4.0 * sin_sigma
+	                                                  * sin_sigma)
+	                                             * (-3.0
+	                                                + 4.0 * cos2_sigma_m
+	                                                  * cos2_sigma_m)));
+
+	return b * A * (sigma - delta_sigma);
+}
+
+/*
  * distance() - Calculate the distance between 2 locations with the formula 
  * specified in `formula`. Returns the distance in meters.
  */
@@ -209,6 +301,8 @@ double distance(const DistFormula formula,
 	switch (formula) {
 	case FRM_HAVERSINE:
 		return haversine(lat1, lon1, lat2, lon2);
+	case FRM_KARNEY:
+		return karney_distance(lat1, lon1, lat2, lon2);
 	default: /* gncov */
 		myerror("%s() received unknown formula %d", /* gncov */
 		        __func__, formula);

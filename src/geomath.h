@@ -27,8 +27,12 @@
 #define M_PI 3.14159265358979323846
 #endif
 
+#define HAVERSINE_DECIMALS  6
+#define KARNEY_DECIMALS  8
+
 typedef enum {
-	FRM_HAVERSINE
+	FRM_HAVERSINE,
+	FRM_KARNEY
 } DistFormula;
 
 extern const double MAX_EARTH_DISTANCE;
@@ -40,6 +44,7 @@ int bearing_position(const double lat, const double lon,
                      double *new_lat, double *new_lon);
 double haversine(const double lat1, const double lon1,
                  const double lat2, const double lon2);
+double karney_distance(double lat1, double lon1, double lat2, double lon2);
 double distance(const DistFormula formula,
                 const double lat1, const double lon1,
                 const double lat2, const double lon2);

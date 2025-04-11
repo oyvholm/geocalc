@@ -10,6 +10,8 @@ repositories mentioned in `README.md`.
 v0.x.x - 2025-xx-xx
 -------------------
 
+- Add the `-K`/`--karney` option to use the Karney formula in the `dist` 
+  command, achieving sub-millimeter accuracy.
 - Add the `-H`/`--haversine` option.
 - Add the `bench` command, executes various benchmarks and reports the 
   results.

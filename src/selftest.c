@@ -992,6 +992,119 @@ static void test_gpx_wpt(void)
 }
 
 /*
+ * chk_karney() - Used by test_karney_distance(). Verifies that 
+ * `karney_distance(coor1, coor2)` returns the value in `exp_result`. Returns 
+ * nothing.
+ */
+
+static void chk_karney(const char *coor1, const char *coor2,
+                       const double exp_result)
+{
+	double lat1, lon1, lat2, lon2;
+	double exp_res = exp_result, result;
+	char *s, *res_s, *exp_s;
+
+	if (parse_coordinate(coor1, &lat1, &lon1)
+	    || parse_coordinate(coor2, &lat2, &lon2)) {
+		ok(1, "%s() received invalid coordinate", /* gncov */
+		      __func__);
+		return; /* gncov */
+	}
+	result = karney_distance(lat1, lon1, lat2, lon2);
+	s = allocstr("karney_distance(): %s %s", coor1, coor2);
+	res_s = allocstr("%.8f", result);
+	exp_s = allocstr("%.8f", exp_result);
+	if (!s || !res_s || !exp_s) {
+		ok(1, "%s():%d: allocstr() failed", /* gncov */
+		      __func__, __LINE__);
+		free(exp_s); /* gncov */
+		free(res_s); /* gncov */
+		free(s); /* gncov */
+		return; /* gncov */
+	}
+	ok(!!strcmp(res_s, exp_s), s);
+	if (strcmp(res_s, exp_s)) {
+		print_gotexp(res_s, exp_s); /* gncov */
+		diag("        diff: %.15f", result - exp_res); /* gncov */
+	}
+	free(exp_s);
+	free(res_s);
+	free(s);
+}
+
+/*
+ * test_karney_distance() - Tests the karney_distance() function. Returns 
+ * nothing.
+ */
+
+static void test_karney_distance(void)
+{
+	diag("Test karney_distance()");
+
+	chk_karney("0,0", "0,0.00000000000001", 0.0);
+	chk_karney("0,0", "0,0.0000000000001", 0.00000001);
+	chk_karney("0,0", "0,180", nan(""));
+	chk_karney("0,0", "0.00000000000001,0", 0.0);
+	chk_karney("0,0", "0.0000000000001,0", 0.00000001);
+	chk_karney("45,9", "-45,-171", nan(""));
+	chk_karney("7,7", "7,7", 0.0);
+	chk_karney("90,0", "-90,0", 20003931.4586235844);
+	chk_karney("90,180", "-90,180", 20003931.4586235844);
+	chk_karney("90,37.37", "-90,37.37", 20003931.4586235844);
+
+	/*
+	 * Generated with
+	 *
+	 * `for f in $(seq 1 20); do (c1=$(./geocalc randpos); c2=$(./geocalc 
+	 * randpos); echo "chk_karney(\"$c1\", \"$c2\", $(./geocalc -K dist $c1 
+	 * $c2));"); done`
+	 *
+	 * with a version compiled with KARNEY_DECIMALS=10
+	 */
+
+	chk_karney("-0.086162,167.759028", "11.437259,153.119746",
+	           2060263.15110668);
+	chk_karney("-0.316970,-125.026617", "11.201875,-139.665899",
+	           2060454.26482576);
+	chk_karney("-0.547782,-57.812261", "10.966681,-72.451543",
+	           2060637.67237515);
+	chk_karney("-23.521104,-16.569585", "-11.495340,-31.208868",
+	           2043439.35405501);
+	chk_karney("-23.773066,50.644770", "-11.730970,36.005488",
+	           2043024.45155100);
+	chk_karney("-52.433055,91.887446", "-36.359012,77.248164",
+	           2124196.47358499);
+	chk_karney("-53.196823,-133.683843", "-36.934352,-148.323125",
+	           2134461.58793276);
+	chk_karney("-53.583847,-66.469488", "-37.223653,-81.108770",
+	           2139944.21629653);
+	chk_karney("-53.974449,0.744868", "-37.514068,-13.894415",
+	           2145674.54815034);
+	chk_karney("0.144644,100.544672", "11.672840,85.905390",
+	           2060064.68360481);
+	chk_karney("0.375452,33.330317", "11.908621,18.691035",
+	           2059858.80968563);
+	chk_karney("23.082171,59.301997", "36.288361,44.662714",
+	           2032333.49135906);
+	chk_karney("23.333298,-7.912359", "36.575232,-22.551641",
+	           2032541.47454734);
+	chk_karney("23.584900,-75.126714", "36.863173,-89.765997",
+	           2032782.84901715);
+	chk_karney("24.089562,150.444575", "37.442341,135.805292",
+	           2033370.13841218);
+	chk_karney("52.151310,-116.369390", "81.663040,-131.008672",
+	           3328004.48296593);
+	chk_karney("52.529079,176.416254", "83.444023,161.776972",
+	           3475511.53412101);
+	chk_karney("52.910126,109.201899", "85.938907,94.562617",
+	           3700004.85902363);
+	chk_karney("53.294554,41.987543", "-86.843207,27.348261",
+	           15567459.61860570);
+	chk_karney("53.682474,-25.226812", "-83.963037,-39.866094",
+	           15297527.07716241);
+}
+
+/*
  ****************
  * Option tests *
  ****************
@@ -1252,6 +1365,11 @@ static void test_cmd_bpos(char *execname)
 	   "",
 	   EXIT_SUCCESS,
 	   "--format gpx bpos");
+	sc(chp{ execname, "-K", "bpos", "1,2", "3", "4", NULL },
+	   "",
+	   ": -K/--karney is not supported by the bpos command\n",
+	   EXIT_FAILURE,
+	   "-K bpos");
 }
 
 /*
@@ -1378,6 +1496,11 @@ static void test_cmd_course(char *execname)
 	   "",
 	   EXIT_SUCCESS,
 	   "-F gpx course, Amsterdam to Tokyo");
+	sc(chp{ execname, "--karney", "course", "1,2", "3,4", "5", NULL },
+	   "",
+	   ": -K/--karney is not supported by the course command\n",
+	   EXIT_FAILURE,
+	   "--karney course");
 }
 
 /*
@@ -1486,6 +1609,11 @@ static void test_cmd_lpos(char *execname)
 	   ": Antipodal points, answer is undefined\n",
 	   EXIT_FAILURE,
 	   "lpos: Antipodal positions, 90,0 and -90,0");
+	sc(chp{ execname, "--karney", "lpos", "1,2", "3,4", "0.2", NULL },
+	   "",
+	   ": -K/--karney is not supported by the lpos command\n",
+	   EXIT_FAILURE,
+	   "--karney lpos");
 }
 
 /*
@@ -1631,6 +1759,14 @@ static void test_multiple(char *execname, char *cmd)
 	   EXIT_FAILURE,
 	   (p1 = allocstr("--format gpx %s", cmd)));
 	free(p1);
+	if (!strcmp(cmd, "bear"))
+	{
+		sc(chp{ execname, "-K", "bear", "1,2", "3,4", NULL },
+		   "",
+		   ": -K/--karney is not supported by the bear command\n",
+		   EXIT_FAILURE,
+		   "-K bear");
+	}
 }
 
 /*
@@ -2015,6 +2151,12 @@ static void test_cmd_randpos(char *execname)
 	   ": Distance can't be negative\n",
 	   EXIT_FAILURE,
 	   "randpos with negative min_dist");
+
+	sc(chp{ execname, "--karney", "randpos", "1,2", "200", "100", NULL },
+	   "",
+	   ": -K/--karney is not supported by the randpos command\n",
+	   EXIT_FAILURE,
+	   "--karney randpos");
 }
 
 /*
@@ -2136,6 +2278,41 @@ static void test_haversine_option(char *execname)
 }
 
 /*
+ * test_karney_option() - Tests the -K/--karney option. Returns nothing.
+ */
+
+static void test_karney_option(char *execname)
+{
+	diag("Test -K/--karney");
+
+	sc(chp{ execname, "-K", "dist", "13.389820,-71.453489",
+	        "-24.171099,-162.897613", NULL },
+	   "10759030.94409290\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-K dist 13.389820,-71.453489 -24.171099,-162.897613");
+
+	sc(chp{ execname, "--karney", "dist", "-51.548124,19.706076",
+	        "-35.721304,13.064358", NULL },
+	   "1836406.16934653\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--karney dist -51.548124,19.706076 -35.721304,13.064358");
+
+	sc(chp{ execname, "-K", "dist", "12.34,56.789", "12.34,56.789", NULL },
+	   "0.00000000",
+	   "",
+	   EXIT_SUCCESS,
+	   "-K dist: Coincident points");
+
+	sc(chp{ execname, "-K", "dist", "37,7", "-37,-173", NULL },
+	   "",
+	   ": Formula did not converge, antipodal points\n",
+	   EXIT_FAILURE,
+	   "--karney dist: Antipodal points");
+}
+
+/*
  * test_functions() - Tests various functions directly. Returns nothing.
  */
 
@@ -2169,6 +2346,7 @@ static void test_functions(void)
 	test_are_antipodal();
 	test_xml_escape_string();
 	test_gpx_wpt();
+	test_karney_distance();
 }
 
 /*
@@ -2227,6 +2405,7 @@ static void test_executable(char *execname)
 	test_cmd_randpos(execname);
 	test_seed_option(execname);
 	test_haversine_option(execname);
+	test_karney_option(execname);
 	print_version_info(execname);
 }
 

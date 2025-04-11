@@ -41,10 +41,18 @@ Create output of type \fIFORMAT\fP. Available formats: \fBdefault\fP,\&
 Use the Haversine formula (spherical Earth model) for the \fBdist\fP command. 
 This formula is the default due to its compatibility with other Geocalc 
 commands, other software, and most GPS units. It is accurate enough for most 
-practical uses.
+practical uses, but for applications requiring sub-millimeter accuracy, use the 
+\fB\-K\fP/\fB\-\-karney\fP option.
 .TP
 \fB\-h\fP, \fB\-\-help\fP
 Show a help summary.
+.TP
+\fB\-K\fP, \fB\-\-karney\fP
+Use the Karney formula for the \fBdist\fP command. This formula models the 
+Earth as an ellipsoid and provides significantly higher accuracy than the 
+default Haversine formula, which assumes a spherical Earth. It achieves an 
+accuracy of 15 nanometers for distance calculations, making it suitable for 
+high-precision applications.
 .TP
 \fB\-\-km\fP
 Use kilometers instead of meters for input and output.

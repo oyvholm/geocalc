@@ -281,9 +281,22 @@ static int usage(const int retval)
 	       " compatibility with \n"
 	       "    other %s commands, other software, and most GPS"
 	       " units. It is \n"
-	       "    accurate enough for most practical uses.\n", PROJ_NAME);
+	       "    accurate enough for most practical uses, but for"
+	       " applications \n"
+	       "    requiring sub-millimeter accuracy, use the -K/--karney"
+	       " option.\n", PROJ_NAME);
 	printf("  -h, --help\n"
 	       "    Show this help.\n");
+	printf("  -K, --karney\n"
+	       "    Use the Karney formula for the dist command. This formula"
+	       " models the \n"
+	       "    Earth as an ellipsoid and provides significantly higher"
+	       " accuracy \n"
+	       "    than the default Haversine formula, which assumes a"
+	       " spherical Earth. \n"
+	       "    It achieves an accuracy of 15 nanometers for distance"
+	       " calculations, \n"
+	       "    making it suitable for high-precision applications.\n");
 	printf("  --km\n"
 	       "    Use kilometers instead of meters for input and output.\n");
 	printf("  --license\n"
@@ -376,6 +389,9 @@ static int choose_opt_action(const int c, const struct option *opts)
 	case 'H':
 		opt.distformula = FRM_HAVERSINE;
 		break;
+	case 'K':
+		opt.distformula = FRM_KARNEY;
+		break;
 	case 'h':
 		opt.help = true;
 		break;
@@ -430,6 +446,7 @@ static int parse_options(const int argc, char * const argv[])
 			{"format", required_argument, NULL, 'F'},
 			{"haversine", no_argument, NULL, 'H'},
 			{"help", no_argument, NULL, 'h'},
+			{"karney", no_argument, NULL, 'K'},
 			{"km", no_argument, NULL, 0},
 			{"license", no_argument, NULL, 0},
 			{"quiet", no_argument, NULL, 'q'},
@@ -445,6 +462,7 @@ static int parse_options(const int argc, char * const argv[])
 		                "+"  /* Stop parsing after first non-option */
 		                "F:" /* --format */
 		                "H"  /* --haversine */
+		                "K"  /* --karney */
 		                "h"  /* --help */
 		                "q"  /* --quiet */
 		                "v"  /* --verbose */
@@ -474,6 +492,28 @@ static int wrong_argcount(const int exp, const int got)
 }
 
 /*
+ * karney_missing() - Checks that the command `cmd` is compatible with the 
+ * -K/--karney option. Returns 0 if the --karney option is available with the 
+ * command, otherwise 1.
+ */
+
+static int karney_missing(const char *cmd)
+{
+	if (!cmd) {
+		myerror("%s(): cmd is NULL", __func__); /* gncov */
+		return 1; /* gncov */
+	}
+	if (!strcmp(cmd, "dist"))
+		return 0;
+	if (opt.distformula == FRM_KARNEY) {
+		myerror("-K/--karney is not supported by the %s command", cmd);
+		return 1;
+	}
+
+	return 0;
+}
+
+/*
  * process_args() - Parses non-option arguments and executes the appropriate 
  * command with the provided arguments. Returns `EXIT_SUCCESS` if the command 
  * succeeds, otherwise it returns `EXIT_FAILURE`.
@@ -488,6 +528,8 @@ static int process_args(int argc, char *argv[])
 	msg(4, "%s(): cmd = %s", __func__, cmd);
 
 	if (!strcmp(cmd, "bear") || !strcmp(cmd, "dist")) {
+		if (karney_missing(cmd))
+			return EXIT_FAILURE;
 		if (wrong_argcount(3, numargs))
 			return EXIT_FAILURE;
 		retval = cmd_bear_dist(cmd,
@@ -505,21 +547,29 @@ static int process_args(int argc, char *argv[])
 			return EXIT_FAILURE;
 		}
 	} else if (!strcmp(cmd, "bpos")) {
+		if (karney_missing(cmd))
+			return EXIT_FAILURE;
 		if (wrong_argcount(4, numargs))
 			return EXIT_FAILURE;
 		retval = cmd_bpos(argv[optind + 1], argv[optind + 2],
 		                  argv[optind + 3]);
 	} else if (!strcmp(cmd, "course")) {
+		if (karney_missing(cmd))
+			return EXIT_FAILURE;
 		if (wrong_argcount(4, numargs))
 			return EXIT_FAILURE;
 		retval = cmd_course(argv[optind + 1], argv[optind + 2],
 		                    argv[optind + 3]);
 	} else if (!strcmp(cmd, "lpos")) {
+		if (karney_missing(cmd))
+			return EXIT_FAILURE;
 		if (wrong_argcount(4, numargs))
 			return EXIT_FAILURE;
 		retval = cmd_lpos(argv[optind + 1], argv[optind + 2],
 		                  argv[optind + 3]);
 	} else if (!strcmp(cmd, "randpos")) {
+		if (karney_missing(cmd))
+			return EXIT_FAILURE;
 		switch (numargs) {
 		case 1:
 		case 2:

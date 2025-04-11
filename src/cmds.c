@@ -121,6 +121,7 @@ static int print_eor_coor(const double lat, const double lon, const char *cmd,
 int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 {
 	double lat1, lon1, lat2, lon2, result;
+	char *s;
 
 	assert(cmd);
 	assert(!strcmp(cmd, "bear") || !strcmp(cmd, "dist"));
@@ -151,9 +152,25 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 		myerror("Antipodal points, answer is undefined");
 		return EXIT_FAILURE;
 	}
+	if (isnan(result) && opt.distformula == FRM_KARNEY
+	    && !strcmp(cmd, "dist"))
+	{
+		myerror("Formula did not converge, antipodal points");
+		return EXIT_FAILURE;
+	}
+
 	if (opt.km && !strcmp(cmd, "dist"))
 		result /= 1000.0;
-	printf("%f\n", result);
+	s = allocstr("%%.%uf\n",
+	             opt.distformula == FRM_KARNEY ? KARNEY_DECIMALS
+	                                           : HAVERSINE_DECIMALS);
+	if (!s) {
+		myerror("%s():%d: allocstr() failed", /* gncov */
+		        __func__, __LINE__);
+		return EXIT_FAILURE; /* gncov */
+	}
+	printf(s, result);
+	free(s);
 
 	return EXIT_SUCCESS;
 }
@@ -429,7 +446,7 @@ static int cmd_bench_cmp_rounds(const void *s1, const void *s2) /* gncov */
 int cmd_bench(const char *seconds)
 {
 	time_t secs = seconds ? atoi(seconds) : BENCH_LOOP_SECS;
-	struct bench_result br[1];
+	struct bench_result br[2];
 	const size_t arrsize = sizeof(br) / sizeof(br[0]);
 	size_t i;
 	int r = 0;
@@ -447,6 +464,7 @@ int cmd_bench(const char *seconds)
 	}
 
 	r += bench_dist_func("haversine", haversine, secs, &br[0]);
+	r += bench_dist_func("karney_distance", karney_distance, secs, &br[1]);
 	fputs("\n", stderr);
 
 	for (i = 0; i < arrsize; i++)
