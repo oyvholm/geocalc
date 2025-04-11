@@ -10,6 +10,7 @@ repositories mentioned in `README.md`.
 v0.x.x - 2025-xx-xx
 -------------------
 
+- Add the `-H`/`--haversine` option.
 - Add the `bench` command, executes various benchmarks and reports the 
   results.
 - Remove errno messages if invalid numbers were specified certain 
