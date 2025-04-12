@@ -15,6 +15,7 @@ v0.x.x - 2025-xx-xx
 - Add the `-H`/`--haversine` option.
 - Add the `bench` command, executes various benchmarks and reports the 
   results.
+- Create a `make asm` target to generate assembly files.
 - Remove errno messages if invalid numbers were specified certain 
   places.
 - Remove errno message on FreeBSD when `--count` and `--seed` got empty 

@@ -23,7 +23,6 @@ CFLAGS += $$(test -n "$(PROF)" && echo -n "-pg")
 CFLAGS += $(DEVFLAGS_STR)
 CFLAGS += -Wall
 CFLAGS += -c
-CFLAGS += -fverbose-asm
 DEPS = version.h $(HFILES) Makefile
 DEVFLAGS += $$(test "$$(uname -o)" = "Android" || echo -fcf-protection=full)
 DEVFLAGS += -Wbad-function-cast
@@ -167,6 +166,10 @@ strings.o: strings.c $(DEPS)
 
 tags: $(CFILES) $(HFILES)
 	ctags $(CFILES) $(HFILES)
+
+.PHONY: asm
+asm: $(DEPS)
+	$(CC) $(CFLAGS) -fverbose-asm -S $(CFILES)
 
 .PHONY: cflags
 cflags:
