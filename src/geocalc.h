@@ -62,7 +62,8 @@
 
 typedef enum {
 	OF_DEFAULT = 0,
-	OF_GPX
+	OF_GPX,
+	OF_SQL
 } OutputFormat;
 
 struct Options {

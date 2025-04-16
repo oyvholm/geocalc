@@ -13,6 +13,7 @@ v0.x.x - 2025-xx-xx
 - Add the `-K`/`--karney` option to use the Karney formula in the `dist` 
   command, achieving sub-millimeter accuracy.
 - Add the `-H`/`--haversine` option.
+- Add `sql` output format, compatible with the `sqlite3`(1) shell.
 - Add the `bench` command, executes various benchmarks and reports the 
   results.
 - Create a `make asm` target to generate assembly files.

@@ -35,7 +35,7 @@ When used with \fBrandpos\fP, print \fINUM\fP random points.
 .TP
 \fB\-F\fP \fIFORMAT\fP, \fB\-\-format\fP \fIFORMAT\fP
 Create output of type \fIFORMAT\fP. Available formats: \fBdefault\fP,\& 
-\fBgpx\fP.
+\fBgpx\fP, \fBsql\fP.
 .TP
 \fB\-H\fP, \fB\-\-haversine\fP
 Use the Haversine formula (spherical Earth model) for the \fBdist\fP command. 
@@ -55,7 +55,9 @@ accuracy of 15 nanometers for distance calculations, making it suitable for
 high-precision applications.
 .TP
 \fB\-\-km\fP
-Use kilometers instead of meters for input and output.
+Use kilometers instead of meters for input and output. An exception is the 
+\fBsql\fP format, where it will use kilometers for command line arguments, but 
+the distances will always be stored as meters in the generated SQL.
 .TP
 \fB\-\-license\fP
 Print the software license.
@@ -161,6 +163,15 @@ south. Print the result as a GPX waypoint.
 .TP
 \fCgeocalc \-\-km \-\-count 20 \-F gpx randpos 33.33131,44.39689 12\fP
 Generate 20 random locations within Baghdad and output them in GPX format.
+.TP
+\fCgeocalc \-F sql \-\-count 1000000 randpos | sqlite3 randworld.db\fP
+Generate 1 million random locations around the world and store them in an 
+SQLite database.
+.TP
+\fC(geocalc \-F sql \-\-count 50 \-\-km randpos 55.76,37.62 20; \
+echo "SELECT * FROM randpos ORDER BY dist;") | sqlite3 \-box\fP
+This oneliner generates 50 random locations inside a radius of 20 km around 
+Moscow and sorts by distance.
 .SH AUTHOR
 Written by \[/O]yvind A.\& Holm <sunny@sunbase.org>
 .SH COPYRIGHT

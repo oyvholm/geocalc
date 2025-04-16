@@ -273,7 +273,7 @@ static int usage(const int retval)
 	       "    When used with `randpos`, print `num` random points.\n");
 	printf("  -F <format>, --format <format>\n"
 	       "    Output in a specific format. Available formats:"
-	       " default, gpx.\n");
+	       " default, gpx, sql.\n");
 	printf("  -H, --haversine\n"
 	       "    Use the Haversine formula (spherical Earth model) for the"
 	       " dist \n"
@@ -298,7 +298,13 @@ static int usage(const int retval)
 	       " calculations, \n"
 	       "    making it suitable for high-precision applications.\n");
 	printf("  --km\n"
-	       "    Use kilometers instead of meters for input and output.\n");
+	       "    Use kilometers instead of meters for input and output. An"
+	       " exception \n"
+	       "    is the sql format, where it will use kilometers for"
+	       " command line \n"
+	       "    arguments, but the distances will always be stored as"
+	       " meters in the \n"
+	       "    generated SQL.\n");
 	printf("  --license\n"
 	       "    Print the software license.\n");
 	printf("  -q, --quiet\n"
@@ -615,6 +621,8 @@ static int setup_options(struct Options *o, const int argc, char *argv[])
 			o->outpformat = OF_DEFAULT;
 		} else if (!strcmp(o->format, "gpx")) {
 			o->outpformat = OF_GPX;
+		} else if (!strcmp(o->format, "sql")) {
+			o->outpformat = OF_SQL;
 		} else {
 			myerror("%s: Unknown output format", o->format);
 			return 1;

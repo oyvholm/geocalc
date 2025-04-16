@@ -1279,6 +1279,11 @@ static void test_cmd_bench(char *execname)
 	   ": Too many arguments\n",
 	   EXIT_FAILURE,
 	   "bench has 1 extra argument");
+	sc(chp{ execname, "--format", "sql", "bench", "0", NULL },
+	   "INSERT INTO bench VALUES ",
+	   "Looping haversine() for ",
+	   EXIT_SUCCESS,
+	   "--format sql bench");
 }
 
 /*
@@ -1370,6 +1375,34 @@ static void test_cmd_bpos(char *execname)
 	   ": -K/--karney is not supported by the bpos command\n",
 	   EXIT_FAILURE,
 	   "-K bpos");
+
+	diag("--format sql bpos");
+	tc(chp{ execname, "-F", "sql", "bpos", "0,0", "90", "1000", NULL },
+	   "BEGIN;\n"
+	   "CREATE TABLE IF NOT EXISTS bpos (lat1 REAL, lon1 REAL, lat2 REAL, lon2 REAL, bear REAL, dist REAL);\n"
+	   "INSERT INTO bpos VALUES (0.000000, 0.000000, 0.000000, 0.008993, 90.000000, 1000.000000);\n"
+	   "COMMIT;\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-F sql bpos 0,0 90 1000");
+	tc(chp{ execname, "-F", "sql", "--km", "bpos", "0,0", "90", "1",
+	        NULL },
+	   "BEGIN;\n"
+	   "CREATE TABLE IF NOT EXISTS bpos (lat1 REAL, lon1 REAL, lat2 REAL, lon2 REAL, bear REAL, dist REAL);\n"
+	   "INSERT INTO bpos VALUES (0.000000, 0.000000, 0.000000, 0.008993, 90.000000, 1000.000000);\n"
+	   "COMMIT;\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-F sql --km bpos 0,0 90 1");
+	tc(chp{ execname, "-F", "sql", "--km", "bpos",
+	        "76.2379187,-134.9876543", "43.99999", "15000", NULL },
+	   "BEGIN;\n"
+	   "CREATE TABLE IF NOT EXISTS bpos (lat1 REAL, lon1 REAL, lat2 REAL, lon2 REAL, bear REAL, dist REAL);\n"
+	   "INSERT INTO bpos VALUES (76.237919, -134.987654, -34.358442, 8.423430, 43.999990, 15000000.000000);\n"
+	   "COMMIT;\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-F sql --km bpos: dist = 15000 km");
 }
 
 /*
@@ -1501,6 +1534,38 @@ static void test_cmd_course(char *execname)
 	   ": -K/--karney is not supported by the course command\n",
 	   EXIT_FAILURE,
 	   "--karney course");
+
+	diag("--format sql course");
+	tc(chp{ execname, "-F", "sql", "course", "-45,-123", "45,-123", "5",
+	        NULL },
+	   "BEGIN;\n"
+	   "CREATE TABLE IF NOT EXISTS course (num INTEGER, lat REAL, lon REAL, dist REAL, frac REAL, bear REAL);\n"
+	   "INSERT INTO course VALUES (0, -45.000000, -123.000000, 0.000000, 0.000000, 0.000000);\n"
+	   "INSERT INTO course VALUES (1, -30.000000, -123.000000, 1667923.899668, 0.166667, 0.000000);\n"
+	   "INSERT INTO course VALUES (2, -15.000000, -123.000000, 3335847.799337, 0.333333, 0.000000);\n"
+	   "INSERT INTO course VALUES (3, 0.000000, -123.000000, 5003771.699005, 0.500000, 0.000000);\n"
+	   "INSERT INTO course VALUES (4, 15.000000, -123.000000, 6671695.598674, 0.666667, 0.000000);\n"
+	   "INSERT INTO course VALUES (5, 30.000000, -123.000000, 8339619.498342, 0.833333, 0.000000);\n"
+	   "INSERT INTO course VALUES (6, 45.000000, -123.000000, 10007543.398010, 1.000000, NULL);\n"
+	   "COMMIT;\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-F sql course -45,-123 45,-123 5");
+	tc(chp{ execname, "-F", "sql", "course", "60,5", "-35,135", "5",
+	        NULL },
+	   "BEGIN;\n"
+	   "CREATE TABLE IF NOT EXISTS course (num INTEGER, lat REAL, lon REAL, dist REAL, frac REAL, bear REAL);\n"
+	   "INSERT INTO course VALUES (0, 60.000000, 5.000000, 0.000000, 0.000000, 74.908926);\n"
+	   "INSERT INTO course VALUES (1, 57.898298, 50.808536, 2584622.088993, 0.166667, 114.711921);\n"
+	   "INSERT INTO course VALUES (2, 43.683265, 80.527411, 5169244.094446, 0.333333, 138.121194);\n"
+	   "INSERT INTO course VALUES (3, 24.968228, 97.421916, 7753866.163712, 0.500000, 147.823758);\n"
+	   "INSERT INTO course VALUES (4, 4.878069, 109.598447, 10338488.288345, 0.666667, 151.019525);\n"
+	   "INSERT INTO course VALUES (5, -15.417397, 121.038906, 12923110.365395, 0.833333, 149.948567);\n"
+	   "INSERT INTO course VALUES (6, -35.000000, 135.000000, 15507732.399720, 1.000000, NULL);\n"
+	   "COMMIT;\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-F sql course 60,5 -35,135 5");
 }
 
 /*
@@ -1614,6 +1679,15 @@ static void test_cmd_lpos(char *execname)
 	   ": -K/--karney is not supported by the lpos command\n",
 	   EXIT_FAILURE,
 	   "--karney lpos");
+	tc(chp{ execname, "-F", "sql", "lpos", "1,2", "87.188,-130.77", "0.2",
+	        NULL },
+	   "BEGIN;\n"
+	   "CREATE TABLE IF NOT EXISTS lpos (lat1 REAL, lon1 REAL, lat2 REAL, lon2 REAL, frac REAL, dlat REAL, dlon REAL, dist REAL, bear REAL);\n"
+	   "INSERT INTO lpos VALUES (1.000000, 2.000000, 87.188000, -130.770000, 0.200000, 19.169669, 1.318240, 14327441.236686, 64.166424);\n"
+	   "COMMIT;\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-F sql lpos");
 }
 
 /*
@@ -1766,6 +1840,31 @@ static void test_multiple(char *execname, char *cmd)
 		   ": -K/--karney is not supported by the bear command\n",
 		   EXIT_FAILURE,
 		   "-K bear");
+	}
+
+	diag("--format sql %s", cmd);
+	if (!strcmp(cmd, "bear")) {
+		tc(chp{ execname, "--format", "sql", cmd, "34,56", "-78,9",
+		        NULL },
+		   "BEGIN;\n"
+		   "CREATE TABLE IF NOT EXISTS bear (lat1 REAL, lon1 REAL, lat2 REAL, lon2 REAL, bear REAL, dist REAL);\n"
+		   "INSERT INTO bear VALUES (34.000000, 56.000000, -78.000000, 9.000000, 189.693136, 12835310.777042);\n"
+		   "COMMIT;\n",
+		   "",
+		   EXIT_SUCCESS,
+		   (p1 = allocstr("--format sql %s", cmd)));
+		free(p1);
+	} else {
+		tc(chp{ execname, "--format", "sql", cmd, "34,56", "-78,9",
+		        NULL },
+		   "BEGIN;\n"
+		   "CREATE TABLE IF NOT EXISTS dist (lat1 REAL, lon1 REAL, lat2 REAL, lon2 REAL, dist REAL, bear REAL);\n"
+		   "INSERT INTO dist VALUES (34.000000000000000, 56.000000000000000, -78.000000000000000, 9.000000000000000, 12835310.77704204, 189.69313615);\n"
+		   "COMMIT;\n",
+		   "",
+		   EXIT_SUCCESS,
+		   (p1 = allocstr("--format sql %s", cmd)));
+		free(p1);
 	}
 }
 
@@ -2157,6 +2256,64 @@ static void test_cmd_randpos(char *execname)
 	   ": -K/--karney is not supported by the randpos command\n",
 	   EXIT_FAILURE,
 	   "--karney randpos");
+
+	diag("--format sql randpos");
+	tc(chp{ execname, "--format", "sql", "--seed", "19", "--count", "20",
+	        "randpos", NULL },
+	   "BEGIN;\n"
+	   "CREATE TABLE IF NOT EXISTS randpos (seed INTEGER, num INTEGER, lat REAL, lon REAL, dist REAL, bear REAL);\n"
+	   "INSERT INTO randpos VALUES (19, 1, 25.603688, -130.636512, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 2, -48.273060, 77.529775, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 3, -17.117300, 140.106483, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 4, -52.240484, -115.036322, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 5, 3.344781, 17.095447, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 6, 16.755787, 9.521758, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 7, -19.490223, 12.660125, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 8, 69.696210, 156.752235, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 9, 52.694091, 90.355201, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 10, -6.449310, -117.032350, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 11, 13.210432, -169.948761, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 12, -22.225278, 129.713413, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 13, -1.595068, -106.917102, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 14, -22.137051, -55.379762, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 15, 0.672918, -35.768761, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 16, 8.184838, -1.136274, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 17, -57.901507, 155.489707, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 18, 14.890397, 131.859757, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 19, 31.066093, -2.976285, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 20, 31.662070, 0.677547, NULL, NULL);\n"
+	   "COMMIT;\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--format sql randpos without coordinate or dists");
+	tc(chp{ execname, "-F", "sql", "--seed", "19", "--count", "20",
+	        "randpos", "1,2", "200", "100", NULL },
+	   "BEGIN;\n"
+	   "CREATE TABLE IF NOT EXISTS randpos (seed INTEGER, num INTEGER, lat REAL, lon REAL, dist REAL, bear REAL);\n"
+	   "INSERT INTO randpos VALUES (19, 1, 0.999739, 1.998795, 137.029826, 257.785884);\n"
+	   "INSERT INTO randpos VALUES (19, 2, 1.001160, 2.001187, 184.578986, 45.661444);\n"
+	   "INSERT INTO randpos VALUES (19, 3, 0.998948, 2.001395, 194.296589, 127.020796);\n"
+	   "INSERT INTO randpos VALUES (19, 4, 1.001014, 2.000784, 142.479955, 37.694182);\n"
+	   "INSERT INTO randpos VALUES (19, 5, 0.998461, 1.999715, 173.992388, 190.501973);\n"
+	   "INSERT INTO randpos VALUES (19, 6, 0.999042, 1.998779, 172.556828, 231.892738);\n"
+	   "INSERT INTO randpos VALUES (19, 7, 0.999223, 2.001350, 173.155110, 119.943720);\n"
+	   "INSERT INTO randpos VALUES (19, 8, 1.001736, 1.999657, 196.717262, 348.815877);\n"
+	   "INSERT INTO randpos VALUES (19, 9, 1.001344, 1.998994, 186.659487, 323.173976);\n"
+	   "INSERT INTO randpos VALUES (19, 10, 0.998803, 2.000441, 141.822259, 159.781653);\n"
+	   "INSERT INTO randpos VALUES (19, 11, 0.999209, 1.999309, 116.709311, 221.135064);\n"
+	   "INSERT INTO randpos VALUES (19, 12, 0.999353, 2.001608, 192.753169, 111.915138);\n"
+	   "INSERT INTO randpos VALUES (19, 13, 0.998700, 2.000114, 145.056415, 174.989594);\n"
+	   "INSERT INTO randpos VALUES (19, 14, 0.999461, 2.001323, 158.835986, 112.171800);\n"
+	   "INSERT INTO randpos VALUES (19, 15, 0.998532, 1.999946, 163.296314, 182.113987);\n"
+	   "INSERT INTO randpos VALUES (19, 16, 0.998618, 1.999337, 170.487140, 205.626063);\n"
+	   "INSERT INTO randpos VALUES (19, 17, 1.001568, 2.000817, 196.535789, 27.515539);\n"
+	   "INSERT INTO randpos VALUES (19, 18, 0.998799, 1.998745, 193.074008, 226.254748);\n"
+	   "INSERT INTO randpos VALUES (19, 19, 1.000077, 1.998472, 170.123644, 272.884771);\n"
+	   "INSERT INTO randpos VALUES (19, 20, 1.000120, 1.998468, 170.843636, 274.483494);\n"
+	   "COMMIT;\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-F sql randpos with maxdist and mindist");
 }
 
 /*
