@@ -161,18 +161,28 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 
 	if (opt.km && !strcmp(cmd, "dist"))
 		result /= 1000.0;
-	s = allocstr("%%.%uf\n",
-	             opt.distformula == FRM_KARNEY ? KARNEY_DECIMALS
-	                                           : HAVERSINE_DECIMALS);
-	if (!s) {
-		myerror("%s():%d: allocstr() failed", /* gncov */
-		        __func__, __LINE__);
+	switch (opt.outpformat) {
+	case OF_DEFAULT:
+		s = allocstr("%%.%uf\n",
+		             opt.distformula == FRM_KARNEY
+		               ? KARNEY_DECIMALS
+		               : HAVERSINE_DECIMALS);
+		if (!s) {
+			myerror("%s():%d: allocstr() failed", /* gncov */
+			        __func__, __LINE__);
+			return EXIT_FAILURE; /* gncov */
+		}
+		printf(s, result);
+		free(s);
+		return EXIT_SUCCESS;
+	case OF_GPX: /* gncov */
 		return EXIT_FAILURE; /* gncov */
 	}
-	printf(s, result);
-	free(s);
 
-	return EXIT_SUCCESS;
+	myerror("%s():%d: opt.outpformat has unknown format %d", /* gncov */
+	        __func__, __LINE__, opt.outpformat); /* gncov */
+
+	return EXIT_FAILURE; /* gncov */
 }
 
 /*
@@ -202,8 +212,19 @@ int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
 		myerror("Value out of range");
 		return EXIT_FAILURE;
 	}
-	return print_eor_coor(nlat, nlon, "bpos", coor, bearing_s, dist_s)
-	       ? EXIT_FAILURE : EXIT_SUCCESS;
+
+	switch (opt.outpformat) {
+	case OF_DEFAULT:
+	case OF_GPX:
+		return print_eor_coor(nlat, nlon, "bpos", coor, bearing_s,
+		                      dist_s)
+		       ? EXIT_FAILURE : EXIT_SUCCESS;
+	}
+
+	myerror("%s(): opt.outpformat has unknown format %d", /* gncov */
+	        __func__, opt.outpformat); /* gncov */
+
+	return EXIT_FAILURE; /* gncov */
 }
 
 /*
@@ -234,10 +255,16 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 		myerror("Value out of range");
 		return EXIT_FAILURE;
 	}
-	if (opt.outpformat == OF_GPX) {
+
+	switch (opt.outpformat) {
+	case OF_DEFAULT:
+		break;
+	case OF_GPX:
 		fputs(GPX_HEADER, stdout);
 		puts("  <rte>");
+		break;
 	}
+
 	for (i = 0; i <= numpoints; i++) {
 		result = routepoint(lat1, lon1, lat2, lon2,
 		                    1.0 * i / numpoints, &nlat, &nlon);
@@ -258,9 +285,14 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 			break;
 		}
 	}
-	if (opt.outpformat == OF_GPX) {
+
+	switch (opt.outpformat) {
+	case OF_DEFAULT:
+		break;
+	case OF_GPX:
 		puts("  </rte>");
 		puts("</gpx>");
+		break;
 	}
 
 	return retval;
@@ -294,8 +326,18 @@ int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s)
 		return EXIT_FAILURE;
 	}
 
-	return print_eor_coor(nlat, nlon, "lpos", coor1, coor2, fracdist_s)
-	       ? EXIT_FAILURE : EXIT_SUCCESS;
+	switch (opt.outpformat) {
+	case OF_DEFAULT:
+	case OF_GPX:
+		return print_eor_coor(nlat, nlon, "lpos",
+		                      coor1, coor2, fracdist_s)
+		       ? EXIT_FAILURE : EXIT_SUCCESS;
+	}
+
+	myerror("%s(): opt.outpformat has unknown format %d", /* gncov */
+	        __func__, opt.outpformat); /* gncov */
+
+	return EXIT_FAILURE; /* gncov */
 }
 
 /*
@@ -336,8 +378,15 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 		if (maxdist_d > MAX_EARTH_DISTANCE)
 			maxdist_d = MAX_EARTH_DISTANCE;
 	}
-	if (opt.outpformat == OF_GPX)
+
+	switch (opt.outpformat) {
+	case OF_DEFAULT:
+		break;
+	case OF_GPX:
 		fputs(GPX_HEADER, stdout);
+		break;
+	}
+
 	for (l = 1; l <= opt.count; l++) {
 		double lat, lon;
 		char *name, *seedstr = NULL;
@@ -355,8 +404,14 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 		free(name);
 		free(seedstr);
 	}
-	if (opt.outpformat == OF_GPX)
+
+	switch (opt.outpformat) {
+	case OF_DEFAULT:
+		break;
+	case OF_GPX:
 		puts("</gpx>");
+		break;
+	}
 
 	return EXIT_SUCCESS;
 }
