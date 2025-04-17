@@ -11,4 +11,4 @@ geocalc:linux:
   before_script:
     - apt-get update -qq && apt-get install -y valgrind
   script:
-    - script -e -q -c "make testall clean valgrind tlokall"
+    - script -e -q -c "make testall clean valgrind tlokall DEVEL=1"
