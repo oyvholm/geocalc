@@ -57,7 +57,7 @@ test -n "$NDEBUG" && newdef NDEBUG
 # PROF: Compile with profiling code for gprof(1) to find bottlenecks
 test -n "$PROF" && newdef PROF
 
-# USE_NEW: Compile with new unstable code
+# USE_NEW: Use new functionality, potentially unstable
 test -n "$USE_NEW" && newdef USE_NEW
 
 exit 0

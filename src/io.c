@@ -291,8 +291,7 @@ int exec_output(struct binbuf *dest, char *cmd[])
 
 	streams_init(&st);
 	retval = streams_exec(&st, cmd);
-	if (dest)
-		binbuf_cpy(dest, &st.out);
+	binbuf_cpy(dest, &st.out);
 	streams_free(&st);
 
 	return retval;

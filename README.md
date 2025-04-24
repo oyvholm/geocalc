@@ -184,6 +184,11 @@ Should also not fail on master.
 
 ### Create HTML or PDF
 
+`make html` creates HTML versions of all documentation in the current 
+directory tree, and `make pdf` creates PDF versions. When executed in 
+the `src/` directory, an HTML or PDF version of the man page is created, 
+stored as `geocalc.html` or `geocalc.pdf`.
+
 All `*.md` files can be converted to HTML or PDF by replacing the `.md` 
 extension with `.html` or `.pdf`. For example, use `make README.html` to 
 generate an HTML file from the `.md` file, or `make README.pdf` to 
@@ -192,11 +197,6 @@ footer with the text "Generated from *filename* revision *git-id*
 (*date*)" is added.
 
 Uses `cmark`, available from <https://commonmark.org/>.
-
-`make html` creates HTML versions of all documentation in the current 
-directory tree, and `make pdf` creates PDF versions. When executed in 
-the `src/` directory, an HTML or PDF version of the man page is created, 
-stored as `geocalc.html` or `geocalc.pdf`.
 
 ## Download
 
