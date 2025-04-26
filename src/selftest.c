@@ -599,21 +599,13 @@ static void chk_round(const double num, const int decimals,
                       const double exp_result)
 {
 	double res = num;
-	char *s;
 
 	round_number(&res, decimals);
-	s = allocstr("round_number(%.13f, %d)", num, decimals);
-	if (!s) {
-		ok(1, "%s():%d: allocstr() failed", /* gncov */
-		      __func__, __LINE__);
-		return; /* gncov */
-	}
-	ok(!(res == exp_result), s);
+	ok(!(res == exp_result), "round_number(%.13f, %d)", num, decimals);
 	if (res != exp_result) {
 		diag("got: %.13f", res); /* gncov */
 		diag("exp: %.13f", exp_result); /* gncov */
 	}
-	free(s);
 }
 
 /*
@@ -832,7 +824,6 @@ static void chk_antip(const char *coor1, const char *coor2, const int exp)
 {
 	int result;
 	double lat1, lon1, lat2, lon2;
-	char *s;
 
 	if (!coor1 || !coor2) {
 		ok(1, "%s(): coor1 or coor2 is NULL", __func__); /* gncov */
@@ -845,15 +836,9 @@ static void chk_antip(const char *coor1, const char *coor2, const int exp)
 		return; /* gncov */
 	}
 
-	s = allocstr("are_antipodal(): \"%s\" and \"%s\", expects %s",
-	             coor1, coor2, exp ? "yes" : "no");
-	if (!s) {
-		ok(1, "%s(): allocstr() failed", __func__); /* gncov */
-		return; /* gncov */
-	}
 	result = are_antipodal(lat1, lon1, lat2, lon2);
-	ok(!(result == exp), s);
-	free(s);
+	ok(!(result == exp), "are_antipodal(): \"%s\" and \"%s\", expects %s",
+	                     coor1, coor2, exp ? "yes" : "no");
 }
 
 /*
@@ -1004,7 +989,7 @@ static void chk_karney(const char *coor1, const char *coor2,
 {
 	double lat1, lon1, lat2, lon2;
 	double exp_res = exp_result, result;
-	char *s, *res_s, *exp_s;
+	char *res_s, *exp_s;
 
 	if (parse_coordinate(coor1, &lat1, &lon1)
 	    || parse_coordinate(coor2, &lat2, &lon2)) {
@@ -1013,25 +998,22 @@ static void chk_karney(const char *coor1, const char *coor2,
 		return; /* gncov */
 	}
 	result = karney_distance(lat1, lon1, lat2, lon2);
-	s = allocstr("karney_distance(): %s %s", coor1, coor2);
 	res_s = allocstr("%.8f", result);
 	exp_s = allocstr("%.8f", exp_result);
-	if (!s || !res_s || !exp_s) {
+	if (!res_s || !exp_s) {
 		ok(1, "%s():%d: allocstr() failed", /* gncov */
 		      __func__, __LINE__);
 		free(exp_s); /* gncov */
 		free(res_s); /* gncov */
-		free(s); /* gncov */
 		return; /* gncov */
 	}
-	ok(!!strcmp(res_s, exp_s), s);
+	ok(!!strcmp(res_s, exp_s), "karney_distance(): %s %s", coor1, coor2);
 	if (strcmp(res_s, exp_s)) {
 		print_gotexp(res_s, exp_s); /* gncov */
 		diag("        diff: %.15f", result - exp_res); /* gncov */
 	}
 	free(exp_s);
 	free(res_s);
-	free(s);
 }
 
 /*
@@ -1202,9 +1184,8 @@ static void test_standard_options(char *execname)
 	} else {
 		ok(1, "%s(): allocstr() 1 failed", __func__); /* gncov */
 	}
-	s = EXEC_VERSION "\n";
 	tc(chp{ execname, "--version", "-q", NULL },
-	   s,
+	   EXEC_VERSION "\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "--version with -q shows only the version number");
@@ -1698,8 +1679,6 @@ static void test_cmd_lpos(char *execname)
 
 static void test_multiple(char *execname, char *cmd)
 {
-	char *p1;
-
 	assert(cmd);
 	if (!cmd) {
 		ok(1, "%s(): cmd is NULL", __func__); /* gncov */
@@ -1711,20 +1690,17 @@ static void test_multiple(char *execname, char *cmd)
 	   "",
 	   ": Missing arguments\n",
 	   EXIT_FAILURE,
-	   (p1 = allocstr("%s with no arguments", cmd)));
-	free(p1);
+	   "%s with no arguments", cmd);
 	sc(chp{ execname, cmd, "1,2", "3", NULL },
 	   "",
 	   ": Invalid number specified\n",
 	   EXIT_FAILURE,
-	   (p1 = allocstr("%s: Argument 2 is not a coordinate", cmd)));
-	free(p1);
+	   "%s: Argument 2 is not a coordinate", cmd);
 	tc(chp{ execname, cmd, "1,2", "3,4", NULL },
 	   !strcmp(cmd, "bear") ? "44.951998\n" : "314402.951024\n",
 	   "",
 	   EXIT_SUCCESS,
-	   (p1 = allocstr("%s 1,2 3,4", cmd)));
-	free(p1);
+	   "%s 1,2 3,4", cmd);
 	if (!strcmp(cmd, "bear")) {
 		sc(chp{ execname, "bear", "12,34", "-12,-146", NULL },
 		   "",
@@ -1742,64 +1718,53 @@ static void test_multiple(char *execname, char *cmd)
 	   "",
 	   ": Too many arguments\n",
 	   EXIT_FAILURE,
-	   (p1 = allocstr("%s with 1 argument too much", cmd)));
-	free(p1);
+	   "%s with 1 argument too much", cmd);
 	sc(chp{ execname, cmd, "1,2", "3,1e+900", NULL },
 	   "",
 	   ": Invalid number specified: Numerical result out of range\n",
 	   EXIT_FAILURE,
-	   (p1 = allocstr("%s with 1 number too large", cmd)));
-	free(p1);
+	   "%s with 1 number too large", cmd);
 	sc(chp{ execname, cmd, "1,2", "urgh,4", NULL },
 	   "",
 	   ": Invalid number specified: Invalid argument\n",
 	   EXIT_FAILURE,
-	   (p1 = allocstr("%s with 1 non-number", cmd)));
-	free(p1);
+	   "%s with 1 non-number", cmd);
 	sc(chp{ execname, cmd, "1,2.9y", "3,4", NULL },
 	   "",
 	   ": Invalid number specified: Invalid argument\n",
 	   EXIT_FAILURE,
-	   (p1 = allocstr("%s with non-digit after number", cmd)));
-	free(p1);
+	   "%s with non-digit after number", cmd);
 	sc(chp{ execname, cmd, "1,2 g", "3,4", NULL },
 	   "",
 	   ": Invalid number specified: Invalid argument\n",
 	   EXIT_FAILURE,
-	   (p1 = allocstr("%s with whitespace and non-digit after number",
-	                  cmd)));
-	free(p1);
+	   "%s with whitespace and non-digit after number", cmd);
 	tc(chp{ execname, cmd, "10,2,", "3,4", NULL },
 	   !strcmp(cmd, "bear") ? "164.027619\n" : "809080.682265\n",
 	   "",
 	   EXIT_SUCCESS,
-	   (p1 = allocstr("%s with comma after number", cmd)));
-	free(p1);
+	   "%s with comma after number", cmd);
 	sc(chp{ execname, cmd, "1,2", "3,NAN", NULL },
 	   "",
 	   ": Invalid number specified:"
 	   " Invalid argument\n",
 	   EXIT_FAILURE,
-	   (p1 = allocstr("%s with NAN", cmd)));
-	free(p1);
+	   "%s with NAN", cmd);
 	sc(chp{ execname, cmd, "1,2", "3,INF", NULL },
 	   "",
 	   ": Invalid number specified: Numerical result out of range\n",
 	   EXIT_FAILURE,
-	   (p1 = allocstr("%s with INF", cmd)));
-	free(p1);
+	   "%s with INF", cmd);
 	sc(chp{ execname, cmd, "1,2", "", NULL },
 	   "",
 	   ": Invalid number specified\n",
 	   EXIT_FAILURE,
-	   (p1 = allocstr("%s with empty argument", cmd)));
-	free(p1);
+	   "%s with empty argument", cmd);
 	sc(chp{ execname, cmd, "1,180.001", "3,4", NULL },
 	   "",
 	   ": Value out of range\n",
 	   EXIT_FAILURE,
-	   (p1 = allocstr("%s: lon1 out of range", cmd)));
-	free(p1);
+	   "%s: lon1 out of range", cmd);
 	if (!strcmp(cmd, "bear")) {
 		sc(chp{ execname, "bear", "90,0", "-90,0", NULL },
 		   "",
@@ -1827,14 +1792,12 @@ static void test_multiple(char *execname, char *cmd)
 	   !strcmp(cmd, "bear") ? "189.693136\n" : "12835310.777042\n",
 	   "",
 	   EXIT_SUCCESS,
-	   (p1 = allocstr("-F default %s", cmd)));
-	free(p1);
+	   "-F default %s", cmd);
 	sc(chp{ execname, "--format", "gpx", cmd, "34,56", "-78,9", NULL },
 	   "",
 	   ": No way to display this info in GPX format\n",
 	   EXIT_FAILURE,
-	   (p1 = allocstr("--format gpx %s", cmd)));
-	free(p1);
+	   "--format gpx %s", cmd);
 	if (!strcmp(cmd, "bear"))
 	{
 		sc(chp{ execname, "-K", "bear", "1,2", "3,4", NULL },
@@ -1854,8 +1817,7 @@ static void test_multiple(char *execname, char *cmd)
 		   "COMMIT;\n",
 		   "",
 		   EXIT_SUCCESS,
-		   (p1 = allocstr("--format sql %s", cmd)));
-		free(p1);
+		   "--format sql %s", cmd);
 	} else {
 		tc(chp{ execname, "--format", "sql", cmd, "34,56", "-78,9",
 		        NULL },
@@ -1865,8 +1827,7 @@ static void test_multiple(char *execname, char *cmd)
 		   "COMMIT;\n",
 		   "",
 		   EXIT_SUCCESS,
-		   (p1 = allocstr("--format sql %s", cmd)));
-		free(p1);
+		   "--format sql %s", cmd);
 	}
 }
 
