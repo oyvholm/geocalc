@@ -143,6 +143,7 @@ int opt_selftest(char *execname);
 void *mymalloc(const size_t size);
 int string_to_double(const char *s, double *dest);
 char *mystrdup(const char *s);
+char *allocstr_va(const char *format, va_list ap);
 char *allocstr(const char *format, ...);
 int parse_coordinate(const char *s, double *dest_lat, double *dest_lon);
 
