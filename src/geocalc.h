@@ -60,6 +60,8 @@
 	        __func__, __FILE__, __LINE__, errno, strerror(errno)); \
 }
 
+#define failed(a)  myerror("%s():%d: %s failed", __func__, __LINE__, (a))
+
 typedef enum {
 	OF_DEFAULT = 0,
 	OF_GPX,

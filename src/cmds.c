@@ -58,8 +58,7 @@ static int print_coordinate(const double lat, const double lon,
 		}
 		s = gpx_wpt(nlat, nlon, name, cmt);
 		if (!s) {
-			myerror("%s(): gpx_wpt() failed", /* gncov */
-			        __func__);
+			failed("gpx_wpt()"); /* gncov */
 			return 1; /* gncov */
 		}
 		fputs(s, stdout);
@@ -168,8 +167,7 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 		               ? KARNEY_DECIMALS
 		               : HAVERSINE_DECIMALS);
 		if (!s) {
-			myerror("%s():%d: allocstr() failed", /* gncov */
-			        __func__, __LINE__);
+			failed("allocstr()"); /* gncov */
 			return EXIT_FAILURE; /* gncov */
 		}
 		printf(s, result);
@@ -334,8 +332,7 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 				bear_s = allocstr("NULL");
 			}
 			if (!bear_s) {
-				myerror("%s():%d: allocstr()" /* gncov */
-				        " failed", __func__, __LINE__);
+				failed("allocstr()"); /* gncov */
 				return EXIT_FAILURE; /* gncov */
 			}
 			printf("INSERT INTO course VALUES (%d, %f, %f, %f,"
@@ -475,8 +472,7 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 		if (opt.seed) {
 			seedstr = allocstr(", seed %ld", opt.seedval);
 			if (!seedstr) {
-				myerror("%s():%d: allocstr()" /* gncov */
-				        " failed()", __func__, __LINE__);
+				failed("allocstr()"); /* gncov */
 				return EXIT_FAILURE; /* gncov */
 			}
 		}
@@ -547,16 +543,14 @@ static int bench_dist_func(const char *name,
 	br->name = name;
 	br->rounds = 0L;
 	if (clock_gettime(CLOCK_MONOTONIC, &br->start)) {
-		myerror("%s():%d: clock_gettime() failed", /* gncov */
-		        __func__, __LINE__);
+		failed("clock_gettime()"); /* gncov */
 		return 1; /* gncov */
 	}
 	do {
 		fnc(br->lat1, br->lon1, br->lat2, br->lon2);
 		br->rounds++;
 		if (clock_gettime(CLOCK_MONOTONIC, &br->end)) {
-			myerror("%s():%d: clock_gettime() failed", /* gncov */
-			        __func__, __LINE__);
+			failed("clock_gettime()"); /* gncov */
 			return 1; /* gncov */
 		}
 		if ((br->end.tv_sec - br->start.tv_sec > dur)
