@@ -565,6 +565,51 @@ static void test_valgrind_lines(void)
  */
 
 /*
+ * test_myerror() - Tests the myerror() function. Returns nothing.
+ */
+
+static void test_myerror(void)
+{
+	diag("Test myerror()");
+	errno = EACCES;
+	ok(!(myerror("errno is EACCES") > 37), "myerror(): errno is EACCES");
+	ok(!!errno, "errno is set to 0 by myerror()");
+}
+
+/*
+ * test_std_strerror() - Tests the std_strerror() function. Returns nothing.
+ */
+
+static void test_std_strerror(void)
+{
+	diag("Test std_strerror()");
+	ok(!(std_strerror(0) != NULL), "std_strerror(0)");
+	ok(!!strcmp(std_strerror(EACCES), "Permission denied"),
+	   "std_strerror(EACCES) is as expected");
+}
+
+/*
+ * test_mystrdup() - Tests the mystrdup() function. Returns nothing.
+ */
+
+static void test_mystrdup(void)
+{
+	const char *txt = "Test string";
+	char *s;
+
+	diag("Test mystrdup()");
+	ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
+
+	s = mystrdup(txt);
+	if (!s) {
+		failed("mystrdup()"); /* gncov */
+		return; /* gncov */
+	}
+	ok(!!strcmp(s, txt), "mystrdup(): Strings are identical");
+	free(s);
+}
+
+/*
  * test_allocstr() - Tests the allocstr() function. Returns nothing.
  */
 
@@ -2440,16 +2485,9 @@ static void test_functions(void)
 	test_valgrind_lines();
 
 	diag("Test various routines");
-	diag("Test myerror()");
-	errno = EACCES;
-	ok(!(myerror("errno is EACCES") > 37), "myerror(): errno is EACCES");
-	ok(!!errno, "errno is set to 0 by myerror()");
-	diag("Test std_strerror()");
-	ok(!(std_strerror(0) != NULL), "std_strerror(0)");
-	ok(!!strcmp(std_strerror(EACCES), "Permission denied"),
-	   "std_strerror(EACCES) is as expected");
-	diag("Test mystrdup()");
-	ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
+	test_myerror();
+	test_std_strerror();
+	test_mystrdup();
 	test_allocstr();
 	test_round_number();
 	test_rand_pos();
