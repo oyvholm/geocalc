@@ -662,8 +662,11 @@ static void chk_rand_pos(const char *coor,
 	for (l = 0; l < numloop; l++) {
 		double clat = 1000.0, clon = 1000.0, rlat, rlon, dist, r_dist;
 		if (coor && parse_coordinate(coor, &clat, &clon)) {
-			ok(1, "%s(): parse_coordinate() failed," /* gncov */
-			      " coor = \"%s\"", __func__, coor);
+			ok(1, "%s():%d: parse_coordinate() failed," /* gncov */
+			      " coor = \"%s\", errno = %d (%s)",
+			      __func__, __LINE__, coor,
+			      errno, std_strerror(errno)); /* gncov */
+			errno = 0; /* gncov */
 			return; /* gncov */
 		}
 		rand_pos(&rlat, &rlon, clat, clon, maxdist, mindist);
