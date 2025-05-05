@@ -223,7 +223,6 @@ int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
 	    || string_to_double(bearing_s, &bearing)
 	    || string_to_double(dist_s, &dist)) {
 		myerror("Invalid number specified");
-		errno = 0;
 		return EXIT_FAILURE;
 	}
 	if (opt.km)
@@ -275,7 +274,6 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 	    || parse_coordinate(coor2, &lat2, &lon2)
 	    || string_to_double(numpoints_s, &numpoints)) {
 		myerror("Invalid number specified");
-		errno = 0;
 		return EXIT_FAILURE;
 	}
 	if (are_antipodal(lat1, lon1, lat2, lon2)) {
@@ -374,7 +372,6 @@ int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s)
 	    || parse_coordinate(coor2, &lat2, &lon2)
 	    || string_to_double(fracdist_s, &fracdist)) {
 		myerror("Invalid number specified");
-		errno = 0;
 		return EXIT_FAILURE;
 	}
 	if (are_antipodal(lat1, lon1, lat2, lon2)) {
@@ -429,12 +426,10 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 		}
 		if (maxdist && string_to_double(maxdist, &maxdist_d)) {
 			myerror("Error in max_dist argument");
-			errno = 0;
 			return EXIT_FAILURE;
 		}
 		if (mindist && string_to_double(mindist, &mindist_d)) {
 			myerror("Error in min_dist argument");
-			errno = 0;
 			return EXIT_FAILURE;
 		}
 		if (mindist_d < 0 || maxdist_d < 0) {

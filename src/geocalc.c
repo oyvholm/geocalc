@@ -90,8 +90,12 @@ const char *std_strerror(const int errnum)
  *
  * where `a` is the name of the program (the value of `progname`), `b` is the 
  * output from the printf-like string and optional arguments, and `c` is the 
- * error message from `errno`. If `errno` indicates no error, the ": c" part is 
- * not printed. Returns the number of characters written.
+ * error message from `errno`.
+ *
+ * If `errno` contained an error value (!0), it is reset to 0.
+ *
+ * If `errno` indicates no error, the ": c" part is not printed. Returns the 
+ * number of characters written.
  */
 
 int myerror(const char *format, ...)
@@ -107,8 +111,10 @@ int myerror(const char *format, ...)
 	va_start(ap, format);
 	retval += vfprintf(stderr, format, ap);
 	va_end(ap);
-	if (orig_errno)
+	if (orig_errno) {
 		retval += fprintf(stderr, ": %s", std_strerror(orig_errno));
+		errno = 0;
+	}
 	retval += fprintf(stderr, "\n");
 
 	return retval;
@@ -357,11 +363,9 @@ static int choose_opt_action(const int c, const struct option *opts)
 	case 0:
 		if (!strcmp(opts->name, "count")) {
 			char *endptr = NULL;
-			errno = 0;
 			opt.count = strtol(optarg, &endptr, 10);
 			if (errno || endptr == optarg || *endptr
 			    || opt.count < 0) {
-				errno = 0;
 				myerror("%s: Invalid --count argument",
 				        optarg);
 				return 1;
@@ -373,10 +377,8 @@ static int choose_opt_action(const int c, const struct option *opts)
 		} else if (!strcmp(opts->name, "seed")) {
 			char *endptr = NULL;
 			opt.seed = optarg;
-			errno = 0;
 			opt.seedval = strtol(opt.seed, &endptr, 10);
 			if (errno || endptr == opt.seed || *endptr) {
-				errno = 0;
 				myerror("%s: Invalid --seed argument",
 				        opt.seed);
 				return 1;

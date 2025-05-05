@@ -29,7 +29,6 @@
 int string_to_double(const char *s, double *dest)
 {
 	char *endptr;
-	errno = 0;
 
 	*dest = strtod(s, &endptr);
 
