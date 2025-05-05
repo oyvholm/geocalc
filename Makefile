@@ -4,6 +4,11 @@
 IGNFILES  =
 IGNFILES += -e ^COPYING
 IGNFILES += -e ^src/bin/gcov-cmt
+LONGLINES_FILES  =
+LONGLINES_FILES += .gitlab-ci.yml
+LONGLINES_FILES += Makefile
+LONGLINES_FILES += NEWS.md
+LONGLINES_FILES += README.md
 
 .PHONY: all
 all:
@@ -67,7 +72,7 @@ install:
 
 .PHONY: longlines
 longlines:
-	@for f in .gitlab-ci.yml Makefile NEWS.md README.md; do \
+	@for f in $(LONGLINES_FILES); do \
 		[ -f "$$f" ] && expand "$$f" | sed 's/ $$//;' \
 		| grep -E -n '.{80}' && echo "$$f"; \
 	done | grep . && exit 1 || true
