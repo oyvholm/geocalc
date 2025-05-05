@@ -69,7 +69,7 @@ install:
 longlines:
 	@for f in .gitlab-ci.yml Makefile NEWS.md README.md; do \
 		[ -f "$$f" ] && expand "$$f" | sed 's/ $$//;' \
-		| grep -q -E '.{80}' && echo "$$f"; \
+		| grep -E -n '.{80}' && echo "$$f"; \
 	done | grep . && exit 1 || true
 	cd src && $(MAKE) -s $@
 
