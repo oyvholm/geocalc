@@ -62,9 +62,11 @@ char *binbuf_cpy(struct binbuf *dest, const struct binbuf *src)
 	}
 	binbuf_init(&sb);
 	sb.alloc = src->alloc;
-	sb.buf = mymalloc(sb.alloc);
-	if (!sb.buf)
+	sb.buf = malloc(sb.alloc);
+	if (!sb.buf) {
+		failed("malloc()"); /* gncov */
 		return NULL; /* gncov */
+	}
 	sb.len = src->len;
 	if (sb.len > sb.alloc) {
 		myerror("%s(): sb.len (%zu) is larger than" /* gncov */

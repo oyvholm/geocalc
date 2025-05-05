@@ -145,7 +145,6 @@ int exec_output(struct binbuf *dest, char *cmd[]);
 int opt_selftest(char *execname);
 
 /* strings.c */
-void *mymalloc(const size_t size);
 int string_to_double(const char *s, double *dest);
 char *mystrdup(const char *s);
 char *allocstr_va(const char *format, va_list ap);
