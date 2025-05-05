@@ -55,10 +55,13 @@
 #else
 #  define DEBL  ;
 #endif
-#define check_errno  if (errno) { \
-	myerror("%s():%s:%d: errno = %d (\"%s\")", \
-	        __func__, __FILE__, __LINE__, errno, strerror(errno)); \
-}
+
+#define check_errno  do { \
+	if (errno) { \
+		myerror("%s():%s:%d: errno = %d", \
+		        __func__, __FILE__, __LINE__, errno); \
+	} \
+} while (0)
 
 #define failed(a)  myerror("%s():%d: %s failed", __func__, __LINE__, (a))
 
