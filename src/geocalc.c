@@ -422,6 +422,32 @@ static int choose_opt_action(struct Options *dest,
 }
 
 /*
+ * init_opt() - Initializes a `struct Options` with default values. Returns 
+ * nothing.
+ */
+
+void init_opt(struct Options *dest)
+{
+	assert(dest);
+
+	dest->count = 1;
+	dest->distformula = FRM_HAVERSINE;
+	dest->format = NULL;
+	dest->help = false;
+	dest->km = false;
+	dest->license = false;
+	dest->outpformat = OF_DEFAULT;
+	dest->seed = NULL;
+	dest->seedval = (long)time(NULL) ^ ((long)getpid() << 16);
+	dest->selftest = false;
+	dest->testexec = false;
+	dest->testfunc = false;
+	dest->valgrind = false;
+	dest->verbose = 0;
+	dest->version = false;
+}
+
+/*
  * parse_options() - Parse command line options and store the result in `dest`. 
  * Returns 0 if successful, or 1 if an error occurs.
  */
@@ -434,21 +460,7 @@ static int parse_options(struct Options *dest,
 	assert(dest);
 	assert(argv);
 
-	opt.count = 1;
-	opt.distformula = FRM_HAVERSINE;
-	opt.format = NULL;
-	opt.help = false;
-	opt.km = false;
-	opt.license = false;
-	opt.outpformat = OF_DEFAULT;
-	opt.seed = NULL;
-	opt.seedval = (long)time(NULL) ^ ((long)getpid() << 16);
-	opt.selftest = false;
-	opt.testexec = false;
-	opt.testfunc = false;
-	opt.valgrind = false;
-	opt.verbose = 0;
-	opt.version = false;
+	init_opt(dest);
 
 	while (!retval) {
 		int c;
