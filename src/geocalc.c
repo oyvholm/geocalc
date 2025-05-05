@@ -348,66 +348,68 @@ static int usage(const int retval)
 }
 
 /*
- * choose_opt_action() - Decide what to do when option `c` is found. Read 
- * definitions for long options from `opts`.
+ * choose_opt_action() - Decide what to do when option `c` is found. Store 
+ * changes in `dest`. Read definitions for long options from `opts`.
  * Returns 0 if ok, or 1 if `c` is unknown or anything fails.
  */
 
-static int choose_opt_action(const int c, const struct option *opts)
+static int choose_opt_action(struct Options *dest,
+                             const int c, const struct option *opts)
 {
 	int retval = 0;
 
+	assert(dest);
 	assert(opts);
 
 	switch (c) {
 	case 0:
 		if (!strcmp(opts->name, "count")) {
 			char *endptr = NULL;
-			opt.count = strtol(optarg, &endptr, 10);
+			dest->count = strtol(optarg, &endptr, 10);
 			if (errno || endptr == optarg || *endptr
-			    || opt.count < 0) {
+			    || dest->count < 0) {
 				myerror("%s: Invalid --count argument",
 				        optarg);
 				return 1;
 			}
 		} else if (!strcmp(opts->name, "km")) {
-			opt.km = true;
+			dest->km = true;
 		} else if (!strcmp(opts->name, "license")) {
-			opt.license = true;
+			dest->license = true;
 		} else if (!strcmp(opts->name, "seed")) {
 			char *endptr = NULL;
-			opt.seed = optarg;
-			opt.seedval = strtol(opt.seed, &endptr, 10);
-			if (errno || endptr == opt.seed || *endptr) {
+			dest->seed = optarg;
+			dest->seedval = strtol(dest->seed, &endptr, 10);
+			if (errno || endptr == dest->seed || *endptr) {
 				myerror("%s: Invalid --seed argument",
-				        opt.seed);
+				        dest->seed);
 				return 1;
 			}
 		} else if (!strcmp(opts->name, "selftest")) {
-			opt.selftest = true;
+			dest->selftest = true;
 		} else if (!strcmp(opts->name, "valgrind")) {
-			opt.valgrind = opt.selftest = true;
+			dest->valgrind = dest->selftest = true;
 		} else if (!strcmp(opts->name, "version")) {
-			opt.version = true;
+			dest->version = true;
 		}
 		break;
 	case 'F':
-		opt.format = optarg;
+		dest->format = optarg;
 		break;
 	case 'H':
-		opt.distformula = FRM_HAVERSINE;
+		dest->distformula = FRM_HAVERSINE;
 		break;
 	case 'K':
-		opt.distformula = FRM_KARNEY;
+		dest->distformula = FRM_KARNEY;
 		break;
 	case 'h':
-		opt.help = true;
+		dest->help = true;
 		break;
 	case 'q':
-		opt.verbose--;
+		dest->verbose--;
 		break;
 	case 'v':
-		opt.verbose++;
+		dest->verbose++;
 		break;
 	default:
 		msg(4, "%s(): getopt_long() returned character code %d",
@@ -420,14 +422,16 @@ static int choose_opt_action(const int c, const struct option *opts)
 }
 
 /*
- * parse_options() - Parse command line options.
- * Returns 0 if succesful, or 1 if an error occurs.
+ * parse_options() - Parse command line options and store the result in `dest`. 
+ * Returns 0 if successful, or 1 if an error occurs.
  */
 
-static int parse_options(const int argc, char * const argv[])
+static int parse_options(struct Options *dest,
+                         const int argc, char * const argv[])
 {
 	int retval = 0;
 
+	assert(dest);
 	assert(argv);
 
 	opt.count = 1;
@@ -477,7 +481,8 @@ static int parse_options(const int argc, char * const argv[])
 		                , long_options, &option_index);
 		if (c == -1)
 			break;
-		retval = choose_opt_action(c, &long_options[option_index]);
+		retval = choose_opt_action(dest,
+		                           c, &long_options[option_index]);
 	}
 
 	return retval;
@@ -663,7 +668,7 @@ int main(int argc, char *argv[])
 	progname = argv[0];
 	errno = 0;
 
-	if (parse_options(argc, argv)) {
+	if (parse_options(&opt, argc, argv)) {
 		myerror("Option error");
 		return usage(EXIT_FAILURE);
 	}
