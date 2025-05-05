@@ -84,11 +84,8 @@ char *mystrdup(const char *s)
 		return NULL;
 	size = strlen(s);
 	p = malloc(size + 1);
-	if (!p) {
-		myerror("%s(): Could not allocate %zu bytes", /* gncov */
-		        __func__, size);
+	if (!p)
 		return NULL; /* gncov */
-	}
 	memcpy(p, s, size);
 	p[size] = '\0';
 
