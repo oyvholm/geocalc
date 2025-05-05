@@ -64,8 +64,6 @@ const char *std_strerror(const int errnum)
 	switch (errnum) {
 	case EACCES:
 		return "Permission denied";
-	case EDOM:
-		return "Numerical argument out of domain";
 	case EINVAL:
 		return "Invalid argument";
 	case ERANGE:

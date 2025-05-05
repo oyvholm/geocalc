@@ -2446,8 +2446,8 @@ static void test_functions(void)
 	ok(!!errno, "errno is set to 0 by myerror()");
 	diag("Test std_strerror()");
 	ok(!(std_strerror(0) != NULL), "std_strerror(0)");
-	ok(!!strcmp(std_strerror(EDOM), "Numerical argument out of domain"),
-	   "std_strerror(EDOM) is as expected");
+	ok(!!strcmp(std_strerror(EACCES), "Permission denied"),
+	   "std_strerror(EACCES) is as expected");
 	diag("Test mystrdup()");
 	ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
 	test_allocstr();
