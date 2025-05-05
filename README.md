@@ -1,4 +1,5 @@
 # Geocalc
+<!-- File ID: 93e17540-87f2-11ef-9eac-83850402c3ce -->
 
 A command-line utility for geographic calculations using decimal 
 degrees.
@@ -10,7 +11,7 @@ receives parameters and values via the command line, and prints accurate
 and strict values to standard output. This makes it suitable for use in 
 scripts and quick manual calculations.
 
-## Features
+### Features
 
 - Distance calculations between coordinates
 - Bearing calculations
@@ -22,7 +23,7 @@ scripts and quick manual calculations.
 - Platform independent
 - Built-in test suite for all functionality
 
-## Status
+### Status
 
 Contains the following commands:
 
@@ -50,7 +51,7 @@ Contains the following commands:
 - **`randpos`**\
   Generates random coordinates.
 
-## Examples
+### Examples
 
 - `geocalc bear 60.393,5.324 51.53217,-0.17786`\
   Find the bearing towards Abbey Road Studios when standing in the 
@@ -80,7 +81,7 @@ Contains the following commands:
 
 ## Development
 
-The `master` branch is considered stable, no unstable development 
+The `master` branch is considered stable; no unstable development 
 happens there. Every new functionality or bug fix is created on topic 
 branches which may be rebased now and then. All tests on `master` 
 (executed with "make test") MUST succeed. If any test fails, it's 
@@ -98,11 +99,11 @@ Using the version number `X.Y.Z` as an example:
 - `Z` is the *patch level*.
   Increased when new backwards-compatible bugfixes are added.
 
-## Compiler flags for development
+### Compiler flags for development
 
 To avoid complications on various systems, the default build only uses 
-`-Wall -O2`. Additional warning flags are enabled if any of these 
-conditions are true:
+`-Wall -O2`. Additional warning flags are enabled if any of the 
+following conditions are met:
 
 - The file `src/.devel` or `.git/.devel` exists
 - The environment variable `DEVEL` is set to any value
@@ -235,8 +236,6 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
 document are to be interpreted as described in RFC 2119.
 
 -----
-
-File ID: 93e17540-87f2-11ef-9eac-83850402c3ce
 
 <!--
 vim: set ts=2 sw=2 sts=2 tw=72 et fo=tcqw fenc=utf8 :

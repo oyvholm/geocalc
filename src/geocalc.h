@@ -67,12 +67,14 @@ typedef enum {
 } OutputFormat;
 
 struct Options {
+	/* sort -d -k2 */
 	long count;
 	DistFormula distformula;
+	char *format;
 	bool help;
 	bool km;
 	bool license;
-	char *format;
+	OutputFormat outpformat;
 	char *seed;
 	long seedval;
 	bool selftest;
@@ -81,7 +83,6 @@ struct Options {
 	bool valgrind;
 	int verbose;
 	bool version;
-	OutputFormat outpformat;
 };
 
 struct streams {
@@ -110,6 +111,13 @@ struct bench_result {
  * Public function prototypes
  */
 
+/* geocalc.c */
+extern char *progname;
+extern struct Options opt;
+int msg(const int verbose, const char *format, ...);
+const char *std_strerror(const int errnum);
+int myerror(const char *format, ...);
+
 /* cmds.c */
 void round_number(double *dest, const int decimals);
 int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2);
@@ -118,11 +126,6 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s);
 int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s);
 int cmd_randpos(const char *coor, const char *maxdist, const char *mindist);
 int cmd_bench(const char *seconds);
-
-/* geocalc.c */
-int msg(const int verbose, const char *format, ...);
-const char *std_strerror(const int errnum);
-int myerror(const char *format, ...);
 
 /* gpx.c */
 char *xml_escape_string(const char *text);
@@ -146,13 +149,6 @@ char *mystrdup(const char *s);
 char *allocstr_va(const char *format, va_list ap);
 char *allocstr(const char *format, ...);
 int parse_coordinate(const char *s, double *dest_lat, double *dest_lon);
-
-/*
- * Global variables
- */
-
-extern char *progname;
-extern struct Options opt;
 
 #endif /* ifndef _GEOCALC_H */
 

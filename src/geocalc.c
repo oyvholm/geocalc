@@ -309,8 +309,6 @@ static int usage(const int retval)
 	       "    Print the software license.\n");
 	printf("  -q, --quiet\n"
 	       "    Be more quiet. Can be repeated to increase silence.\n");
-	printf("  -v, --verbose\n"
-	       "    Increase level of verbosity. Can be repeated.\n");
 	printf("  --seed <seednum>\n"
 	       "    Initialize the pseudo-random number generator with the"
 	       " value \n"
@@ -334,6 +332,8 @@ static int usage(const int retval)
 	       " Accepts \n"
 	       "    the same optional argument as --selftest, with the same"
 	       " defaults.\n");
+	printf("  -v, --verbose\n"
+	       "    Increase level of verbosity. Can be repeated.\n");
 	printf("  --version\n"
 	       "    Print version information.\n");
 	printf("\n");
