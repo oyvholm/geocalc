@@ -26,6 +26,14 @@
  */
 
 #define chp  (char *[])
+#define failed_ok(a)  do { \
+	if (errno) \
+		ok(1, "%s():%d: %s failed: %s", \
+		      __func__, __LINE__, (a), std_strerror(errno)); \
+	else \
+		ok(1, "%s():%d: %s failed", __func__, __LINE__, (a)); \
+	errno = 0; \
+} while (0)
 
 static int failcount = 0;
 static int testnum = 0;
@@ -72,7 +80,7 @@ static char *diag_output_va(const char *format, va_list ap)
 
 	buffer = allocstr_va(format, ap);
 	if (!buffer) {
-		ok(1, "%s(): allocstr_va() failed", __func__); /* gncov */
+		failed_ok("allocstr_va()"); /* gncov */
 		return NULL; /* gncov */
 	}
 
@@ -145,8 +153,8 @@ static int diag(const char *format, ...)
 	converted_buffer = diag_output_va(format, ap);
 	va_end(ap);
 	if (!converted_buffer) {
-		return ok(1, "%s(): diag_output_va() failed", /* gncov */
-		             __func__);
+		failed_ok("diag_output_va()"); /* gncov */
+		return 1; /* gncov */
 	}
 	fprintf(stderr, "%s\n", converted_buffer);
 	fflush(stderr);
@@ -173,7 +181,7 @@ static char *gotexp_output(const char *got, const char *exp)
 	             "    expected: '%s'",
 	             got, exp);
 	if (!s)
-		ok(1, "%s(): allocstr() failed", __func__); /* gncov */
+		failed_ok("allocstr()"); /* gncov */
 
 	return s;
 }
@@ -289,7 +297,7 @@ static void test_command(const char identical, char *cmd[],
 
 	descbuf = allocstr_va(desc, ap);
 	if (!descbuf) {
-		ok(1, "%s(): allocstr_va() failed", __func__); /* gncov */
+		failed_ok("allocstr_va()"); /* gncov */
 		return; /* gncov */
 	}
 	streams_init(&ss);
@@ -312,7 +320,7 @@ static void test_command(const char identical, char *cmd[],
 		char *g = allocstr("%d", ss.ret), /* gncov */
 		     *e = allocstr("%d", exp_retval); /* gncov */
 		if (!g || !e) /* gncov */
-			ok(1, "%s(): allocstr() failed", __func__); /* gncov */
+			failed_ok("allocstr()"); /* gncov */
 		else
 			print_gotexp(g, e); /* gncov */
 		free(e); /* gncov */
@@ -409,8 +417,7 @@ static void test_diag_big(void)
 	size = BUFSIZ * 2;
 	p = malloc(size + 1);
 	if (!p) {
-		ok(1, "%s(): malloc(%zu) failed", /* gncov */
-		       __func__, size + 1);
+		failed_ok("malloc()"); /* gncov */
 		return; /* gncov */
 	}
 
@@ -570,15 +577,14 @@ static void test_allocstr(void)
 	diag("Test allocstr()");
 	p = malloc(bufsize);
 	if (!p) {
-		ok(1, "%s(): malloc() failed", __func__); /* gncov */
+		failed_ok("malloc()"); /* gncov */
 		return; /* gncov */
 	}
 	memset(p, 'a', bufsize - 1);
 	p[bufsize - 1] = '\0';
 	p2 = allocstr("%s", p);
 	if (!p2) {
-		ok(1, "%s(): allocstr() failed with BUFSIZ * 2", /* gncov */
-		      __func__);
+		failed_ok("allocstr() with BUFSIZ * 2"); /* gncov */
 		goto free_p; /* gncov */
 	}
 	alen = strlen(p2);
@@ -813,8 +819,7 @@ static void chk_xmlesc(const char *s, const char *exp)
 
 	got = xml_escape_string(s);
 	if (!got) {
-		ok(1, "%s(): xml_escape_string() failed", /* gncov */
-		      __func__);
+		failed_ok("xml_escape_string()"); /* gncov */
 		return; /* gncov */
 	}
 	ok(!!strcmp(got, exp), "xml escape: \"%s\"", s);
@@ -839,7 +844,7 @@ static void chk_antip(const char *coor1, const char *coor2, const int exp)
 
 	if (parse_coordinate(coor1, &lat1, &lon1)
 	    || parse_coordinate(coor2, &lat2, &lon2)) {
-		ok(1, "%s(): parse_coordinate() failed", __func__); /* gncov */ 
+		failed_ok("parse_coordinate()"); /* gncov */ 
 		return; /* gncov */
 	}
 
@@ -1008,8 +1013,7 @@ static void chk_karney(const char *coor1, const char *coor2,
 	res_s = allocstr("%.8f", result);
 	exp_s = allocstr("%.8f", exp_result);
 	if (!res_s || !exp_s) {
-		ok(1, "%s():%d: allocstr() failed", /* gncov */
-		      __func__, __LINE__);
+		failed_ok("allocstr()"); /* gncov */
 		free(exp_s); /* gncov */
 		free(res_s); /* gncov */
 		return; /* gncov */
@@ -1169,7 +1173,7 @@ static void test_standard_options(char *execname)
 		   "--version");
 		free(s);
 	} else {
-		ok(1, "%s(): allocstr() 1 failed", __func__); /* gncov */
+		failed_ok("allocstr()"); /* gncov */
 	}
 	tc(chp{ execname, "--version", "-q", NULL },
 	   EXEC_VERSION "\n",
@@ -1844,15 +1848,14 @@ static void verify_coor_dist(const char *str, const char *coor,
 		return; /* gncov */
 	}
 	if (parse_coordinate(coor, &clat, &clon)) {
-		ok(1, "%s(): parse_coordinate() failed", /* gncov */
-		      __func__);
+		failed_ok("parse_coordinate()"); /* gncov */
 		diag("%s(): coor = \"%s\"", __func__, coor); /* gncov */
 		return; /* gncov */
 	}
 
 	s = mystrdup(str);
 	if (!s) {
-		ok(1, "%s(): mystrdup() failed", __func__); /* gncov */
+		failed_ok("mystrdup()"); /* gncov */
 		return; /* gncov */
 	}
 	p = strtok(s, "\n");
@@ -1860,8 +1863,7 @@ static void verify_coor_dist(const char *str, const char *coor,
 		double lat, lon, dist;
 		coorcount++;
 		if (parse_coordinate(p, &lat, &lon)) {
-			ok(1, "%s(): parse_coordinate()" /* gncov */
-			      " failed", __func__);
+			failed_ok("parse_coordinate()"); /* gncov */
 			diag("%s(): p = \"%s\"", __func__, p); /* gncov */
 			errcount++; /* gncov */
 			goto next; /* gncov */
@@ -1948,13 +1950,12 @@ static int chk_coor_outp(const OutputFormat format, const char *output,
 
 	pattern = allocstr(regstr, num);
 	if (!pattern) {
-		ok(1, "%s(): allocstr() failed", /* gncov */
-		      __func__);
+		failed_ok("allocstr()"); /* gncov */
 		return 1; /* gncov */
 	}
 
 	if (regcomp(&regex, pattern, REG_EXTENDED)) {
-		ok(1, "%s(): regcomp() failed", __func__); /* gncov */
+		failed_ok("regcomp()"); /* gncov */
 		errcount++; /* gncov */
 		goto cleanup; /* gncov */
 	}
@@ -2469,8 +2470,9 @@ static int print_version_info(char *execname)
 	streams_init(&ss);
 	res = streams_exec(&ss, chp{ execname, "--version", NULL });
 	if (res) {
-		diag("%s(): streams_exec() failed:\n%s", /* gncov */
-		     __func__, ss.err.buf ? ss.err.buf : "(null)"); /* gncov */
+		failed_ok("streams_exec()"); /* gncov */
+		if (ss.err.buf) /* gncov */
+			diag(ss.err.buf); /* gncov */
 		return 1; /* gncov */
 	}
 	diag("========== BEGIN version info ==========\n"
@@ -2541,5 +2543,6 @@ int opt_selftest(char *execname)
 }
 
 #undef chp
+#undef failed_ok
 
 /* vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 : */
