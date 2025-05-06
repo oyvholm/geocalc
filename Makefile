@@ -73,8 +73,12 @@ install:
 .PHONY: longlines
 longlines:
 	@for f in $(LONGLINES_FILES); do \
-		[ -f "$$f" ] && expand "$$f" | sed 's/ $$//;' \
-		| grep -E -n '.{80}' && echo "$$f"; \
+		if [ -f "$$f" ]; then \
+			d="$$(expand "$$f" | sed 's/ $$//;' \
+			  | grep -E -n '.{80}')"; \
+			echo "$$d" | grep -q . \
+			&& (echo "$$f"; echo "$$d"; echo " "); \
+		fi; \
 	done | grep . && exit 1 || true
 	cd src && $(MAKE) -s $@
 
