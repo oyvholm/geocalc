@@ -39,7 +39,7 @@ int msg(const int verbose, const char *format, ...)
 	int retval = 0;
 
 	assert(format);
-	assert(strlen(format));
+	assert(*format);
 
 	if (opt.verbose >= verbose) {
 		va_list ap;
@@ -103,7 +103,7 @@ int myerror(const char *format, ...)
 	const int orig_errno = errno;
 
 	assert(format);
-	assert(strlen(format));
+	assert(*format);
 
 	retval = fprintf(stderr, "%s: ", progname);
 	va_start(ap, format);
@@ -634,7 +634,7 @@ static int setup_options(struct Options *o, const int argc, char *argv[])
 {
 	if (o->format) {
 		msg(4, "%s(): o.format = \"%s\"", __func__, o->format);
-		if (!strlen(o->format) || !strcmp(o->format, "default")) {
+		if (!*o->format || !strcmp(o->format, "default")) {
 			o->outpformat = OF_DEFAULT;
 		} else if (!strcmp(o->format, "gpx")) {
 			o->outpformat = OF_GPX;
