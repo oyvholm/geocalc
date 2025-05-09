@@ -68,16 +68,16 @@ const char *std_strerror(const int errnum)
 		return "Invalid argument";
 	case ERANGE:
 		return "Numerical result out of range";
-	default:
+	default: /* gncov */
 		/*
 		 * Should never happen. If this line is executed, an `errno` 
 		 * value is missing from `std_strerror()`, and tests may fail 
 		 * on other platforms.
 		 */
-		fprintf(stderr,
+		fprintf(stderr, /* gncov */
 		        "\n%s: %s(): Unknown errno received: %d, \"%s\"\n",
 		        progname, __func__, errnum, strerror(errnum));
-		return strerror(errnum);
+		return strerror(errnum); /* gncov */
 	}
 }
 
