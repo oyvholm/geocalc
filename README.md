@@ -74,8 +74,8 @@ Contains the following commands:
 - `geocalc -F sql --count 1000000 randpos | sqlite3 randworld.db`\
   Generate 1 million random locations around the world and store them in 
   an SQLite database.
-- `geocalc -F sql --count 50 --km randpos 55.76,37.62 20; echo "SELECT * 
-  FROM randpos ORDER BY dist;") | sqlite3 -box`\
+- `(geocalc -F sql --count 50 --km randpos 55.76,37.62 20; echo "SELECT 
+  * FROM randpos ORDER BY dist;") | sqlite3 -box`\
   This oneliner generates 50 random locations inside a radius of 20 km 
   around Moscow and sorts by distance.
 
