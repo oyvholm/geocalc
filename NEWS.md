@@ -16,6 +16,7 @@ v0.x.x - 2025-xx-xx
 - Add `sql` output format, compatible with the `sqlite3`(1) shell.
 - Add the `bench` command, executes various benchmarks and reports the 
   results.
+- Improve error messages for invalid arguments on the command line.
 - Create a `make asm` target to generate assembly files.
 - Remove errno messages if invalid numbers were specified certain 
   places.

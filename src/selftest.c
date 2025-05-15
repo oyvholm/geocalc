@@ -1344,12 +1344,12 @@ static void test_cmd_bpos(char *execname)
 	   "bpos: South Pole, bearing 359");
 	sc(chp{ execname, "bpos", "1,2", "r", "1000", NULL },
 	   "",
-	   ": Invalid number specified: Invalid argument\n",
+	   ": r: Invalid bearing: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "bpos: bearing is not a number");
 	sc(chp{ execname, "bpos", "1,2w", "3", "4", NULL },
 	   "",
-	   ": Invalid number specified: Invalid argument\n",
+	   ": 1,2w: Invalid coordinate: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "bpos: lon has trailing letter");
 	sc(chp{ execname, "bpos", "90.0000000001,2", "3", "4", NULL },
@@ -1357,6 +1357,16 @@ static void test_cmd_bpos(char *execname)
 	   ": Value out of range\n",
 	   EXIT_FAILURE,
 	   "bpos: lat is out of range");
+	sc(chp{ execname, "bpos", "1,2", "b", "4", NULL },
+	   "",
+	   ": b: Invalid bearing: Invalid argument\n",
+	   EXIT_FAILURE,
+	   "bpos: Invalid bearing");
+	sc(chp{ execname, "bpos", "1,2", "3", "d", NULL },
+	   "",
+	   ": d: Invalid distance: Invalid argument\n",
+	   EXIT_FAILURE,
+	   "bpos: Invalid distance");
 	sc(chp{ execname, "bpos", "1,2", "3", "4", "5", NULL },
 	   "",
 	   ": Too many arguments\n",
@@ -1500,9 +1510,19 @@ static void test_cmd_course(char *execname)
 	   "course: numpoints is 0");
 	sc(chp{ execname, "course", "17,6%", "12,34", "-1", NULL },
 	   "",
-	   ": Invalid number specified: Invalid argument\n",
+	   ": 17,6%: Invalid coordinate: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "course: lon1 is invalid number");
+	sc(chp{ execname, "course", "1,2", "xxx", "4", NULL },
+	   "",
+	   ": xxx: Invalid coordinate\n",
+	   EXIT_FAILURE,
+	   "course: coor2 is invalid");
+	sc(chp{ execname, "course", "1,2", "3,4", "r", NULL },
+	   "",
+	   ": r: Invalid number of points: Invalid argument\n",
+	   EXIT_FAILURE,
+	   "course: Invalid value in number of points");
 	tc(chp{execname, "-F", "default", "course",
 	       "52.3731,4.891", "35.681,139.767", "5", NULL},
 	   "52.373100,4.891000\n"
@@ -1648,9 +1668,14 @@ static void test_cmd_lpos(char *execname)
 	   "lpos: lat1 is outside range");
 	sc(chp{ execname, "lpos", "17,6%", "12,34", "-1", NULL },
 	   "",
-	   ": Invalid number specified: Invalid argument\n",
+	   ": 17,6%: Invalid coordinate: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "lpos: lon1 is invalid number");
+	sc(chp{ execname, "lpos", "17,6", "12%,34", "-1", NULL },
+	   "",
+	   ": 12%,34: Invalid coordinate: Invalid argument\n",
+	   EXIT_FAILURE,
+	   "lpos: lat in coor1 is invalid number");
 	tc(chp{ execname, "lpos", "1,2", "3,4", "0", NULL },
 	   "1.000000,2.000000\n",
 	   "",
@@ -1670,7 +1695,7 @@ static void test_cmd_lpos(char *execname)
 	   "--km lpos: fracdist is 1");
 	sc(chp{ execname, "lpos", "1,2", "3,4", "INF", NULL },
 	   "",
-	   ": Invalid number specified: Numerical result out of range\n",
+	   ": INF: Invalid fraction: Numerical result out of range\n",
 	   EXIT_FAILURE,
 	   "lpos: fracdist is INF");
 	sc(chp{ execname, "lpos", "0,0", "0,180", "0.5", NULL },
@@ -1719,7 +1744,7 @@ static void test_multiple(char *execname, char *cmd)
 	   "%s with no arguments", cmd);
 	sc(chp{ execname, cmd, "1,2", "3", NULL },
 	   "",
-	   ": Invalid number specified\n",
+	   ": 3: Invalid coordinate\n",
 	   EXIT_FAILURE,
 	   "%s: Argument 2 is not a coordinate", cmd);
 	tc(chp{ execname, cmd, "1,2", "3,4", NULL },
@@ -1747,22 +1772,22 @@ static void test_multiple(char *execname, char *cmd)
 	   "%s with 1 argument too much", cmd);
 	sc(chp{ execname, cmd, "1,2", "3,1e+900", NULL },
 	   "",
-	   ": Invalid number specified: Numerical result out of range\n",
+	   ": 3,1e+900: Invalid coordinate: Numerical result out of range\n",
 	   EXIT_FAILURE,
 	   "%s with 1 number too large", cmd);
 	sc(chp{ execname, cmd, "1,2", "urgh,4", NULL },
 	   "",
-	   ": Invalid number specified: Invalid argument\n",
+	   ": urgh,4: Invalid coordinate: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "%s with 1 non-number", cmd);
 	sc(chp{ execname, cmd, "1,2.9y", "3,4", NULL },
 	   "",
-	   ": Invalid number specified: Invalid argument\n",
+	   ": 1,2.9y: Invalid coordinate: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "%s with non-digit after number", cmd);
 	sc(chp{ execname, cmd, "1,2 g", "3,4", NULL },
 	   "",
-	   ": Invalid number specified: Invalid argument\n",
+	   ": 1,2 g: Invalid coordinate: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "%s with whitespace and non-digit after number", cmd);
 	tc(chp{ execname, cmd, "10,2,", "3,4", NULL },
@@ -1772,18 +1797,17 @@ static void test_multiple(char *execname, char *cmd)
 	   "%s with comma after number", cmd);
 	sc(chp{ execname, cmd, "1,2", "3,NAN", NULL },
 	   "",
-	   ": Invalid number specified:"
-	   " Invalid argument\n",
+	   ": 3,NAN: Invalid coordinate: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "%s with NAN", cmd);
 	sc(chp{ execname, cmd, "1,2", "3,INF", NULL },
 	   "",
-	   ": Invalid number specified: Numerical result out of range\n",
+	   ": 3,INF: Invalid coordinate: Numerical result out of range\n",
 	   EXIT_FAILURE,
 	   "%s with INF", cmd);
 	sc(chp{ execname, cmd, "1,2", "", NULL },
 	   "",
-	   ": Invalid number specified\n",
+	   ": : Invalid coordinate\n",
 	   EXIT_FAILURE,
 	   "%s with empty argument", cmd);
 	sc(chp{ execname, cmd, "1,180.001", "3,4", NULL },
@@ -2207,13 +2231,13 @@ static void test_cmd_randpos(char *execname)
 
 	sc(chp{ execname, "randpos", "12.34,56.34y", "10", NULL },
 	   "",
-	   ": Error in center coordinate: Invalid argument\n",
+	   ": 12.34,56.34y: Invalid coordinate: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "randpos with error in coordinate");
 
 	sc(chp{ execname, "randpos", "12.34,56.34", "10y", NULL },
 	   "",
-	   ": Error in max_dist argument: Invalid argument\n",
+	   ": 10y: Invalid max_dist argument: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "randpos with error in max_dist");
 
@@ -2227,7 +2251,7 @@ static void test_cmd_randpos(char *execname)
 
 	sc(chp{ execname, "randpos", "12.34,56.34", "10", "3y", NULL },
 	   "",
-	   ": Error in min_dist argument: Invalid argument\n",
+	   ": 3y: Invalid min_dist argument: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "randpos with error in min_dist");
 

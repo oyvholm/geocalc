@@ -133,10 +133,12 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 		myerror("No way to display this info in GPX format");
 		return EXIT_FAILURE;
 	}
-
-	if (parse_coordinate(coor1, &lat1, &lon1)
-	    || parse_coordinate(coor2, &lat2, &lon2)) {
-		myerror("Invalid number specified");
+	if (parse_coordinate(coor1, &lat1, &lon1)) {
+		myerror("%s: Invalid coordinate", coor1);
+		return EXIT_FAILURE;
+	}
+	if (parse_coordinate(coor2, &lat2, &lon2)) {
+		myerror("%s: Invalid coordinate", coor2);
 		return EXIT_FAILURE;
 	}
 
@@ -219,10 +221,16 @@ int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
 	msg(7, "%s(\"%s\", \"%s\", \"%s\")",
 	       __func__, coor, bearing_s, dist_s);
 
-	if (parse_coordinate(coor, &lat, &lon)
-	    || string_to_double(bearing_s, &bearing)
-	    || string_to_double(dist_s, &dist)) {
-		myerror("Invalid number specified");
+	if (parse_coordinate(coor, &lat, &lon)) {
+		myerror("%s: Invalid coordinate", coor);
+		return EXIT_FAILURE;
+	}
+	if (string_to_double(bearing_s, &bearing)) {
+		myerror("%s: Invalid bearing", bearing_s);
+		return EXIT_FAILURE;
+	}
+	if (string_to_double(dist_s, &dist)) {
+		myerror("%s: Invalid distance", dist_s);
 		return EXIT_FAILURE;
 	}
 	if (opt.km)
@@ -270,10 +278,16 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 	msg(7, "%s(\"%s\", \"%s\", \"%s\")",
 	       __func__, coor1, coor2, numpoints_s);
 
-	if (parse_coordinate(coor1, &lat1, &lon1)
-	    || parse_coordinate(coor2, &lat2, &lon2)
-	    || string_to_double(numpoints_s, &numpoints)) {
-		myerror("Invalid number specified");
+	if (parse_coordinate(coor1, &lat1, &lon1)) {
+		myerror("%s: Invalid coordinate", coor1);
+		return EXIT_FAILURE;
+	}
+	if (parse_coordinate(coor2, &lat2, &lon2)) {
+		myerror("%s: Invalid coordinate", coor2);
+		return EXIT_FAILURE;
+	}
+	if (string_to_double(numpoints_s, &numpoints)) {
+		myerror("%s: Invalid number of points", numpoints_s);
 		return EXIT_FAILURE;
 	}
 	if (are_antipodal(lat1, lon1, lat2, lon2)) {
@@ -368,10 +382,16 @@ int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s)
 	msg(7, "%s(\"%s\", \"%s\", \"%s\")",
 	       __func__, coor1, coor2, fracdist_s);
 
-	if (parse_coordinate(coor1, &lat1, &lon1)
-	    || parse_coordinate(coor2, &lat2, &lon2)
-	    || string_to_double(fracdist_s, &fracdist)) {
-		myerror("Invalid number specified");
+	if (parse_coordinate(coor1, &lat1, &lon1)) {
+		myerror("%s: Invalid coordinate", coor1);
+		return EXIT_FAILURE;
+	}
+	if (parse_coordinate(coor2, &lat2, &lon2)) {
+		myerror("%s: Invalid coordinate", coor2);
+		return EXIT_FAILURE;
+	}
+	if (string_to_double(fracdist_s, &fracdist)) {
+		myerror("%s: Invalid fraction", fracdist_s);
 		return EXIT_FAILURE;
 	}
 	if (are_antipodal(lat1, lon1, lat2, lon2)) {
@@ -421,15 +441,15 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 
 	if (coor) {
 		if (parse_coordinate(coor, &c_lat, &c_lon)) {
-			myerror("Error in center coordinate");
+			myerror("%s: Invalid coordinate", coor);
 			return EXIT_FAILURE;
 		}
 		if (maxdist && string_to_double(maxdist, &maxdist_d)) {
-			myerror("Error in max_dist argument");
+			myerror("%s: Invalid max_dist argument", maxdist);
 			return EXIT_FAILURE;
 		}
 		if (mindist && string_to_double(mindist, &mindist_d)) {
-			myerror("Error in min_dist argument");
+			myerror("%s: Invalid min_dist argument", mindist);
 			return EXIT_FAILURE;
 		}
 		if (mindist_d < 0 || maxdist_d < 0) {
