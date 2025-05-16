@@ -912,6 +912,101 @@ static void test_are_antipodal(void)
 }
 
 /*
+ * chk_bpos() - Used by test_bearing_position(). Send `lat`, `lon`, `bear`, and 
+ * `dist` to bearing_position() and verify that it returns `exp_ret` and that 
+ * the generated location is equal to `exp_lat` and `exp_lon`. Returns nothing.
+ */
+
+static void chk_bpos(const char *coor, const double bear, const double dist,
+                     const int exp_ret,
+                     const double exp_lat, const double exp_lon)
+{
+	int result, succ;
+	double lat, lon, nlat = 0, nlon = 0;
+
+	if (parse_coordinate(coor, false, &lat, &lon)) {
+		failed_ok("parse_coordinate()"); /* gncov */
+		diag("%s(\"%s\", %f, %f, %d, %f, %f)", /* gncov */
+		     __func__, coor, bear, dist, exp_ret, exp_lat, exp_lon);
+		return; /* gncov */
+	}
+	result = bearing_position(lat, lon, bear, dist, &nlat, &nlon);
+	round_number(&nlat, 6);
+	round_number(&nlon, 6);
+	succ = (result == exp_ret) && (nlat == exp_lat) && (nlon == exp_lon);
+	ok(!succ, "bearing_position(%f, %f, %f, %f)", lat, lon, bear, dist);
+	if (!succ) {
+		diag("retval = %d (exp %d), nlat = %f (exp %f)," /* gncov */
+		     " nlon = %f (exp %f)",
+		     result, exp_ret, nlat, exp_lat, nlon, exp_lon);
+		diag("errdist = %.8f m", /* gncov */
+		     haversine(exp_lat, exp_lon, nlat, nlon));
+	}
+}
+
+/*
+ * test_bearing_position() - Tests the bearing_position() function. Returns 
+ * nothing.
+ */
+
+static void test_bearing_position(void)
+{
+	diag("Test bearing_position()");
+
+	/* "lat,lon", bear, dist, exp_ret, exp_lat, exp_lon */
+	chk_bpos("-90.000001,15", 0, 10, 1, 0, 0);
+	chk_bpos("0,0", 0, 2.5 * MAX_EARTH_DISTANCE, 0, 90, 0);
+	chk_bpos("0,0", 123.4567, -2.0 * MAX_EARTH_DISTANCE, 0, 0, 0);
+	chk_bpos("0,0", 123.4567, 200.0 * MAX_EARTH_DISTANCE, 0, 0, 0);
+	chk_bpos("0,0", 37.5, 1000.0, 0, 0.007135, 0.005475);
+	chk_bpos("0,0", 90, -0.5 * MAX_EARTH_DISTANCE, 0, 0, -90);
+	chk_bpos("1,2", -0.000001, 10, 1, 0, 0);
+	chk_bpos("1,2", 360.000001, 10, 1, 0, 0);
+	chk_bpos("31,-181", 0, 10, 1, 0, 0);
+	chk_bpos("31,180.00000001", 0, 10, 1, 0, 0);
+	chk_bpos("90,0", 180, 2.5 * MAX_EARTH_DISTANCE, 0, 0, 0);
+	chk_bpos("90,0", 90, -2.5 * MAX_EARTH_DISTANCE, 0, 0, -90);
+	chk_bpos("91,15", 0, 10, 1, 0, 0);
+
+	/*
+	 * Created with
+	 *
+	 * awk 'BEGIN {
+	 *        srand();
+	 *        for (i = 0; i < 20; i++) {
+	 *          printf "rlat=%f; rlon=%f; rbear=%f; rdist=%f;\n",
+	 *                 -90 + 180 * rand(), -180 + 360 * rand(),
+	 *                 360 * rand(), 20015086.796 * rand();
+	 *          printf "coor=$rlat,$rlon; bear=$rbear; dist=$rdist;" \
+	 *                 " ncoor=$(geocalc bpos $coor $bear $dist)\n";
+	 *          printf "echo \"%cchk_bpos(\\\"$rlat,$rlon\\\"," \
+	 *                 "$rbear,$rdist,0,$ncoor);\"\n", 9;
+	 *        }
+	 *      }' | sh | sed 's/,/, /g; s/, /,/;' | sort -rn -k1.12
+	 */
+	chk_bpos("89.326049,-36.529102", 215.441606, 903321.513553, 0, 81.318420, -69.408552);
+	chk_bpos("75.327434,146.338141", 216.906138, 377036.451727, 0, 72.499872, 139.554979);
+	chk_bpos("73.275683,95.043486", 309.444313, 10698125.450468, 0, 4.482065, -34.596773);
+	chk_bpos("70.230561,126.642851", 219.696688, 19934871.928906, 0, -70.780321, -51.957347);
+	chk_bpos("69.868535,101.799668", 141.805911, 13033758.395721, 0, -42.062838, 149.587411);
+	chk_bpos("66.350025,145.429028", 231.188268, 10296540.270978, 0, -17.019889, 90.934368);
+	chk_bpos("44.987243,150.444814", 149.919135, 6949371.313155, 0, -12.496578, 177.533295);
+	chk_bpos("42.583599,124.096862", 329.283951, 6426063.994314, 0, 63.669800, 21.098705);
+	chk_bpos("39.104040,-43.196379", 214.844812, 7419480.778805, 0, -19.621676, -77.059812);
+	chk_bpos("6.618107,-159.730989", 77.446531, 10478279.178288, 0, 11.935203, -63.964068);
+	chk_bpos("4.679518,-164.873324", 328.496291, 11740437.507322, 0, 52.807232, 71.499801);
+	chk_bpos("-4.741458,8.055448", 25.393621, 18989357.664929, 0, 13.056509, -175.991205);
+	chk_bpos("-11.366863,-46.182592", 345.151971, 10692324.170455, 0, 74.434381, -117.887177);
+	chk_bpos("-28.029437,-114.413592", 299.897276, 3192753.375537, 0, -11.581600, -139.573482);
+	chk_bpos("-36.313943,162.605259", 84.064269, 15893721.802184, 0, 31.519043, -62.081453);
+	chk_bpos("-41.278839,94.072031", 275.882586, 15438973.459512, 0, 33.190354, -34.462196);
+	chk_bpos("-48.580362,4.008114", 42.644186, 5577586.806635, 0, -6.127918, 35.552466);
+	chk_bpos("-69.803126,109.901567", 147.974718, 18867585.828500, 0, 60.562749, -81.243398);
+	chk_bpos("-76.150107,125.001814", 138.050038, 17098960.282799, 0, 52.401773, -83.956478);
+	chk_bpos("-79.809787,-137.446550", 321.667061, 14446269.370292, 0, 47.562193, 177.728173);
+}
+
+/*
  * test_xml_escape_string() - Tests the xml_escape_string() function. Returns 
  * nothing.
  */
@@ -2503,6 +2598,7 @@ static void test_functions(void)
 	test_rand_pos();
 	test_parse_coordinate();
 	test_are_antipodal();
+	test_bearing_position();
 	test_xml_escape_string();
 	test_gpx_wpt();
 	test_karney_distance();
