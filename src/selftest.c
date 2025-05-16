@@ -693,7 +693,7 @@ static void chk_rand_pos(const char *coor,
 
 	for (l = 0; l < numloop; l++) {
 		double clat = 1000.0, clon = 1000.0, rlat, rlon, dist, r_dist;
-		if (coor && parse_coordinate(coor, &clat, &clon)) {
+		if (coor && parse_coordinate(coor, true, &clat, &clon)) {
 			ok(1, "%s():%d: parse_coordinate() failed," /* gncov */
 			      " coor = \"%s\", errno = %d (%s)",
 			      __func__, __LINE__, coor,
@@ -804,7 +804,7 @@ static void chk_coor(const char *s, const int exp_ret,
 	double lat, lon;
 	int result;
 
-	result = parse_coordinate(s, &lat, &lon);
+	result = parse_coordinate(s, true, &lat, &lon);
 	ok(!(result == exp_ret), "parse_coordinate(\"%s\"), expected to %s",
 	                         s, exp_ret ? "fail" : "succeed");
 
@@ -877,8 +877,8 @@ static void chk_antip(const char *coor1, const char *coor2, const int exp)
 		return; /* gncov */
 	}
 
-	if (parse_coordinate(coor1, &lat1, &lon1)
-	    || parse_coordinate(coor2, &lat2, &lon2)) {
+	if (parse_coordinate(coor1, true, &lat1, &lon1)
+	    || parse_coordinate(coor2, true, &lat2, &lon2)) {
 		failed_ok("parse_coordinate()"); /* gncov */ 
 		return; /* gncov */
 	}
@@ -1038,8 +1038,8 @@ static void chk_karney(const char *coor1, const char *coor2,
 	double exp_res = exp_result, result;
 	char *res_s, *exp_s;
 
-	if (parse_coordinate(coor1, &lat1, &lon1)
-	    || parse_coordinate(coor2, &lat2, &lon2)) {
+	if (parse_coordinate(coor1, true, &lat1, &lon1)
+	    || parse_coordinate(coor2, true, &lat2, &lon2)) {
 		ok(1, "%s() received invalid coordinate", /* gncov */
 		      __func__);
 		return; /* gncov */
@@ -1354,7 +1354,7 @@ static void test_cmd_bpos(char *execname)
 	   "bpos: lon has trailing letter");
 	sc(chp{ execname, "bpos", "90.0000000001,2", "3", "4", NULL },
 	   "",
-	   ": Value out of range\n",
+	   ": 90.0000000001,2: Invalid coordinate\n",
 	   EXIT_FAILURE,
 	   "bpos: lat is out of range");
 	sc(chp{ execname, "bpos", "1,2", "b", "4", NULL },
@@ -1489,7 +1489,7 @@ static void test_cmd_course(char *execname)
 	   "course: 1 argument too much");
 	sc(chp{ execname, "course", "90.00001,0", "12,34", "1", NULL },
 	   "",
-	   ": Value out of range\n",
+	   ": 90.00001,0: Invalid coordinate\n",
 	   EXIT_FAILURE,
 	   "course: lat1 is outside range");
 	sc(chp{ execname, "course", "17,0", "12,34", "-1", NULL },
@@ -1663,7 +1663,7 @@ static void test_cmd_lpos(char *execname)
 	   "lpos: 1 argument too much");
 	sc(chp{ execname, "lpos", "-90.00001,0", "12,34", "1", NULL },
 	   "",
-	   ": Value out of range\n",
+	   ": -90.00001,0: Invalid coordinate\n",
 	   EXIT_FAILURE,
 	   "lpos: lat1 is outside range");
 	sc(chp{ execname, "lpos", "17,6%", "12,34", "-1", NULL },
@@ -1812,7 +1812,7 @@ static void test_multiple(char *execname, char *cmd)
 	   "%s with empty argument", cmd);
 	sc(chp{ execname, cmd, "1,180.001", "3,4", NULL },
 	   "",
-	   ": Value out of range\n",
+	   ": 1,180.001: Invalid coordinate\n",
 	   EXIT_FAILURE,
 	   "%s: lon1 out of range", cmd);
 	if (!strcmp(cmd, "bear")) {
@@ -1906,7 +1906,7 @@ static void verify_coor_dist(const char *str, const char *coor,
 		      __func__);
 		return; /* gncov */
 	}
-	if (parse_coordinate(coor, &clat, &clon)) {
+	if (parse_coordinate(coor, true, &clat, &clon)) {
 		failed_ok("parse_coordinate()"); /* gncov */
 		diag("%s(): coor = \"%s\"", __func__, coor); /* gncov */
 		return; /* gncov */
@@ -1921,7 +1921,7 @@ static void verify_coor_dist(const char *str, const char *coor,
 	while (p) {
 		double lat, lon, dist;
 		coorcount++;
-		if (parse_coordinate(p, &lat, &lon)) {
+		if (parse_coordinate(p, true, &lat, &lon)) {
 			failed_ok("parse_coordinate()"); /* gncov */
 			diag("%s(): p = \"%s\"", __func__, p); /* gncov */
 			errcount++; /* gncov */
@@ -2172,7 +2172,7 @@ static void test_cmd_randpos(char *execname)
 	streams_init(&ss);
 	streams_exec(&ss, chp{ execname, "randpos", NULL });
 	lat = lon = 0;
-	res = parse_coordinate(ss.out.buf, &lat, &lon);
+	res = parse_coordinate(ss.out.buf, true, &lat, &lon);
 	ok(!!res, "randpos: Coordinate is valid");
 	ok(!(fabs(lat) <= 90), "randpos: lat is in range");
 	ok(!(fabs(lat) <= 180), "randpos: lon is in range");

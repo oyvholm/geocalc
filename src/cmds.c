@@ -133,11 +133,11 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 		myerror("No way to display this info in GPX format");
 		return EXIT_FAILURE;
 	}
-	if (parse_coordinate(coor1, &lat1, &lon1)) {
+	if (parse_coordinate(coor1, true, &lat1, &lon1)) {
 		myerror("%s: Invalid coordinate", coor1);
 		return EXIT_FAILURE;
 	}
-	if (parse_coordinate(coor2, &lat2, &lon2)) {
+	if (parse_coordinate(coor2, true, &lat2, &lon2)) {
 		myerror("%s: Invalid coordinate", coor2);
 		return EXIT_FAILURE;
 	}
@@ -145,10 +145,6 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 	result = !strcmp(cmd, "bear") ? initial_bearing(lat1, lon1, lat2, lon2)
 	                              : distance(opt.distformula,
 	                                         lat1, lon1, lat2, lon2);
-	if (result == -1.0) {
-		myerror("Value out of range");
-		return EXIT_FAILURE;
-	}
 	if (result == -2.0) {
 		myerror("Antipodal points, answer is undefined");
 		return EXIT_FAILURE;
@@ -216,12 +212,11 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
 {
 	double lat, lon, bearing, dist, nlat, nlon;
-	int result;
 
 	msg(7, "%s(\"%s\", \"%s\", \"%s\")",
 	       __func__, coor, bearing_s, dist_s);
 
-	if (parse_coordinate(coor, &lat, &lon)) {
+	if (parse_coordinate(coor, true, &lat, &lon)) {
 		myerror("%s: Invalid coordinate", coor);
 		return EXIT_FAILURE;
 	}
@@ -235,11 +230,7 @@ int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
 	}
 	if (opt.km)
 		dist *= 1000.0;
-	result = bearing_position(lat, lon, bearing, dist, &nlat, &nlon);
-	if (result) {
-		myerror("Value out of range");
-		return EXIT_FAILURE;
-	}
+	bearing_position(lat, lon, bearing, dist, &nlat, &nlon);
 
 	switch (opt.outpformat) {
 	case OF_DEFAULT:
@@ -273,16 +264,16 @@ int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
 int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 {
 	double lat1, lon1, lat2, lon2, numpoints, nlat = 0.0, nlon = 0.0;
-	int i, result, retval = EXIT_SUCCESS;
+	int i, retval = EXIT_SUCCESS;
 
 	msg(7, "%s(\"%s\", \"%s\", \"%s\")",
 	       __func__, coor1, coor2, numpoints_s);
 
-	if (parse_coordinate(coor1, &lat1, &lon1)) {
+	if (parse_coordinate(coor1, true, &lat1, &lon1)) {
 		myerror("%s: Invalid coordinate", coor1);
 		return EXIT_FAILURE;
 	}
-	if (parse_coordinate(coor2, &lat2, &lon2)) {
+	if (parse_coordinate(coor2, true, &lat2, &lon2)) {
 		myerror("%s: Invalid coordinate", coor2);
 		return EXIT_FAILURE;
 	}
@@ -318,13 +309,7 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 		       dist, bear;
 		char *bear_s;
 
-		result = routepoint(lat1, lon1, lat2, lon2,
-		                    frac, &nlat, &nlon);
-		if (result) {
-			myerror("Value out of range");
-			retval = EXIT_FAILURE;
-			break;
-		}
+		routepoint(lat1, lon1, lat2, lon2, frac, &nlat, &nlon);
 		round_number(&nlat, 6);
 		round_number(&nlon, 6);
 		switch(opt.outpformat) {
@@ -382,11 +367,11 @@ int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s)
 	msg(7, "%s(\"%s\", \"%s\", \"%s\")",
 	       __func__, coor1, coor2, fracdist_s);
 
-	if (parse_coordinate(coor1, &lat1, &lon1)) {
+	if (parse_coordinate(coor1, true, &lat1, &lon1)) {
 		myerror("%s: Invalid coordinate", coor1);
 		return EXIT_FAILURE;
 	}
-	if (parse_coordinate(coor2, &lat2, &lon2)) {
+	if (parse_coordinate(coor2, true, &lat2, &lon2)) {
 		myerror("%s: Invalid coordinate", coor2);
 		return EXIT_FAILURE;
 	}
@@ -398,10 +383,7 @@ int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s)
 		myerror("Antipodal points, answer is undefined");
 		return EXIT_FAILURE;
 	}
-	if (routepoint(lat1, lon1, lat2, lon2, fracdist, &nlat, &nlon)) {
-		myerror("Value out of range");
-		return EXIT_FAILURE;
-	}
+	routepoint(lat1, lon1, lat2, lon2, fracdist, &nlat, &nlon);
 
 	switch (opt.outpformat) {
 	case OF_DEFAULT:
@@ -440,7 +422,7 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 	double c_lat = 1000, c_lon = 1000, maxdist_d = 0, mindist_d = 0;
 
 	if (coor) {
-		if (parse_coordinate(coor, &c_lat, &c_lon)) {
+		if (parse_coordinate(coor, true, &c_lat, &c_lon)) {
 			myerror("%s: Invalid coordinate", coor);
 			return EXIT_FAILURE;
 		}

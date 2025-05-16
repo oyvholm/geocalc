@@ -170,15 +170,17 @@ char *allocstr(const char *format, ...)
  * parse_coordinate() - Parse the geographic coordinate in `s` and store 
  * latitude and longitude in `dest_lat` and `dest_lon`. The coordinate must be 
  * in the format `[-]dd.dddddd,[-]ddd.dddddd` (lat,lon) where the numbers are 
- * in the range -90..90 and -180..180. If it's not a valid coordinate or if 
- * anything fails, the function returns 1. If successful, it returns 0.
+ * in the range -90..90 and -180..180.
  *
- * There is intentionally no range check in this function, to make it more 
- * universal. Functions that use this function must validate the values 
- * themselves.
+ * If `validate` is `true`, it validates the coordinate range and prints out an 
+ * error message if the values are outside the valid range, and returns 1.
+ *
+ * If it's not a valid coordinate or if anything fails, the function returns 1. 
+ * If successful, it returns 0.
  */
 
-int parse_coordinate(const char *s, double *dest_lat, double *dest_lon)
+int parse_coordinate(const char *s, bool validate,
+                     double *dest_lat, double *dest_lon)
 {
 	char *comma, *sd;
 	double lat, lon;
@@ -208,6 +210,9 @@ int parse_coordinate(const char *s, double *dest_lat, double *dest_lon)
 	}
 	*dest_lat = lat;
 	*dest_lon = lon;
+
+	if (validate && (fabs(lat) > 90.0 || fabs(lon) > 180.0))
+		retval = 1;
 
 cleanup:
 	free(sd);
