@@ -485,8 +485,7 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 
 			dist = haversine(c_lat, c_lon, lat, lon);
 			bear = initial_bearing(c_lat, c_lon, lat, lon);
-			if ((c_lat > 90.0
-			    || (maxdist_d == 0.0 && mindist_d == 0.0))) {
+			if (c_lat > 90.0) {
 				printf("INSERT INTO randpos VALUES"
 				       " (%ld, %ld, %f, %f, NULL, NULL);\n",
 				       opt.seedval, l, lat, lon);

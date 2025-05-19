@@ -2329,6 +2329,24 @@ static void test_cmd_randpos(char *execname)
 	   "",
 	   EXIT_SUCCESS,
 	   "-F gpx --count 0");
+	tc(chp{ execname, "-F", "sql", "--count", "10", "--seed", "1000",
+	        "randpos", "20,20", NULL },
+	   "BEGIN;\n"
+	   "CREATE TABLE IF NOT EXISTS randpos (seed INTEGER, num INTEGER, lat REAL, lon REAL, dist REAL, bear REAL);\n"
+	   "INSERT INTO randpos VALUES (1000, 1, 71.133290, -57.468159, 7458038.290706, 339.955948);\n"
+	   "INSERT INTO randpos VALUES (1000, 2, 4.810956, -39.143396, 6605679.372550, 263.597432);\n"
+	   "INSERT INTO randpos VALUES (1000, 3, 31.762576, 91.243012, 7126548.517582, 63.514344);\n"
+	   "INSERT INTO randpos VALUES (1000, 4, -55.576794, -166.832537, 16018000.848656, 173.421528);\n"
+	   "INSERT INTO randpos VALUES (1000, 5, -3.788815, 152.508528, 14567412.132150, 77.097274);\n"
+	   "INSERT INTO randpos VALUES (1000, 6, 12.619138, 169.426644, 15080928.939060, 45.214445);\n"
+	   "INSERT INTO randpos VALUES (1000, 7, 32.292105, -106.309325, 11866448.651468, 314.662470);\n"
+	   "INSERT INTO randpos VALUES (1000, 8, 65.299565, 16.899777, 5042230.856845, 358.179425);\n"
+	   "INSERT INTO randpos VALUES (1000, 9, -4.673171, -44.745272, 7581105.914090, 256.164898);\n"
+	   "INSERT INTO randpos VALUES (1000, 10, 20.935854, 18.624757, 177068.647935, 306.231896);\n"
+	   "COMMIT;\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-F sql with coordinate and no distances");
 
 	test_randpos_dist(execname);
 

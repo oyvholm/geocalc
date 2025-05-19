@@ -595,8 +595,10 @@ static int process_args(int argc, char *argv[])
 			return EXIT_FAILURE;
 		switch (numargs) {
 		case 1:
-		case 2:
 			retval = cmd_randpos(NULL, NULL, NULL);
+			break;
+		case 2:
+			retval = cmd_randpos(argv[optind + 1], NULL, NULL);
 			break;
 		case 3:
 			retval = cmd_randpos(argv[optind + 1],
