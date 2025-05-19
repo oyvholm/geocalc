@@ -94,8 +94,10 @@ static int print_eor_coor(const double lat, const double lon, const char *cmd,
 		break;
 	case OF_GPX:
 		cmt = allocstr("%s %s %s %s", cmd, par1, par2, par3);
-		if (!cmt)
+		if (!cmt) {
+			failed("allocstr()"); /* gncov */
 			return 1; /* gncov */
+		}
 		s = gpx_wpt(nlat, nlon, cmd, cmt);
 		if (!s) {
 			free(cmt); /* gncov */
@@ -479,6 +481,11 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 		}
 		rand_pos(&lat, &lon, c_lat, c_lon, maxdist_d, mindist_d);
 		name = allocstr("Random %lu%s", l, seedstr ? seedstr : "");
+		if (!name) {
+			failed("allocstr()"); /* gncov */
+			free(seedstr); /* gncov */
+			return EXIT_FAILURE; /* gncov */
+		}
 
 		if (opt.outpformat == OF_SQL) {
 			double dist, bear;

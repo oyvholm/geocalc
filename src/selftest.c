@@ -1087,6 +1087,10 @@ static void test_gpx_wpt(void)
 	             "    <name>%s</name>\n"
 	             "    <cmt>%s</cmt>\n"
 	             "  </wpt>\n", c, c);
+	if (!e) {
+		failed_ok("allocstr()"); /* gncov */
+		return; /* gncov */
+	}
 	s = gpx_wpt(12.34, 56.78, p, p);
 	ok((s ? !!strcmp(s, e) : 1), "gpx_wpt() with amp, gt, lt, and more");
 	print_gotexp(s, e);
