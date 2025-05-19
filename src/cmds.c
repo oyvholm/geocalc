@@ -224,6 +224,10 @@ int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
 		myerror("%s: Invalid bearing", bearing_s);
 		return EXIT_FAILURE;
 	}
+	if (bearing < 0.0 || bearing > 360.0) {
+		myerror("%s: Bearing out of range", bearing_s);
+		return EXIT_FAILURE;
+	}
 	if (string_to_double(dist_s, &dist)) {
 		myerror("%s: Invalid distance", dist_s);
 		return EXIT_FAILURE;

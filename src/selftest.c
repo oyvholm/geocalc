@@ -1437,6 +1437,16 @@ static void test_cmd_bpos(char *execname)
 	   "",
 	   EXIT_SUCCESS,
 	   "bpos: South Pole, bearing 359");
+	sc(chp{ execname, "bpos", "1,2", "360.0000000001", "1000", NULL },
+	   "",
+	   ": 360.0000000001: Bearing out of range\n",
+	   EXIT_FAILURE,
+	   "bpos: bearing is larger than 360 degrees");
+	sc(chp{ execname, "bpos", "1,2", "-0.0000000001", "1000", NULL },
+	   "",
+	   ": -0.0000000001: Bearing out of range\n",
+	   EXIT_FAILURE,
+	   "bpos: bearing is negative");
 	sc(chp{ execname, "bpos", "1,2", "r", "1000", NULL },
 	   "",
 	   ": r: Invalid bearing: Invalid argument\n",
