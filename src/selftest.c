@@ -694,11 +694,9 @@ static void chk_rand_pos(const char *coor,
 	for (l = 0; l < numloop; l++) {
 		double clat = 1000.0, clon = 1000.0, rlat, rlon, dist, r_dist;
 		if (coor && parse_coordinate(coor, true, &clat, &clon)) {
-			ok(1, "%s():%d: parse_coordinate() failed," /* gncov */
-			      " coor = \"%s\", errno = %d (%s)",
-			      __func__, __LINE__, coor,
-			      errno, std_strerror(errno)); /* gncov */
-			errno = 0; /* gncov */
+			failed_ok("parse_coordinate()"); /* gncov */
+			diag("test %d: coor = \"%s\"", /* gncov */
+			     testnum, coor);
 			return; /* gncov */
 		}
 		rand_pos(&rlat, &rlon, clat, clon, maxdist, mindist);
@@ -1603,12 +1601,12 @@ static void test_cmd_course(char *execname)
 	   "course: lat1 is outside range");
 	sc(chp{ execname, "course", "17,0", "12,34", "-1", NULL },
 	   "",
-	   ": Value out of range\n",
+	   ": -1: Number of intermediate points cannot be negative\n",
 	   EXIT_FAILURE,
 	   "course: numpoints is -1");
 	sc(chp{ execname, "course", "17,6", "12,34", "-0.5", NULL },
 	   "",
-	   ": Value out of range\n",
+	   ": -0.5: Number of intermediate points cannot be negative\n",
 	   EXIT_FAILURE,
 	   "course: numpoints is -0.5");
 	tc(chp{ execname, "course", "22,33", "44,55", "0", NULL },
@@ -1954,7 +1952,7 @@ static void test_multiple(char *execname, char *cmd)
 	   "-F default %s", cmd);
 	sc(chp{ execname, "--format", "gpx", cmd, "34,56", "-78,9", NULL },
 	   "",
-	   ": No way to display this info in GPX format\n",
+	   ": Cannot display this info in GPX format\n",
 	   EXIT_FAILURE,
 	   "--format gpx %s", cmd);
 	if (!strcmp(cmd, "bear"))
@@ -2370,7 +2368,7 @@ static void test_cmd_randpos(char *execname)
 
 	sc(chp{ execname, "randpos", "12.34,56.34", "-17.9", NULL },
 	   "",
-	   ": Distance can't be negative\n",
+	   ": Distance cannot be negative\n",
 	   EXIT_FAILURE,
 	   "randpos with negative max_dist");
 
@@ -2384,7 +2382,7 @@ static void test_cmd_randpos(char *execname)
 
 	sc(chp{ execname, "randpos", "12.34,56.34", "9", "-2", NULL },
 	   "",
-	   ": Distance can't be negative\n",
+	   ": Distance cannot be negative\n",
 	   EXIT_FAILURE,
 	   "randpos with negative min_dist");
 

@@ -18,7 +18,7 @@ v0.x.x - 2025-xx-xx
   results.
 - bpos: Print an error message if the bearing is outside the valid 0-360 
   range.
-- Improve error messages for invalid arguments on the command line.
+- Improve various error messages.
 - Create a `make asm` target to generate assembly files.
 - Remove errno messages if invalid numbers were specified certain 
   places.

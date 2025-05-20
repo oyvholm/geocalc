@@ -100,6 +100,7 @@ static int print_eor_coor(const double lat, const double lon, const char *cmd,
 		}
 		s = gpx_wpt(nlat, nlon, cmd, cmt);
 		if (!s) {
+			failed("gpx_wpt()"); /* gncov */
 			free(cmt); /* gncov */
 			return 1; /* gncov */
 		}
@@ -132,7 +133,7 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 	msg(7, "%s(\"%s\", \"%s\", \"%s\")", __func__, cmd, coor1, coor2);
 
 	if (opt.outpformat == OF_GPX) {
-		myerror("No way to display this info in GPX format");
+		myerror("Cannot display this info in GPX format");
 		return EXIT_FAILURE;
 	}
 	if (parse_coordinate(coor1, true, &lat1, &lon1)) {
@@ -292,7 +293,8 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 		return EXIT_FAILURE;
 	}
 	if (numpoints++ < 0) {
-		myerror("Value out of range");
+		myerror("%s: Number of intermediate points cannot be negative",
+		        numpoints_s);
 		return EXIT_FAILURE;
 	}
 
@@ -441,7 +443,7 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 			return EXIT_FAILURE;
 		}
 		if (mindist_d < 0 || maxdist_d < 0) {
-			myerror("Distance can't be negative");
+			myerror("Distance cannot be negative");
 			return EXIT_FAILURE;
 		}
 		if (opt.km) {
