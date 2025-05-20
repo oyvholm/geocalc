@@ -50,9 +50,9 @@ double distance(const DistFormula formula,
                 const double lat2, const double lon2);
 double initial_bearing(const double lat1, const double lon1,
                        const double lat2, const double lon2);
-int rand_pos(double *dlat, double *dlon,
-             const double c_lat, const double c_lon,
-             const double maxdist, const double mindist);
+void rand_pos(double *dlat, double *dlon,
+              const double c_lat, const double c_lon,
+              const double maxdist, const double mindist);
 int routepoint(const double lat1, const double lon1,
                const double lat2, const double lon2,
                const double fracdist,
