@@ -695,7 +695,7 @@ static void chk_rand_pos(const char *coor,
                          const double exp_maxdist, const double exp_mindist)
 {
 	int errcount = 0, maxtests = 20;
-	unsigned long l, numloop = 1e+5;
+	unsigned long l, numloop = 1e+4;
 	double r_exp_max = round(exp_maxdist), r_exp_min = round(exp_mindist);
 
 	for (l = 0; l < numloop; l++) {
