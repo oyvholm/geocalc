@@ -108,6 +108,7 @@ TESTS = all
 
 CMD_VALGRIND  = valgrind
 CMD_VALGRIND += -q
+CMD_VALGRIND += --error-exitcode=1
 CMD_VALGRIND += --leak-check=full
 CMD_VALGRIND += --show-leak-kinds=all
 CMD_VALGRIND += --
@@ -304,7 +305,7 @@ uninstall:
 .PHONY: valgrind
 valgrind: $(EXEC)
 	./$(EXEC) --valgrind $(TESTS)
-	$(CMD_VALGRIND) ./$(EXEC) --selftest $(TESTS) | grep -v ^ok
+	$(CMD_VALGRIND) ./$(EXEC) --selftest $(TESTS)
 
 .PHONY: valgrindall
 valgrindall:
