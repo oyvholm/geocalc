@@ -92,6 +92,8 @@ static void normalize_longitude(double *lon)
 
 void set_antipode(double *dlat, double *dlon) /* gncov */
 {
+	assert(dlat);
+	assert(dlon);
 	*dlat *= -1.0;
 	*dlon -= 180;
 	normalize_longitude(dlon);
@@ -118,6 +120,9 @@ int bearing_position(const double lat, const double lon,
                      double *new_lat, double *new_lon)
 {
 	double lat_a = lat;
+
+	assert(new_lat);
+	assert(new_lon);
 
 	if (fabs(lat) > 90.0 || fabs(lon) > 180.0
 	    || bearing_deg < 0.0 || bearing_deg > 360.0)
@@ -368,6 +373,9 @@ int rand_pos_bear_dist(double *dlat, double *dlon,
 	       maxdist = maxdist_p, mindist = mindist_p,
 	       rand_bear, rand_dist, result;
 
+	assert(dlat);
+	assert(dlon);
+
 	if (mindist != 0.0 && maxdist == 0.0) {
 		set_antipode(&c_lat, &c_lon);
 		maxdist = MAX_EARTH_DISTANCE - mindist;
@@ -417,6 +425,9 @@ int rand_pos(double *dlat, double *dlon,
              const double c_lat, const double c_lon,
              const double maxdist, const double mindist)
 {
+	assert(dlat);
+	assert(dlon);
+
 	if (c_lat > 90.0 || (maxdist == 0.0 && mindist == 0.0)) {
 		/* No center coordinate or distances, use the whole world */
 		*dlat = rad2deg(asin(2.0 * drand48() - 1.0));
@@ -443,6 +454,9 @@ int routepoint(const double lat1, const double lon1,
                const double fracdist,
                double *next_lat, double *next_lon)
 {
+	assert(next_lat);
+	assert(next_lon);
+
 	return bearing_position(lat1, lon1,
 	                        initial_bearing(lat1, lon1, lat2, lon2),
 	                        haversine(lat1, lon1, lat2, lon2) * fracdist,

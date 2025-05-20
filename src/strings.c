@@ -30,6 +30,9 @@ int string_to_double(const char *s, double *dest)
 {
 	char *endptr;
 
+	assert(s);
+	assert(dest);
+
 	*dest = strtod(s, &endptr);
 
 	if (errno == ERANGE) {

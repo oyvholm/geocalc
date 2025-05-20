@@ -75,6 +75,7 @@ static char *diag_output_va(const char *format, va_list ap)
 	char *buffer, *converted_buffer, *dst;
 	size_t converted_size;
 
+	assert(format);
 	if (!format)
 		return NULL; /* gncov */
 
@@ -342,6 +343,9 @@ static void sc(char *cmd[], const char *exp_stdout, const char *exp_stderr,
 {
 	va_list ap;
 
+	assert(cmd);
+	assert(desc);
+
 	va_start(ap, desc);
 	test_command(0, cmd, exp_stdout, exp_stderr, exp_retval, desc, ap);
 	va_end(ap);
@@ -357,6 +361,9 @@ static void tc(char *cmd[], const char *exp_stdout, const char *exp_stderr,
                const int exp_retval, const char *desc, ...)
 {
 	va_list ap;
+
+	assert(cmd);
+	assert(desc);
 
 	va_start(ap, desc);
 	test_command(1, cmd, exp_stdout, exp_stderr, exp_retval, desc, ap);
@@ -772,6 +779,7 @@ static void test_streams_exec(char *execname)
 	struct streams ss;
 	char *s;
 
+	assert(execname);
 	diag("Test streams_exec()");
 
 	diag("Send input to the program");
@@ -922,6 +930,7 @@ static void chk_bpos(const char *coor, const double bear, const double dist,
 	int result, succ;
 	double lat, lon, nlat = 0, nlon = 0;
 
+	assert(coor);
 	if (parse_coordinate(coor, false, &lat, &lon)) {
 		failed_ok("parse_coordinate()"); /* gncov */
 		diag("%s(\"%s\", %f, %f, %d, %f, %f)", /* gncov */
@@ -1135,6 +1144,9 @@ static void chk_karney(const char *coor1, const char *coor2,
 	double exp_res = exp_result, result;
 	char *res_s, *exp_s;
 
+	assert(coor1);
+	assert(coor2);
+
 	if (parse_coordinate(coor1, true, &lat1, &lon1)
 	    || parse_coordinate(coor2, true, &lat2, &lon2)) {
 		ok(1, "%s() received invalid coordinate", /* gncov */
@@ -1226,6 +1238,7 @@ static void test_valgrind_option(char *execname)
 {
 	struct streams ss;
 
+	assert(execname);
 	diag("Test --valgrind");
 
 	if (opt.valgrind) {
@@ -1259,6 +1272,7 @@ static void test_standard_options(char *execname)
 {
 	char *s;
 
+	assert(execname);
 	diag("Test standard options");
 
 	diag("Test -h/--help");
@@ -1344,6 +1358,7 @@ static void test_standard_options(char *execname)
 
 static void test_format_option(char *execname)
 {
+	assert(execname);
 	diag("Test -F/--format");
 	sc(chp{execname, "-vvvv", "-F", "FoRmAt", NULL},
 	   "",
@@ -1374,6 +1389,7 @@ static void test_format_option(char *execname)
 
 static void test_cmd_bench(char *execname)
 {
+	assert(execname);
 	diag("Test bench command");
 	sc(chp{ execname, "bench", "0", NULL },
 	   " haversine\n",
@@ -1398,6 +1414,7 @@ static void test_cmd_bench(char *execname)
 
 static void test_cmd_bpos(char *execname)
 {
+	assert(execname);
 	diag("Test bpos command");
 	tc(chp{ execname, "bpos", "45,0", "45", "1000", NULL },
 	   "45.006359,0.008994\n",
@@ -1539,6 +1556,7 @@ static void test_cmd_course(char *execname)
 {
 	char *exp_stdout;
 
+	assert(execname);
 	diag("Test course command");
 	tc(chp{ execname, "course", "45,0", "45,180", "1", NULL },
 	   "45.000000,0.000000\n"
@@ -1710,6 +1728,7 @@ static void test_cmd_course(char *execname)
 
 static void test_cmd_lpos(char *execname)
 {
+	assert(execname);
 	diag("Test lpos command");
 	tc(chp{ execname, "lpos", "45,0", "45,180", "0.5", NULL },
 	   "90.000000,0.000000\n",
@@ -1837,6 +1856,7 @@ static void test_cmd_lpos(char *execname)
 
 static void test_multiple(char *execname, char *cmd)
 {
+	assert(execname);
 	assert(cmd);
 	if (!cmd) {
 		ok(1, "%s(): cmd is NULL", __func__); /* gncov */
@@ -2003,6 +2023,8 @@ static void verify_coor_dist(const char *str, const char *coor,
 	       mindist_r = round(mindist), maxdist_r = round(maxdist);
 	unsigned long coorcount = 0;
 
+	assert(str);
+	assert(coor);
 	if (!str || !coor) {
 		ok(1, "%s(): `str` or `coor` is NULL", /* gncov */
 		      __func__);
@@ -2082,6 +2104,8 @@ static int chk_coor_outp(const OutputFormat format, const char *output,
 	char *regstr, *pattern;
 	static int count = 0;
 
+	assert(output);
+
 	count++;
 	if (format == OF_DEFAULT && coor)
 		verify_coor_dist(output, coor, mindist, maxdist);
@@ -2148,6 +2172,9 @@ static void te_randpos(const OutputFormat format, char **cmd,
 {
 	struct streams ss;
 
+	assert(cmd);
+	assert(desc);
+
 	streams_init(&ss);
 	streams_exec(&ss, cmd);
 	ok(chk_coor_outp(format, ss.out.buf, num, coor, mindist, maxdist),
@@ -2164,6 +2191,7 @@ static void test_randpos_dist_max(char *execname)
 {
 	char **as;
 
+	assert(execname);
 	diag("randpos with max_dist");
 
 	as = chp{ execname, "--count", "50", "randpos", "1.234,5.6789", "100",
@@ -2219,6 +2247,7 @@ static void test_randpos_dist_minmax(char *execname)
 {
 	char **as;
 
+	assert(execname);
 	diag("randpos with max_dist and min_dist");
 
 	as = chp{ execname, "randpos", "12.34,56.78", "100", "200", NULL };
@@ -2268,6 +2297,7 @@ static void test_cmd_randpos(char *execname)
 	double lat, lon;
 	char **as;
 
+	assert(execname);
 	diag("Test randpos command");
 
 	sc(chp{ execname, "randpos", "1,2", "100", "90", "5", NULL },
@@ -2459,6 +2489,7 @@ static void test_seed_option(char *execname)
 {
 	struct binbuf bb1, bb2, bb3;
 
+	assert(execname);
 	diag("Test --seed");
 
 	binbuf_init(&bb1);
@@ -2552,6 +2583,7 @@ static void test_seed_option(char *execname)
 
 static void test_haversine_option(char *execname)
 {
+	assert(execname);
 	diag("Test -H/--haversine");
 
 	tc(chp{ execname, "-H", "dist", "13.389820,-71.453489",
@@ -2575,6 +2607,7 @@ static void test_haversine_option(char *execname)
 
 static void test_karney_option(char *execname)
 {
+	assert(execname);
 	diag("Test -K/--karney");
 
 	tc(chp{ execname, "-K", "dist", "13.389820,-71.453489",
@@ -2644,6 +2677,7 @@ static int print_version_info(char *execname)
 	struct streams ss;
 	int res;
 
+	assert(execname);
 	streams_init(&ss);
 	res = streams_exec(&ss, chp{ execname, "--version", NULL });
 	if (res) {
@@ -2668,6 +2702,7 @@ static int print_version_info(char *execname)
 
 static void test_executable(char *execname)
 {
+	assert(execname);
 	if (!opt.testexec)
 		return; /* gncov */
 
@@ -2703,6 +2738,7 @@ static void test_executable(char *execname)
 
 int opt_selftest(char *execname)
 {
+	assert(execname);
 	diag("Running tests for %s %s (%s)",
 	     execname, EXEC_VERSION, EXEC_DATE);
 

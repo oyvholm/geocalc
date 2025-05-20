@@ -29,6 +29,7 @@ void round_number(double *dest, const int decimals)
 {
 	double m = pow(10.0, (double)decimals);
 
+	assert(dest);
 	*dest = round(*dest * m) / m;
 	if (*dest == -0.0)
 		*dest = 0.0;
@@ -93,6 +94,11 @@ static int print_eor_coor(const double lat, const double lon, const char *cmd,
 		printf("%f,%f\n", nlat, nlon);
 		break;
 	case OF_GPX:
+		if (!cmd || !par1 || !par2 || !par3) {
+			myerror("%s() received NULL argument," /* gncov */
+			        " cannot generate GPX output", __func__);
+			return 1; /* gncov */
+		}
 		cmt = allocstr("%s %s %s %s", cmd, par1, par2, par3);
 		if (!cmt) {
 			failed("allocstr()"); /* gncov */
@@ -216,6 +222,10 @@ int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
 {
 	double lat, lon, bearing, dist, nlat, nlon;
 
+	assert(coor);
+	assert(bearing_s);
+	assert(dist_s);
+
 	msg(7, "%s(\"%s\", \"%s\", \"%s\")",
 	       __func__, coor, bearing_s, dist_s);
 
@@ -272,6 +282,10 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 {
 	double lat1, lon1, lat2, lon2, numpoints, nlat = 0.0, nlon = 0.0;
 	int i, retval = EXIT_SUCCESS;
+
+	assert(coor1);
+	assert(coor2);
+	assert(numpoints_s);
 
 	msg(7, "%s(\"%s\", \"%s\", \"%s\")",
 	       __func__, coor1, coor2, numpoints_s);
@@ -371,6 +385,10 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s)
 {
 	double lat1, lon1, lat2, lon2, fracdist, nlat, nlon;
+
+	assert(coor1);
+	assert(coor2);
+	assert(fracdist_s);
 
 	msg(7, "%s(\"%s\", \"%s\", \"%s\")",
 	       __func__, coor1, coor2, fracdist_s);
@@ -545,6 +563,10 @@ static int bench_dist_func(const char *name,
                            const time_t dur,
                            struct bench_result *br)
 {
+	assert(name);
+	assert(fnc);
+	assert(br);
+
 	fprintf(stderr, "Looping %s() for %ld second%s...",
 	                name, dur, dur == 1 ? "" : "s");
 	fflush(stderr);

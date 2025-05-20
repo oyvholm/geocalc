@@ -548,6 +548,7 @@ static int process_args(int argc, char *argv[])
 	const int numargs = argc - optind;
 	const char *cmd = argv[optind];
 
+	assert(cmd);
 	msg(4, "%s(): cmd = %s", __func__, cmd);
 
 	if (!strcmp(cmd, "bear") || !strcmp(cmd, "dist")) {
@@ -634,6 +635,9 @@ static int process_args(int argc, char *argv[])
 
 static int setup_options(struct Options *o, const int argc, char *argv[])
 {
+	assert(o);
+	assert(argv);
+
 	if (o->format) {
 		msg(4, "%s(): o.format = \"%s\"", __func__, o->format);
 		if (!*o->format || !strcmp(o->format, "default")) {
