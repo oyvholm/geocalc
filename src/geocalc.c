@@ -366,6 +366,10 @@ static int choose_opt_action(struct Options *dest,
 			dest->count = strtol(optarg, &endptr, 10);
 			if (errno || endptr == optarg || *endptr
 			    || dest->count < 0) {
+#if defined(__FreeBSD__)
+				if (endptr == optarg && errno == EINVAL)
+					errno = 0;
+#endif
 				myerror("%s: Invalid --count argument",
 				        optarg);
 				return 1;
@@ -379,6 +383,10 @@ static int choose_opt_action(struct Options *dest,
 			dest->seed = optarg;
 			dest->seedval = strtol(dest->seed, &endptr, 10);
 			if (errno || endptr == dest->seed || *endptr) {
+#if defined(__FreeBSD__)
+				if (endptr == dest->seed && errno == EINVAL)
+					errno = 0;
+#endif
 				myerror("%s: Invalid --seed argument",
 				        dest->seed);
 				return 1;
