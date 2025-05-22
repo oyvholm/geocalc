@@ -534,11 +534,17 @@ static int not_compatible(const char *cmd)
 		myerror("%s(): cmd is NULL", __func__); /* gncov */
 		return 1; /* gncov */
 	}
-	if (!strcmp(cmd, "dist"))
-		return 0;
-	if (opt.distformula == FRM_KARNEY) {
+	if (opt.distformula == FRM_KARNEY && strcmp(cmd, "dist")) {
 		myerror("-K/--karney is not supported by the %s command", cmd);
 		return 1;
+	}
+	if (opt.outpformat == OF_GPX) {
+		if (!strcmp(cmd, "bear") || !strcmp(cmd, "bench")
+		    || !strcmp(cmd, "dist")) {
+			myerror("GPX output is not supported by the %s"
+			        " command", cmd);
+			return 1;
+		}
 	}
 
 	return 0;
@@ -567,6 +573,8 @@ static int process_args(int argc, char *argv[])
 		retval = cmd_bear_dist(cmd,
 		                       argv[optind + 1], argv[optind + 2]);
 	} else if (!strcmp(cmd, "bench")) {
+		if (not_compatible(cmd))
+			return EXIT_FAILURE;
 		switch (numargs) {
 		case 1: /* gncov */
 			retval = cmd_bench(NULL); /* gncov */

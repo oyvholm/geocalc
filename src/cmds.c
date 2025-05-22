@@ -138,10 +138,6 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 
 	msg(7, "%s(\"%s\", \"%s\", \"%s\")", __func__, cmd, coor1, coor2);
 
-	if (opt.outpformat == OF_GPX) {
-		myerror("Cannot display this info in GPX format");
-		return EXIT_FAILURE;
-	}
 	if (parse_coordinate(coor1, true, &lat1, &lon1)) {
 		myerror("%s: Invalid coordinate", coor1);
 		return EXIT_FAILURE;

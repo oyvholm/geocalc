@@ -1406,6 +1406,11 @@ static void test_cmd_bench(char *execname)
 	   "Looping haversine() for ",
 	   EXIT_SUCCESS,
 	   "--format sql bench");
+	sc(chp{ execname, "--format", "gpx", "bench", "0", NULL },
+	   "",
+	   ": GPX output is not supported by the bench command\n",
+	   EXIT_FAILURE,
+	   "--format gpx bench");
 }
 
 /*
@@ -1972,7 +1977,9 @@ static void test_multiple(char *execname, char *cmd)
 	   "-F default %s", cmd);
 	sc(chp{ execname, "--format", "gpx", cmd, "34,56", "-78,9", NULL },
 	   "",
-	   ": Cannot display this info in GPX format\n",
+	   !strcmp(cmd, "bear")
+	       ? ": GPX output is not supported by the bear command\n"
+	       : ": GPX output is not supported by the dist command\n",
 	   EXIT_FAILURE,
 	   "--format gpx %s", cmd);
 	if (!strcmp(cmd, "bear"))
