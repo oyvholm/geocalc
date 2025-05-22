@@ -523,12 +523,12 @@ static int wrong_argcount(const int exp, const int got)
 }
 
 /*
- * karney_missing() - Checks that the command `cmd` is compatible with the 
+ * not_compatible() - Checks that the command `cmd` is compatible with the 
  * -K/--karney option. Returns 0 if the --karney option is available with the 
  * command, otherwise 1.
  */
 
-static int karney_missing(const char *cmd)
+static int not_compatible(const char *cmd)
 {
 	if (!cmd) {
 		myerror("%s(): cmd is NULL", __func__); /* gncov */
@@ -560,7 +560,7 @@ static int process_args(int argc, char *argv[])
 	msg(4, "%s(): cmd = %s", __func__, cmd);
 
 	if (!strcmp(cmd, "bear") || !strcmp(cmd, "dist")) {
-		if (karney_missing(cmd))
+		if (not_compatible(cmd))
 			return EXIT_FAILURE;
 		if (wrong_argcount(3, numargs))
 			return EXIT_FAILURE;
@@ -579,28 +579,28 @@ static int process_args(int argc, char *argv[])
 			return EXIT_FAILURE;
 		}
 	} else if (!strcmp(cmd, "bpos")) {
-		if (karney_missing(cmd))
+		if (not_compatible(cmd))
 			return EXIT_FAILURE;
 		if (wrong_argcount(4, numargs))
 			return EXIT_FAILURE;
 		retval = cmd_bpos(argv[optind + 1], argv[optind + 2],
 		                  argv[optind + 3]);
 	} else if (!strcmp(cmd, "course")) {
-		if (karney_missing(cmd))
+		if (not_compatible(cmd))
 			return EXIT_FAILURE;
 		if (wrong_argcount(4, numargs))
 			return EXIT_FAILURE;
 		retval = cmd_course(argv[optind + 1], argv[optind + 2],
 		                    argv[optind + 3]);
 	} else if (!strcmp(cmd, "lpos")) {
-		if (karney_missing(cmd))
+		if (not_compatible(cmd))
 			return EXIT_FAILURE;
 		if (wrong_argcount(4, numargs))
 			return EXIT_FAILURE;
 		retval = cmd_lpos(argv[optind + 1], argv[optind + 2],
 		                  argv[optind + 3]);
 	} else if (!strcmp(cmd, "randpos")) {
-		if (karney_missing(cmd))
+		if (not_compatible(cmd))
 			return EXIT_FAILURE;
 		switch (numargs) {
 		case 1:
