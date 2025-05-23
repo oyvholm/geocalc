@@ -117,7 +117,6 @@ struct bench_result {
  */
 
 /* geocalc.c */
-extern char *progname;
 extern struct Options opt;
 int msg(const int verbose, const char *format, ...);
 const char *std_strerror(const int errnum);
