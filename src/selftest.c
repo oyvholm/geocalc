@@ -135,7 +135,7 @@ static char *diag_output(const char *format, ...)
 }
 
 /*
- * diag() - Prints a diagnostic message prefixed with "# " to stdout. `printf` 
+ * diag() - Prints a diagnostic message prefixed with "# " to stderr. `printf` 
  * sequences can be used. All `\n` characters are converted to "\n# ".
  *
  * A terminating `\n` is automatically added to the string. Returns 0 if 
@@ -886,7 +886,7 @@ static void chk_antip(const char *coor1, const char *coor2, const int exp)
 
 	if (parse_coordinate(coor1, true, &lat1, &lon1)
 	    || parse_coordinate(coor2, true, &lat2, &lon2)) {
-		failed_ok("parse_coordinate()"); /* gncov */ 
+		failed_ok("parse_coordinate()"); /* gncov */
 		return; /* gncov */
 	}
 
@@ -2101,8 +2101,8 @@ next:
 }
 
 /*
- * chk_coor_outp() - Verify the output from the randpos command. Returns 
- * 1 if any error, 0 if everything is ok.
+ * chk_coor_outp() - Verify the output from the randpos command. Returns 1 if 
+ * any error, 0 if everything is ok.
  */
 
 static int chk_coor_outp(const OutputFormat format, const char *output,

@@ -212,6 +212,7 @@ int parse_coordinate(const char *s, bool validate,
 
 cleanup:
 	free(sd);
+
 	return retval;
 }
 

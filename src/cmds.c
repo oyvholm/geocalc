@@ -662,6 +662,7 @@ int cmd_bench(const struct Options *o, const char *seconds)
 		};
 	}
 
+	/* Note: Update `br` size when new benchmarks are added/removed */
 	r += bench_dist_func("haversine", haversine, secs, &br[0]);
 	r += bench_dist_func("karney_distance", karney_distance, secs, &br[1]);
 	fputs("\n", stderr);

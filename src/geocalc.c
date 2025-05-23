@@ -28,9 +28,10 @@ static char *progname;
 static struct Options opt;
 
 /*
- * opt_struct() - Returns the value of `opt`. This function is used by 
- * test_command() and te_randpos() in the test suite for use with 
- * streams_exec().
+ * opt_struct() - Returns a copy of `opt`. It can be used by functions outside 
+ * this file who need to inspect the values of various members of `opt`. It is 
+ * currently used by test_command() and te_randpos() in the test suite for use 
+ * with streams_exec().
  */
 
 struct Options opt_struct(void)

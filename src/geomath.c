@@ -25,8 +25,9 @@ const double MAX_EARTH_DISTANCE = 20015086.79602057114243507385; /* Meters */
 
 /*
  * are_antipodal() - Check if two points are antipodal, i.e. on exactly 
- * opposite positions of the planet. To account for rounding errors, a small 
- * margin (~1.1 mm) is allowed. Returns 1 if they're antipodal, otherwise 0.
+ * opposite positions of a spherical planet. To account for rounding errors, a 
+ * small margin (≈0.01 mm) is allowed. Returns 1 if they're antipodal, 
+ * otherwise 0.
  */
 
 int are_antipodal(const double lat1, const double lon1,
@@ -101,14 +102,14 @@ void set_antipode(double *dlat, double *dlon) /* gncov */
 
 /*
  * bearing_position() - Calculates the new geographic position after moving 
- * `dist_m` meters from the position `lat, lon` in the direction `bearing_deg` 
+ * `dist_m` meters from the position `lat,lon` in the direction `bearing_deg` 
  * (where north is 0, south is 180). The new coordinate is stored at memory 
  * locations pointed to by `new_lat` and `new_lon`.
  *
  * Negative values for `dist_m` are allowed, to calculate positions in the 
  * opposite direction of `bearing_deg`.
  *
- * For exact pole positions (lat = ±90°), the latitude is adjusted by ~1 cm to 
+ * For exact pole positions (lat = ±90°), the latitude is adjusted by ≈1 cm to 
  * avoid computational instability.
  *
  * If the provided values are outside the valid coordinate range, it returns 1. 
@@ -125,8 +126,9 @@ int bearing_position(const double lat, const double lon,
 	assert(new_lon);
 
 	if (fabs(lat) > 90.0 || fabs(lon) > 180.0
-	    || bearing_deg < 0.0 || bearing_deg > 360.0)
+	    || bearing_deg < 0.0 || bearing_deg > 360.0) {
 		return 1;
+	}
 
 	if (fabs(lat_a) == 90.0)
 		lat_a *= 1.0 - 1e-9;
@@ -143,7 +145,7 @@ int bearing_position(const double lat, const double lon,
 
 	const double lat2_rad = asin(sin_lat * cos_ang_dist
 	                             + cos_lat * sin_ang_dist
-	                             * cos(bearing_rad));
+	                               * cos(bearing_rad));
 
 	const double lon2_rad = lon_rad
 	                        + atan2(sin(bearing_rad) * sin_ang_dist
@@ -324,6 +326,7 @@ double distance(const DistFormula formula,
  * - -1.0: if values outside the valid coordinate range are provided
  * - -2.0: if points are antipodal, answer is undefined
  */
+
 double initial_bearing(const double lat1, const double lon1,
                        const double lat2, const double lon2)
 {
