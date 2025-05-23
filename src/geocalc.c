@@ -526,24 +526,24 @@ static int wrong_argcount(const int exp, const int got)
 }
 
 /*
- * not_compatible() - Checks that the command `cmd` is compatible with the 
- * -K/--karney option. Returns 0 if the --karney option is available with the 
- * command, otherwise 1.
+ * not_compatible() - Checks that the command `cmd` is compatible with various 
+ * options. Returns 0 if the command is compatible, otherwise 1.
  */
 
-static int not_compatible(const char *cmd)
+static int not_compatible(const char *cmd, const struct Options *o)
 {
 	assert(cmd);
+	assert(o);
 
 	if (!cmd) {
 		myerror("%s(): cmd is NULL", __func__); /* gncov */
 		return 1; /* gncov */
 	}
-	if (opt.distformula == FRM_KARNEY && strcmp(cmd, "dist")) {
+	if (o->distformula == FRM_KARNEY && strcmp(cmd, "dist")) {
 		myerror("-K/--karney is not supported by the %s command", cmd);
 		return 1;
 	}
-	if (opt.outpformat == OF_GPX) {
+	if (o->outpformat == OF_GPX) {
 		if (!strcmp(cmd, "bear") || !strcmp(cmd, "bench")
 		    || !strcmp(cmd, "dist")) {
 			myerror("GPX output is not supported by the %s"
@@ -561,24 +561,25 @@ static int not_compatible(const char *cmd)
  * succeeds, otherwise it returns `EXIT_FAILURE`.
  */
 
-static int process_args(int argc, char *argv[])
+static int process_args(const struct Options *o, int argc, char *argv[])
 {
 	int retval;
 	const int numargs = argc - optind;
 	const char *cmd = argv[optind];
 
+	assert(o);
 	assert(cmd);
 	msg(4, "%s(): cmd = %s", __func__, cmd);
 
 	if (!strcmp(cmd, "bear") || !strcmp(cmd, "dist")) {
-		if (not_compatible(cmd))
+		if (not_compatible(cmd, o))
 			return EXIT_FAILURE;
 		if (wrong_argcount(3, numargs))
 			return EXIT_FAILURE;
 		retval = cmd_bear_dist(cmd,
 		                       argv[optind + 1], argv[optind + 2]);
 	} else if (!strcmp(cmd, "bench")) {
-		if (not_compatible(cmd))
+		if (not_compatible(cmd, o))
 			return EXIT_FAILURE;
 		switch (numargs) {
 		case 1: /* gncov */
@@ -592,28 +593,28 @@ static int process_args(int argc, char *argv[])
 			return EXIT_FAILURE;
 		}
 	} else if (!strcmp(cmd, "bpos")) {
-		if (not_compatible(cmd))
+		if (not_compatible(cmd, o))
 			return EXIT_FAILURE;
 		if (wrong_argcount(4, numargs))
 			return EXIT_FAILURE;
 		retval = cmd_bpos(argv[optind + 1], argv[optind + 2],
 		                  argv[optind + 3]);
 	} else if (!strcmp(cmd, "course")) {
-		if (not_compatible(cmd))
+		if (not_compatible(cmd, o))
 			return EXIT_FAILURE;
 		if (wrong_argcount(4, numargs))
 			return EXIT_FAILURE;
 		retval = cmd_course(argv[optind + 1], argv[optind + 2],
 		                    argv[optind + 3]);
 	} else if (!strcmp(cmd, "lpos")) {
-		if (not_compatible(cmd))
+		if (not_compatible(cmd, o))
 			return EXIT_FAILURE;
 		if (wrong_argcount(4, numargs))
 			return EXIT_FAILURE;
 		retval = cmd_lpos(argv[optind + 1], argv[optind + 2],
 		                  argv[optind + 3]);
 	} else if (!strcmp(cmd, "randpos")) {
-		if (not_compatible(cmd))
+		if (not_compatible(cmd, o))
 			return EXIT_FAILURE;
 		switch (numargs) {
 		case 1:
@@ -735,7 +736,7 @@ int main(int argc, char *argv[])
 
 	for (t = optind; t < argc; t++)
 		msg(4, "%s(): Non-option arg %d: %s", __func__, t, argv[t]);
-	retval = process_args(argc, argv);
+	retval = process_args(&opt, argc, argv);
 	check_errno;
 
 	msg(4, "Returning from %s() with value %d", __func__, retval);
