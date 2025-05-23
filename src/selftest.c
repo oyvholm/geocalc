@@ -278,6 +278,7 @@ static void test_command(const char identical, char *cmd[],
                          const char *exp_stdout, const char *exp_stderr,
                          const int exp_retval, const char *desc, va_list ap)
 {
+	const struct Options o = opt_struct();
 	struct streams ss;
 	char *descbuf;
 
@@ -287,7 +288,7 @@ static void test_command(const char identical, char *cmd[],
 		return; /* gncov */
 	}
 
-	if (opt.verbose >= 4) {
+	if (o.verbose >= 4) {
 		int i = -1; /* gncov */
 		fprintf(stderr, "# %s(", __func__); /* gncov */
 		while (cmd[++i]) /* gncov */
@@ -302,7 +303,7 @@ static void test_command(const char identical, char *cmd[],
 		return; /* gncov */
 	}
 	streams_init(&ss);
-	streams_exec(&ss, cmd);
+	streams_exec(&o, &ss, cmd);
 	if (exp_stdout) {
 		ok(tc_cmp(identical, ss.out.buf, exp_stdout),
 		   "%s (stdout)", descbuf);
@@ -773,23 +774,23 @@ static void test_rand_pos(void)
  * test_streams_exec() - Tests the streams_exec() function. Returns nothing.
  */
 
-static void test_streams_exec(char *execname)
+static void test_streams_exec(char *execname, const struct Options *o)
 {
-	bool orig_valgrind;
+	struct Options mod_opt;
 	struct streams ss;
 	char *s;
 
 	assert(execname);
+	assert(o);
 	diag("Test streams_exec()");
 
 	diag("Send input to the program");
 	streams_init(&ss);
 	ss.in.buf = "This is sent to stdin.\n";
 	ss.in.len = strlen(ss.in.buf);
-	orig_valgrind = opt.valgrind;
-	opt.valgrind = false;
-	streams_exec(&ss, chp{ execname, NULL });
-	opt.valgrind = orig_valgrind;
+	mod_opt = *o;
+	mod_opt.valgrind = false;
+	streams_exec(&mod_opt, &ss, chp{ execname, NULL });
 	s = "streams_exec(execname) with stdin data";
 	ok(!!strcmp(ss.out.buf, ""), "%s (stdout)", s);
 	ok(!strstr(ss.err.buf, ": No arguments specified\n"),
@@ -1234,24 +1235,26 @@ static void test_karney_distance(void)
  * nothing.
  */
 
-static void test_valgrind_option(char *execname)
+static void test_valgrind_option(char *execname, const struct Options *o)
 {
 	struct streams ss;
 
 	assert(execname);
+	assert(o);
 	diag("Test --valgrind");
 
-	if (opt.valgrind) {
-		opt.valgrind = false; /* gncov */
+	if (o->valgrind) {
+		struct Options mod_opt = *o; /* gncov */
+
+		mod_opt.valgrind = false; /* gncov */
 		streams_init(&ss); /* gncov */
-		streams_exec(&ss, chp{"valgrind", "--version", /* gncov */
-		                      NULL});
+		streams_exec(&mod_opt, &ss, chp{"valgrind", /* gncov */
+		                                "--version", NULL});
 		if (!strstr(ss.out.buf, "valgrind-")) { /* gncov */
 			ok(1, "Valgrind is not installed," /* gncov */
 			      " disabling Valgrind checks");
 		} else {
 			ok(0, "Valgrind is installed"); /* gncov */
-			opt.valgrind = true; /* gncov */
 		}
 		streams_free(&ss); /* gncov */
 	}
@@ -2178,12 +2181,13 @@ static void te_randpos(const OutputFormat format, char **cmd,
                        const char *desc)
 {
 	struct streams ss;
+	struct Options o = opt_struct();
 
 	assert(cmd);
 	assert(desc);
 
 	streams_init(&ss);
-	streams_exec(&ss, cmd);
+	streams_exec(&o, &ss, cmd);
 	ok(chk_coor_outp(format, ss.out.buf, num, coor, mindist, maxdist),
 	   desc);
 	streams_free(&ss);
@@ -2297,7 +2301,7 @@ static void test_randpos_dist(char *execname)
  * test_cmd_randpos() - Tests the randpos command. Returns nothing.
  */
 
-static void test_cmd_randpos(char *execname)
+static void test_cmd_randpos(char *execname, const struct Options *o)
 {
 	int res;
 	struct streams ss;
@@ -2305,6 +2309,7 @@ static void test_cmd_randpos(char *execname)
 	char **as;
 
 	assert(execname);
+	assert(o);
 	diag("Test randpos command");
 
 	sc(chp{ execname, "randpos", "1,2", "100", "90", "5", NULL },
@@ -2314,7 +2319,7 @@ static void test_cmd_randpos(char *execname)
 	   "randpos with 1 extra argument");
 
 	streams_init(&ss);
-	streams_exec(&ss, chp{ execname, "randpos", NULL });
+	streams_exec(o, &ss, chp{ execname, "randpos", NULL });
 	lat = lon = 0;
 	res = parse_coordinate(ss.out.buf, true, &lat, &lon);
 	ok(!!res, "randpos: Coordinate is valid");
@@ -2492,22 +2497,23 @@ static void test_cmd_randpos(char *execname)
  * test_seed_option() - Tests the --seed option. Returns nothing.
  */
 
-static void test_seed_option(char *execname)
+static void test_seed_option(char *execname, const struct Options *o)
 {
 	struct binbuf bb1, bb2, bb3;
 
 	assert(execname);
+	assert(o);
 	diag("Test --seed");
 
 	binbuf_init(&bb1);
 	binbuf_init(&bb2);
 	binbuf_init(&bb3);
-	exec_output(&bb1, chp{ execname, "--seed", "64738",
-	                       "--count", "20", "randpos", NULL });
-	exec_output(&bb2, chp{ execname, "--seed", "64739",
-	                       "--count", "20", "randpos", NULL });
-	exec_output(&bb3, chp{ execname, "--seed", "64738",
-	                       "--count", "20", "randpos", NULL });
+	exec_output(o, &bb1, chp{ execname, "--seed", "64738",
+	                          "--count", "20", "randpos", NULL });
+	exec_output(o, &bb2, chp{ execname, "--seed", "64739",
+	                          "--count", "20", "randpos", NULL });
+	exec_output(o, &bb3, chp{ execname, "--seed", "64738",
+	                          "--count", "20", "randpos", NULL });
 	ok(!strcmp(bb1.buf, bb2.buf),
 	   "randpos with seed 64738 and 64739 are different");
 	ok(!!strcmp(bb3.buf, bb1.buf),
@@ -2648,9 +2654,11 @@ static void test_karney_option(char *execname)
  * test_functions() - Tests various functions directly. Returns nothing.
  */
 
-static void test_functions(void)
+static void test_functions(const struct Options *o)
 {
-	if (!opt.testfunc)
+	assert(o);
+
+	if (!o->testfunc)
 		return; /* gncov */
 
 	diag("Test selftest routines");
@@ -2679,14 +2687,15 @@ static void test_functions(void)
  * if ok, or 1 if streams_exec() failed.
  */
 
-static int print_version_info(char *execname)
+static int print_version_info(char *execname, const struct Options *o)
 {
 	struct streams ss;
 	int res;
 
 	assert(execname);
+	assert(o);
 	streams_init(&ss);
-	res = streams_exec(&ss, chp{ execname, "--version", NULL });
+	res = streams_exec(o, &ss, chp{ execname, "--version", NULL });
 	if (res) {
 		failed_ok("streams_exec()"); /* gncov */
 		if (ss.err.buf) /* gncov */
@@ -2707,16 +2716,17 @@ static int print_version_info(char *execname)
  * stdout, stderr and the return value are as expected. Returns nothing.
  */
 
-static void test_executable(char *execname)
+static void test_executable(char *execname, const struct Options *o)
 {
 	assert(execname);
-	if (!opt.testexec)
+	assert(o);
+	if (!o->testexec)
 		return; /* gncov */
 
 	diag("Test the executable");
-	test_valgrind_option(execname);
-	print_version_info(execname);
-	test_streams_exec(execname);
+	test_valgrind_option(execname, o);
+	print_version_info(execname, o);
+	test_streams_exec(execname, o);
 	sc(chp{ execname, "abc", NULL },
 	   "",
 	   ": Unknown command: abc\n",
@@ -2730,11 +2740,11 @@ static void test_executable(char *execname)
 	test_cmd_lpos(execname);
 	test_multiple(execname, "bear");
 	test_multiple(execname, "dist");
-	test_cmd_randpos(execname);
-	test_seed_option(execname);
+	test_cmd_randpos(execname, o);
+	test_seed_option(execname, o);
 	test_haversine_option(execname);
 	test_karney_option(execname);
-	print_version_info(execname);
+	print_version_info(execname, o);
 }
 
 /*
@@ -2743,14 +2753,15 @@ static void test_executable(char *execname)
  * fail; otherwise, it returns `EXIT_SUCCESS`.
  */
 
-int opt_selftest(char *execname)
+int opt_selftest(char *execname, const struct Options *o)
 {
 	assert(execname);
+	assert(o);
 	diag("Running tests for %s %s (%s)",
 	     execname, EXEC_VERSION, EXEC_DATE);
 
-	test_functions();
-	test_executable(execname);
+	test_functions(o);
+	test_executable(execname, o);
 
 	printf("1..%d\n", testnum);
 	if (failcount) {

@@ -137,7 +137,7 @@ static char **prepare_valgrind_cmd(char *cmd[]) /* gncov */
  * be NULL. The return value is somewhat undefined at this point in time.
  */
 
-int streams_exec(struct streams *dest, char *cmd[])
+int streams_exec(const struct Options *o, struct streams *dest, char *cmd[])
 {
 	int retval = 1;
 	int infd[2] = { -1, -1 };
@@ -147,8 +147,9 @@ int streams_exec(struct streams *dest, char *cmd[])
 	FILE *infp = NULL, *outfp = NULL, *errfp = NULL;
 	struct sigaction old_action, new_action;
 
+	assert(o);
 	assert(cmd);
-	if (opt.verbose >= 10) {
+	if (o->verbose >= 10) {
 		int i = -1; /* gncov */
 
 		fprintf(stderr, "# %s(", __func__); /* gncov */
@@ -195,7 +196,7 @@ int streams_exec(struct streams *dest, char *cmd[])
 		close(errfd[0]);
 		close(errfd[1]);
 
-		if (opt.valgrind) { /* gncov */
+		if (o->valgrind) { /* gncov */
 			char **valgrind_cmd
 			= prepare_valgrind_cmd(cmd); /* gncov */
 			execvp(valgrind_cmd[0], valgrind_cmd); /* gncov */
@@ -271,11 +272,12 @@ cleanup:
  * `cmd` and store stdout in `dest`. Returns the exit code from the program.
  */
 
-int exec_output(struct binbuf *dest, char *cmd[])
+int exec_output(const struct Options *o, struct binbuf *dest, char *cmd[])
 {
 	int retval;
 	struct streams st;
 
+	assert(o);
 	assert(dest);
 	assert(cmd);
 	if (!dest || !cmd) {
@@ -284,7 +286,7 @@ int exec_output(struct binbuf *dest, char *cmd[])
 	}
 
 	streams_init(&st);
-	retval = streams_exec(&st, cmd);
+	retval = streams_exec(o, &st, cmd);
 	binbuf_cpy(dest, &st.out);
 	streams_free(&st);
 

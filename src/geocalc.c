@@ -25,7 +25,18 @@
  */
 
 static char *progname;
-struct Options opt;
+static struct Options opt;
+
+/*
+ * opt_struct() - Returns the value of `opt`. This function is used by 
+ * test_command() and te_randpos() in the test suite for use with 
+ * streams_exec().
+ */
+
+struct Options opt_struct(void)
+{
+	return opt;
+}
 
 /*
  * msg() - Print a message prefixed with "[progname]: " to stderr if the 
@@ -721,7 +732,7 @@ int main(int argc, char *argv[])
 	if (opt.help)
 		return usage(&opt, EXIT_SUCCESS);
 	if (opt.selftest)
-		return opt_selftest(progname);
+		return opt_selftest(progname, &opt);
 	if (opt.version)
 		return print_version(&opt);
 	if (opt.license)
