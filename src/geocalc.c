@@ -576,17 +576,17 @@ static int process_args(const struct Options *o, int argc, char *argv[])
 			return EXIT_FAILURE;
 		if (wrong_argcount(3, numargs))
 			return EXIT_FAILURE;
-		retval = cmd_bear_dist(cmd,
+		retval = cmd_bear_dist(cmd, o,
 		                       argv[optind + 1], argv[optind + 2]);
 	} else if (!strcmp(cmd, "bench")) {
 		if (not_compatible(cmd, o))
 			return EXIT_FAILURE;
 		switch (numargs) {
 		case 1: /* gncov */
-			retval = cmd_bench(NULL); /* gncov */
+			retval = cmd_bench(o, NULL); /* gncov */
 			break; /* gncov */
 		case 2:
-			retval = cmd_bench(argv[optind + 1]);
+			retval = cmd_bench(o, argv[optind + 1]);
 			break;
 		default:
 			wrong_argcount(2, numargs);
@@ -597,38 +597,38 @@ static int process_args(const struct Options *o, int argc, char *argv[])
 			return EXIT_FAILURE;
 		if (wrong_argcount(4, numargs))
 			return EXIT_FAILURE;
-		retval = cmd_bpos(argv[optind + 1], argv[optind + 2],
+		retval = cmd_bpos(o, argv[optind + 1], argv[optind + 2],
 		                  argv[optind + 3]);
 	} else if (!strcmp(cmd, "course")) {
 		if (not_compatible(cmd, o))
 			return EXIT_FAILURE;
 		if (wrong_argcount(4, numargs))
 			return EXIT_FAILURE;
-		retval = cmd_course(argv[optind + 1], argv[optind + 2],
+		retval = cmd_course(o, argv[optind + 1], argv[optind + 2],
 		                    argv[optind + 3]);
 	} else if (!strcmp(cmd, "lpos")) {
 		if (not_compatible(cmd, o))
 			return EXIT_FAILURE;
 		if (wrong_argcount(4, numargs))
 			return EXIT_FAILURE;
-		retval = cmd_lpos(argv[optind + 1], argv[optind + 2],
+		retval = cmd_lpos(o, argv[optind + 1], argv[optind + 2],
 		                  argv[optind + 3]);
 	} else if (!strcmp(cmd, "randpos")) {
 		if (not_compatible(cmd, o))
 			return EXIT_FAILURE;
 		switch (numargs) {
 		case 1:
-			retval = cmd_randpos(NULL, NULL, NULL);
+			retval = cmd_randpos(o, NULL, NULL, NULL);
 			break;
 		case 2:
-			retval = cmd_randpos(argv[optind + 1], NULL, NULL);
+			retval = cmd_randpos(o, argv[optind + 1], NULL, NULL);
 			break;
 		case 3:
-			retval = cmd_randpos(argv[optind + 1],
+			retval = cmd_randpos(o, argv[optind + 1],
 			                     argv[optind + 2], NULL);
 			break;
 		case 4:
-			retval = cmd_randpos(argv[optind + 1],
+			retval = cmd_randpos(o, argv[optind + 1],
 			                     argv[optind + 2],
 			                     argv[optind + 3]);
 			break;

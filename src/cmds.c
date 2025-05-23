@@ -37,20 +37,23 @@ void round_number(double *dest, const int decimals)
 
 /*
  * print_coordinate() - Prints a coordinate to stdout using the format in 
- * `opt.outpformat`. `name` and `cmt` are used for the GPX format. If `cmt` 
+ * `o->outpformat`. `name` and `cmt` are used for the GPX format. If `cmt` 
  * isn't used, use NULL. Returns 1 if anything failed, otherwise 0.
  */
 
-static int print_coordinate(const double lat, const double lon,
+static int print_coordinate(const struct Options *o,
+                            const double lat, const double lon,
                             const char *name, const char *cmt)
 {
 	double nlat = lat, nlon = lon;
 
+	assert(o);
+
 	round_number(&nlat, 6);
 	round_number(&nlon, 6);
-	if (opt.outpformat == OF_DEFAULT) {
+	if (o->outpformat == OF_DEFAULT) {
 		printf("%f,%f\n", nlat, nlon);
-	} else if (opt.outpformat == OF_GPX) {
+	} else if (o->outpformat == OF_GPX) {
 		char *s;
 		if (!name) {
 			myerror("%s(): Cannot print GPX waypoint," /* gncov */
@@ -65,8 +68,8 @@ static int print_coordinate(const double lat, const double lon,
 		fputs(s, stdout);
 		free(s);
 	} else {
-		myerror("%s(): opt.outpformat has unknown value:" /* gncov */
-		        " %d", __func__, opt.outpformat); /* gncov */
+		myerror("%s(): o->outpformat has unknown value:" /* gncov */
+		        " %d", __func__, o->outpformat); /* gncov */
 		return 1; /* gncov */
 	}
 
@@ -77,19 +80,22 @@ static int print_coordinate(const double lat, const double lon,
  * print_eor_coor() - Prints "end of run" coordinate. All commands use this 
  * function if the final result is only a coordinate, so the proper output 
  * format can be used. Returns 1 if allocations failed, or an unknown value is 
- * stored in `opt.outpformat`. Otherwise it returns 0.
+ * stored in `o->outpformat`. Otherwise it returns 0.
  */
 
-static int print_eor_coor(const double lat, const double lon, const char *cmd,
+static int print_eor_coor(const struct Options *o,
+                          const double lat, const double lon, const char *cmd,
                           const char *par1, const char *par2, const char *par3)
 {
 	char *cmt, *s;
 	double nlat = lat, nlon = lon;
 
+	assert(o);
+
 	round_number(&nlat, 6);
 	round_number(&nlon, 6);
 
-	switch (opt.outpformat) {
+	switch (o->outpformat) {
 	case OF_DEFAULT:
 		printf("%f,%f\n", nlat, nlon);
 		break;
@@ -126,12 +132,14 @@ static int print_eor_coor(const double lat, const double lon, const char *cmd,
  * `cmd`. Returns `EXIT_SUCCESS` or `EXIT_FAILURE`.
  */
 
-int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
+int cmd_bear_dist(const char *cmd, const struct Options *o,
+                  const char *coor1, const char *coor2)
 {
 	double lat1, lon1, lat2, lon2, result;
 	char *s;
 
 	assert(cmd);
+	assert(o);
 	assert(!strcmp(cmd, "bear") || !strcmp(cmd, "dist"));
 	assert(coor1);
 	assert(coor2);
@@ -148,25 +156,25 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 	}
 
 	result = !strcmp(cmd, "bear") ? initial_bearing(lat1, lon1, lat2, lon2)
-	                              : distance(opt.distformula,
+	                              : distance(o->distformula,
 	                                         lat1, lon1, lat2, lon2);
 	if (result == -2.0) {
 		myerror("Antipodal points, answer is undefined");
 		return EXIT_FAILURE;
 	}
-	if (isnan(result) && opt.distformula == FRM_KARNEY
+	if (isnan(result) && o->distformula == FRM_KARNEY
 	    && !strcmp(cmd, "dist"))
 	{
 		myerror("Formula did not converge, antipodal points");
 		return EXIT_FAILURE;
 	}
 
-	if (opt.km && !strcmp(cmd, "dist"))
+	if (o->km && !strcmp(cmd, "dist"))
 		result /= 1000.0;
-	switch (opt.outpformat) {
+	switch (o->outpformat) {
 	case OF_DEFAULT:
 		s = allocstr("%%.%uf\n",
-		             opt.distformula == FRM_KARNEY
+		             o->distformula == FRM_KARNEY
 		               ? KARNEY_DECIMALS
 		               : HAVERSINE_DECIMALS);
 		if (!s) {
@@ -203,8 +211,8 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
 		return EXIT_SUCCESS;
 	}
 
-	myerror("%s():%d: opt.outpformat has unknown format %d", /* gncov */
-	        __func__, __LINE__, opt.outpformat); /* gncov */
+	myerror("%s():%d: o->outpformat has unknown format %d", /* gncov */
+	        __func__, __LINE__, o->outpformat); /* gncov */
 
 	return EXIT_FAILURE; /* gncov */
 }
@@ -214,10 +222,12 @@ int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2)
  * `EXIT_FAILURE`.
  */
 
-int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
+int cmd_bpos(const struct Options *o, const char *coor,
+             const char *bearing_s, const char *dist_s)
 {
 	double lat, lon, bearing, dist, nlat, nlon;
 
+	assert(o);
 	assert(coor);
 	assert(bearing_s);
 	assert(dist_s);
@@ -241,14 +251,14 @@ int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
 		myerror("%s: Invalid distance", dist_s);
 		return EXIT_FAILURE;
 	}
-	if (opt.km)
+	if (o->km)
 		dist *= 1000.0;
 	bearing_position(lat, lon, bearing, dist, &nlat, &nlon);
 
-	switch (opt.outpformat) {
+	switch (o->outpformat) {
 	case OF_DEFAULT:
 	case OF_GPX:
-		return print_eor_coor(nlat, nlon, "bpos", coor, bearing_s,
+		return print_eor_coor(o, nlat, nlon, "bpos", coor, bearing_s,
 		                      dist_s)
 		       ? EXIT_FAILURE : EXIT_SUCCESS;
 	case OF_SQL:
@@ -263,8 +273,8 @@ int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
 		return EXIT_SUCCESS;
 	}
 
-	myerror("%s(): opt.outpformat has unknown format %d", /* gncov */
-	        __func__, opt.outpformat); /* gncov */
+	myerror("%s(): o->outpformat has unknown format %d", /* gncov */
+	        __func__, o->outpformat); /* gncov */
 
 	return EXIT_FAILURE; /* gncov */
 }
@@ -274,11 +284,13 @@ int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s)
  * `EXIT_FAILURE`.
  */
 
-int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
+int cmd_course(const struct Options *o, const char *coor1, const char *coor2,
+               const char *numpoints_s)
 {
 	double lat1, lon1, lat2, lon2, numpoints, nlat = 0.0, nlon = 0.0;
 	int i, retval = EXIT_SUCCESS;
 
+	assert(o);
 	assert(coor1);
 	assert(coor2);
 	assert(numpoints_s);
@@ -308,7 +320,7 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 		return EXIT_FAILURE;
 	}
 
-	switch (opt.outpformat) {
+	switch (o->outpformat) {
 	case OF_DEFAULT:
 		break;
 	case OF_GPX:
@@ -330,7 +342,7 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 		routepoint(lat1, lon1, lat2, lon2, frac, &nlat, &nlon);
 		round_number(&nlat, 6);
 		round_number(&nlon, 6);
-		switch(opt.outpformat) {
+		switch(o->outpformat) {
 		case OF_DEFAULT:
 			printf("%f,%f\n", nlat, nlon);
 			break;
@@ -358,7 +370,7 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
 		}
 	}
 
-	switch (opt.outpformat) {
+	switch (o->outpformat) {
 	case OF_DEFAULT:
 		break;
 	case OF_GPX:
@@ -378,10 +390,12 @@ int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s)
  * `EXIT_FAILURE`.
  */
 
-int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s)
+int cmd_lpos(const struct Options *o, const char *coor1, const char *coor2,
+             const char *fracdist_s)
 {
 	double lat1, lon1, lat2, lon2, fracdist, nlat, nlon;
 
+	assert(o);
 	assert(coor1);
 	assert(coor2);
 	assert(fracdist_s);
@@ -407,10 +421,10 @@ int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s)
 	}
 	routepoint(lat1, lon1, lat2, lon2, fracdist, &nlat, &nlon);
 
-	switch (opt.outpformat) {
+	switch (o->outpformat) {
 	case OF_DEFAULT:
 	case OF_GPX:
-		return print_eor_coor(nlat, nlon, "lpos",
+		return print_eor_coor(o, nlat, nlon, "lpos",
 		                      coor1, coor2, fracdist_s)
 		       ? EXIT_FAILURE : EXIT_SUCCESS;
 	case OF_SQL:
@@ -427,8 +441,8 @@ int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s)
 		return EXIT_SUCCESS;
 	}
 
-	myerror("%s(): opt.outpformat has unknown format %d", /* gncov */
-	        __func__, opt.outpformat); /* gncov */
+	myerror("%s(): o->outpformat has unknown format %d", /* gncov */
+	        __func__, o->outpformat); /* gncov */
 
 	return EXIT_FAILURE; /* gncov */
 }
@@ -438,10 +452,13 @@ int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s)
  * `EXIT_FAILURE`.
  */
 
-int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
+int cmd_randpos(const struct Options *o, const char *coor,
+                const char *maxdist, const char *mindist)
 {
 	long l;
 	double c_lat = 1000, c_lon = 1000, maxdist_d = 0, mindist_d = 0;
+
+	assert(o);
 
 	if (coor) {
 		if (parse_coordinate(coor, true, &c_lat, &c_lon)) {
@@ -460,7 +477,7 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 			myerror("Distance cannot be negative");
 			return EXIT_FAILURE;
 		}
-		if (opt.km) {
+		if (o->km) {
 			mindist_d *= 1000.0;
 			maxdist_d *= 1000.0;
 		}
@@ -470,7 +487,7 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 			maxdist_d = MAX_EARTH_DISTANCE;
 	}
 
-	switch (opt.outpformat) {
+	switch (o->outpformat) {
 	case OF_DEFAULT:
 		break;
 	case OF_GPX:
@@ -484,12 +501,12 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 		break;
 	}
 
-	for (l = 1; l <= opt.count; l++) {
+	for (l = 1; l <= o->count; l++) {
 		double lat, lon;
 		char *name, *seedstr = NULL;
 
-		if (opt.seed) {
-			seedstr = allocstr(", seed %ld", opt.seedval);
+		if (o->seed) {
+			seedstr = allocstr(", seed %ld", o->seedval);
 			if (!seedstr) {
 				failed("allocstr()"); /* gncov */
 				return EXIT_FAILURE; /* gncov */
@@ -503,7 +520,7 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 			return EXIT_FAILURE; /* gncov */
 		}
 
-		if (opt.outpformat == OF_SQL) {
+		if (o->outpformat == OF_SQL) {
 			double dist, bear;
 
 			dist = haversine(c_lat, c_lon, lat, lon);
@@ -511,21 +528,21 @@ int cmd_randpos(const char *coor, const char *maxdist, const char *mindist)
 			if (c_lat > 90.0) {
 				printf("INSERT INTO randpos VALUES"
 				       " (%ld, %ld, %f, %f, NULL, NULL);\n",
-				       opt.seedval, l, lat, lon);
+				       o->seedval, l, lat, lon);
 			} else {
 				printf("INSERT INTO randpos VALUES"
 				       " (%ld, %ld, %f, %f, %f, %f);\n",
-				       opt.seedval, l, lat, lon, dist, bear);
+				       o->seedval, l, lat, lon, dist, bear);
 			}
 		} else {
-			print_coordinate(lat, lon, name, NULL);
+			print_coordinate(o, lat, lon, name, NULL);
 		}
 
 		free(name);
 		free(seedstr);
 	}
 
-	switch (opt.outpformat) {
+	switch (o->outpformat) {
 	case OF_DEFAULT:
 		break;
 	case OF_GPX:
@@ -623,7 +640,7 @@ static int cmd_bench_cmp_rounds(const void *s1, const void *s2) /* gncov */
  * EXIT_SUCCESS or EXIT_FAILURE.
  */
 
-int cmd_bench(const char *seconds)
+int cmd_bench(const struct Options *o, const char *seconds)
 {
 	time_t secs = seconds ? atoi(seconds) : BENCH_LOOP_SECS;
 	struct bench_result br[2];
@@ -632,6 +649,8 @@ int cmd_bench(const char *seconds)
 	int r = 0;
 	unsigned long totrounds = 0UL;
 	double lat1, lon1, lat2, lon2;
+
+	assert(o);
 
 	rand_pos(&lat1, &lon1, 1000, 1000, 0, 0);
 	rand_pos(&lat2, &lon2, 1000, 1000, 0, 0);
@@ -651,14 +670,14 @@ int cmd_bench(const char *seconds)
 		totrounds += br[i].rounds;
 
 	qsort(br, arrsize, sizeof(struct bench_result), cmd_bench_cmp_rounds);
-	if (opt.outpformat == OF_SQL) {
+	if (o->outpformat == OF_SQL) {
 		puts("BEGIN;");
 		puts("CREATE TABLE IF NOT EXISTS bench (name TEXT, start REAL,"
 		     " end REAL, secs REAL, rounds INTEGER, lat1 REAL,"
 		     " lon1 REAL, lat2 REAL, lon2 REAL, dist REAL);");
 	}
 	for (i = 0; i < arrsize; i++) {
-		if (opt.outpformat == OF_SQL) {
+		if (o->outpformat == OF_SQL) {
 			printf("INSERT INTO bench VALUES ('%s', %f, %f, %f,"
 			       " %lu, %.15f, %.15f, %.15f, %.15f, %f);\n",
 			       br[i].name, br[i].start_d, br[i].end_d,
@@ -674,7 +693,7 @@ int cmd_bench(const char *seconds)
 		}
 	}
 
-	if (opt.outpformat == OF_SQL)
+	if (o->outpformat == OF_SQL)
 		puts("COMMIT;");
 
 	return r ? EXIT_FAILURE : EXIT_SUCCESS;

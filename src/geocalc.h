@@ -125,12 +125,17 @@ void init_opt(struct Options *dest);
 
 /* cmds.c */
 void round_number(double *dest, const int decimals);
-int cmd_bear_dist(const char *cmd, const char *coor1, const char *coor2);
-int cmd_bpos(const char *coor, const char *bearing_s, const char *dist_s);
-int cmd_course(const char *coor1, const char *coor2, const char *numpoints_s);
-int cmd_lpos(const char *coor1, const char *coor2, const char *fracdist_s);
-int cmd_randpos(const char *coor, const char *maxdist, const char *mindist);
-int cmd_bench(const char *seconds);
+int cmd_bear_dist(const char *cmd, const struct Options *o,
+                  const char *coor1, const char *coor2);
+int cmd_bpos(const struct Options *o,const char *coor,
+             const char *bearing_s, const char *dist_s);
+int cmd_course(const struct Options *o, const char *coor1, const char *coor2,
+               const char *numpoints_s);
+int cmd_lpos(const struct Options *o, const char *coor1, const char *coor2,
+             const char *fracdist_s);
+int cmd_randpos(const struct Options *o, const char *coor,
+                const char *maxdist, const char *mindist);
+int cmd_bench(const struct Options *o, const char *seconds);
 
 /* gpx.c */
 char *xml_escape_string(const char *text);
