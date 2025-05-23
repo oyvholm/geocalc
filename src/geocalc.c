@@ -530,6 +530,8 @@ static int wrong_argcount(const int exp, const int got)
 
 static int not_compatible(const char *cmd)
 {
+	assert(cmd);
+
 	if (!cmd) {
 		myerror("%s(): cmd is NULL", __func__); /* gncov */
 		return 1; /* gncov */
