@@ -152,7 +152,7 @@ static int print_license(void)
  * the version number is printed. Returns `EXIT_SUCCESS`.
  */
 
-static int print_version(void)
+static int print_version(const struct Options *o)
 {
 #ifdef FAKE_MEMLEAK
 	char *p;
@@ -161,7 +161,8 @@ static int print_version(void)
 	if (p) { }
 #endif
 
-	if (opt.verbose < 0) {
+	assert(o);
+	if (o->verbose < 0) {
 		puts(EXEC_VERSION);
 		return EXIT_SUCCESS;
 	}
@@ -189,16 +190,18 @@ static int print_version(void)
  * usage() - Prints a help screen. Returns `retval`.
  */
 
-static int usage(const int retval)
+static int usage(const struct Options *o, const int retval)
 {
+	assert(o);
+
 	if (retval != EXIT_SUCCESS) {
 		myerror("Type \"%s --help\" for help screen."
 		        " Returning with value %d.", progname, retval);
 		return retval;
 	}
 	puts("");
-	if (opt.verbose >= 1) {
-		print_version();
+	if (o->verbose >= 1) {
+		print_version(o);
 		puts("");
 	}
 	printf("Calculates various geographic data.\n");
@@ -704,7 +707,7 @@ int main(int argc, char *argv[])
 
 	if (parse_options(&opt, argc, argv)) {
 		myerror("Option error");
-		return usage(EXIT_FAILURE);
+		return usage(&opt, EXIT_FAILURE);
 	}
 	srand48(opt.seedval);
 
@@ -715,11 +718,11 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 
 	if (opt.help)
-		return usage(EXIT_SUCCESS);
+		return usage(&opt, EXIT_SUCCESS);
 	if (opt.selftest)
 		return opt_selftest(progname);
 	if (opt.version)
-		return print_version();
+		return print_version(&opt);
 	if (opt.license)
 		return print_license();
 
@@ -727,7 +730,7 @@ int main(int argc, char *argv[])
 	       argc, optind, argv[optind]);
 	if (optind >= argc) {
 		myerror("No arguments specified");
-		return usage(EXIT_FAILURE);
+		return usage(&opt, EXIT_FAILURE);
 	}
 
 	for (t = optind; t < argc; t++)
