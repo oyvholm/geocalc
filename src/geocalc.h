@@ -122,6 +122,7 @@ int msg(const int verbose, const char *format, ...);
 const char *std_strerror(const int errnum);
 int myerror(const char *format, ...);
 void init_opt(struct Options *dest);
+void set_opt_valgrind(bool b);
 
 /* cmds.c */
 void round_number(double *dest, const int decimals);
