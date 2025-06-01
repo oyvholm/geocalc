@@ -65,6 +65,22 @@
 
 #define failed(a)  myerror("%s():%d: %s failed", __func__, __LINE__, (a))
 
+#if defined(__OpenBSD__)
+/*
+ * Fix non-standard behavior on OpenBSD. srand48() ignores the seed, so 
+ * drand48() returns non-deterministic values, which caused 7 tests to fail. 
+ * From the drand48(3) man page in OpenBSD 7.7:
+ *
+ * "Standards insist that this interface return deterministic results. Unsafe 
+ * usage is very common, so OpenBSD changed the subsystem to return 
+ * non-deterministic results by default."
+ *
+ * This behavior has been present since at least OpenBSD 6.0, released on 
+ * 2016-09-01, and maybe earlier.
+ */
+#define srand48(a)  srand48_deterministic(a)
+#endif
+
 typedef enum {
 	OF_DEFAULT = 0,
 	OF_GPX,
