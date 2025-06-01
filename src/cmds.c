@@ -580,8 +580,14 @@ static int bench_dist_func(const char *name,
 	assert(fnc);
 	assert(br);
 
-	fprintf(stderr, "Looping %s() for %ld second%s...",
-	                name, dur, dur == 1 ? "" : "s");
+	/*
+	 * time_t is `long long` on OpenBSD, but `long` on Linux and various 
+	 * other systems. Use `long long` for `dur` to make it work everywhere 
+	 * without generating a compiler warning.
+	 */
+	fprintf(stderr, "Looping %s() for %lld second%s...",
+	                name, (long long)dur, dur == 1 ? "" : "s");
+
 	fflush(stderr);
 
 	br->name = name;
