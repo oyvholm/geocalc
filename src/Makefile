@@ -248,7 +248,7 @@ longlines:
 	@for f in $(LONGLINES_FILES); do \
 		if [ -f "$$f" ]; then \
 			d="$$(expand "$$f" | sed 's/ $$//;' \
-			  | grep -E -n '.{80}')"; \
+			      | awk 'length($$0) > 79 {print NR ": " $$0}')"; \
 			echo "$$d" | grep -q . \
 			&& (echo "$$f"; echo "$$d"; echo " "); \
 		fi; \
