@@ -58,6 +58,7 @@ DEVFLAGS += -Wshadow
 DEVFLAGS += -Wstrict-aliasing
 DEVFLAGS += -Wstrict-overflow=5
 DEVFLAGS += -Wstrict-prototypes
+DEVFLAGS += -Wuninitialized
 DEVFLAGS += -Wunused-const-variable
 DEVFLAGS += -Wunused-function
 DEVFLAGS += -fno-common
@@ -105,6 +106,14 @@ OBJS += selftest.o
 OBJS += strings.o
 PDFFILE = $(EXEC).pdf
 TESTS = all
+
+#  Not in Clang
+# DEVFLAGS += -Wc99-c11-compat
+# DEVFLAGS += -Wduplicated-branches
+# DEVFLAGS += -Wformat-overflow=2
+# DEVFLAGS += -Wjump-misses-init
+# DEVFLAGS += -Wlogical-op
+# DEVFLAGS += -Wmaybe-uninitialized
 
 CMD_VALGRIND  = valgrind
 CMD_VALGRIND += -q
