@@ -9,6 +9,5 @@ variables:
 geocalc:linux:
   stage: build
   before_script:
-    - apt-get update -qq && apt-get install -y gawk
   script:
     - script -e -q -c "make testall clean tlokall DEVEL=1"
