@@ -252,7 +252,7 @@ longlines:
 			        'chomp; \
 			        print("$$.:$$_\n") if length > 79;')"; \
 			echo "$$d" | grep -q . \
-			&& (echo "$$f"; echo "$$d"; echo " "); \
+			&& (echo "$$f"; printf "%s\\n" "$$d"; echo " "); \
 		fi; \
 	done | grep . && exit 1 || true
 
