@@ -35,6 +35,7 @@
 	errno = 0; \
 } while (0)
 
+static char *execname;
 static int failcount = 0;
 static int testnum = 0;
 
@@ -775,13 +776,12 @@ static void test_rand_pos(void)
  * test_streams_exec() - Tests the streams_exec() function. Returns nothing.
  */
 
-static void test_streams_exec(char *execname, const struct Options *o)
+static void test_streams_exec(const struct Options *o)
 {
 	struct Options mod_opt;
 	struct streams ss;
 	char *s;
 
-	assert(execname);
 	assert(o);
 	diag("Test streams_exec()");
 
@@ -792,7 +792,7 @@ static void test_streams_exec(char *execname, const struct Options *o)
 	mod_opt = *o;
 	mod_opt.valgrind = false;
 	streams_exec(&mod_opt, &ss, chp{ execname, NULL });
-	s = "streams_exec(execname) with stdin data";
+	s = "streams_exec() with stdin data";
 	ok(!!strcmp(ss.out.buf, ""), "%s (stdout)", s);
 	ok(!strstr(ss.err.buf, ": No arguments specified\n"),
 	   "%s (stderr)", s);
@@ -1236,11 +1236,10 @@ static void test_karney_distance(void)
  * nothing.
  */
 
-static void test_valgrind_option(char *execname, const struct Options *o)
+static void test_valgrind_option(const struct Options *o)
 {
 	struct streams ss;
 
-	assert(execname);
 	assert(o);
 	diag("Test --valgrind");
 
@@ -1273,11 +1272,10 @@ static void test_valgrind_option(char *execname, const struct Options *o)
  * most programs. Returns nothing.
  */
 
-static void test_standard_options(char *execname)
+static void test_standard_options(void)
 {
 	char *s;
 
-	assert(execname);
 	diag("Test standard options");
 
 	diag("Test -h/--help");
@@ -1361,9 +1359,8 @@ static void test_standard_options(char *execname)
  * test_format_option() - Tests the -F/--format option. Returns nothing.
  */
 
-static void test_format_option(char *execname)
+static void test_format_option(void)
 {
-	assert(execname);
 	diag("Test -F/--format");
 	sc(chp{execname, "-vvvv", "-F", "FoRmAt", NULL},
 	   "",
@@ -1392,9 +1389,8 @@ static void test_format_option(char *execname)
  * test_cmd_bench() - Tests the `bench` command. Returns nothing.
  */
 
-static void test_cmd_bench(char *execname)
+static void test_cmd_bench(void)
 {
-	assert(execname);
 	diag("Test bench command");
 	sc(chp{ execname, "bench", "0", NULL },
 	   " haversine\n",
@@ -1422,9 +1418,8 @@ static void test_cmd_bench(char *execname)
  * test_cmd_bpos() - Tests the `bpos` command. Returns nothing.
  */
 
-static void test_cmd_bpos(char *execname)
+static void test_cmd_bpos(void)
 {
-	assert(execname);
 	diag("Test bpos command");
 	tc(chp{ execname, "bpos", "45,0", "45", "1000", NULL },
 	   "45.006359,0.008994\n",
@@ -1562,11 +1557,10 @@ static void test_cmd_bpos(char *execname)
  * test_cmd_course() - Tests the `course` command. Returns nothing.
  */
 
-static void test_cmd_course(char *execname)
+static void test_cmd_course(void)
 {
 	char *exp_stdout;
 
-	assert(execname);
 	diag("Test course command");
 	tc(chp{ execname, "course", "45,0", "45,180", "1", NULL },
 	   "45.000000,0.000000\n"
@@ -1736,9 +1730,8 @@ static void test_cmd_course(char *execname)
  * test_cmd_lpos() - Tests the `lpos` command. Returns nothing.
  */
 
-static void test_cmd_lpos(char *execname)
+static void test_cmd_lpos(void)
 {
-	assert(execname);
 	diag("Test lpos command");
 	tc(chp{ execname, "lpos", "45,0", "45,180", "0.5", NULL },
 	   "90.000000,0.000000\n",
@@ -1864,9 +1857,8 @@ static void test_cmd_lpos(char *execname)
  * test_multiple() - Tests the `bear` or `dist` command. Returns nothing.
  */
 
-static void test_multiple(char *execname, char *cmd)
+static void test_multiple(char *cmd)
 {
-	assert(execname);
 	assert(cmd);
 	if (!cmd) {
 		ok(1, "%s(): cmd is NULL", __func__); /* gncov */
@@ -2200,11 +2192,10 @@ static void te_randpos(const OutputFormat format, char **cmd,
  * distance. Returns nothing.
  */
 
-static void test_randpos_dist_max(char *execname)
+static void test_randpos_dist_max(void)
 {
 	char **as;
 
-	assert(execname);
 	diag("randpos with max_dist");
 
 	as = chp{ execname, "--count", "50", "randpos", "1.234,5.6789", "100",
@@ -2256,11 +2247,10 @@ static void test_randpos_dist_max(char *execname)
  * minimum distance. Returns nothing.
  */
 
-static void test_randpos_dist_minmax(char *execname)
+static void test_randpos_dist_minmax(void)
 {
 	char **as;
 
-	assert(execname);
 	diag("randpos with max_dist and min_dist");
 
 	as = chp{ execname, "randpos", "12.34,56.78", "100", "200", NULL };
@@ -2293,24 +2283,23 @@ static void test_randpos_dist_minmax(char *execname)
  * distance. Returns nothing.
  */
 
-static void test_randpos_dist(char *execname)
+static void test_randpos_dist(void)
 {
-	test_randpos_dist_max(execname);
-	test_randpos_dist_minmax(execname);
+	test_randpos_dist_max();
+	test_randpos_dist_minmax();
 }
 
 /*
  * test_cmd_randpos() - Tests the randpos command. Returns nothing.
  */
 
-static void test_cmd_randpos(char *execname, const struct Options *o)
+static void test_cmd_randpos(const struct Options *o)
 {
 	int res;
 	struct streams ss;
 	double lat, lon;
 	char **as;
 
-	assert(execname);
 	assert(o);
 	diag("Test randpos command");
 
@@ -2394,7 +2383,7 @@ static void test_cmd_randpos(char *execname, const struct Options *o)
 	   EXIT_SUCCESS,
 	   "-F sql with coordinate and no distances");
 
-	test_randpos_dist(execname);
+	test_randpos_dist();
 
 	diag("randpos with max_dist, invalid arguments");
 
@@ -2499,11 +2488,10 @@ static void test_cmd_randpos(char *execname, const struct Options *o)
  * test_seed_option() - Tests the --seed option. Returns nothing.
  */
 
-static void test_seed_option(char *execname, const struct Options *o)
+static void test_seed_option(const struct Options *o)
 {
 	struct binbuf bb1, bb2, bb3;
 
-	assert(execname);
 	assert(o);
 	diag("Test --seed");
 
@@ -2596,9 +2584,8 @@ static void test_seed_option(char *execname, const struct Options *o)
  * test_haversine_option() - Tests the -H/--haversine option. Returns nothing.
  */
 
-static void test_haversine_option(char *execname)
+static void test_haversine_option(void)
 {
-	assert(execname);
 	diag("Test -H/--haversine");
 
 	tc(chp{ execname, "-H", "dist", "13.389820,-71.453489",
@@ -2620,9 +2607,8 @@ static void test_haversine_option(char *execname)
  * test_karney_option() - Tests the -K/--karney option. Returns nothing.
  */
 
-static void test_karney_option(char *execname)
+static void test_karney_option(void)
 {
-	assert(execname);
 	diag("Test -K/--karney");
 
 	tc(chp{ execname, "-K", "dist", "13.389820,-71.453489",
@@ -2689,12 +2675,11 @@ static void test_functions(const struct Options *o)
  * if ok, or 1 if streams_exec() failed.
  */
 
-static int print_version_info(char *execname, const struct Options *o)
+static int print_version_info(const struct Options *o)
 {
 	struct streams ss;
 	int res;
 
-	assert(execname);
 	assert(o);
 	streams_init(&ss);
 	res = streams_exec(o, &ss, chp{ execname, "--version", NULL });
@@ -2718,35 +2703,34 @@ static int print_version_info(char *execname, const struct Options *o)
  * stdout, stderr and the return value are as expected. Returns nothing.
  */
 
-static void test_executable(char *execname, const struct Options *o)
+static void test_executable(const struct Options *o)
 {
-	assert(execname);
 	assert(o);
 	if (!o->testexec)
 		return; /* gncov */
 
 	diag("Test the executable");
-	test_valgrind_option(execname, o);
-	print_version_info(execname, o);
-	test_streams_exec(execname, o);
+	test_valgrind_option(o);
+	print_version_info(o);
+	test_streams_exec(o);
 	sc(chp{ execname, "abc", NULL },
 	   "",
 	   ": Unknown command: abc\n",
 	   EXIT_FAILURE,
 	   "Unknown command");
-	test_standard_options(execname);
-	test_format_option(execname);
-	test_cmd_bench(execname);
-	test_cmd_bpos(execname);
-	test_cmd_course(execname);
-	test_cmd_lpos(execname);
-	test_multiple(execname, "bear");
-	test_multiple(execname, "dist");
-	test_cmd_randpos(execname, o);
-	test_seed_option(execname, o);
-	test_haversine_option(execname);
-	test_karney_option(execname);
-	print_version_info(execname, o);
+	test_standard_options();
+	test_format_option();
+	test_cmd_bench();
+	test_cmd_bpos();
+	test_cmd_course();
+	test_cmd_lpos();
+	test_multiple("bear");
+	test_multiple("dist");
+	test_cmd_randpos(o);
+	test_seed_option(o);
+	test_haversine_option();
+	test_karney_option();
+	print_version_info(o);
 }
 
 /*
@@ -2755,15 +2739,17 @@ static void test_executable(char *execname, const struct Options *o)
  * fail; otherwise, it returns `EXIT_SUCCESS`.
  */
 
-int opt_selftest(char *execname, const struct Options *o)
+int opt_selftest(char *main_execname, const struct Options *o)
 {
-	assert(execname);
+	assert(main_execname);
 	assert(o);
+
+	execname = main_execname;
 	diag("Running tests for %s %s (%s)",
 	     execname, EXEC_VERSION, EXEC_DATE);
 
 	test_functions(o);
-	test_executable(execname, o);
+	test_executable(o);
 
 	printf("1..%d\n", testnum);
 	if (failcount) {
