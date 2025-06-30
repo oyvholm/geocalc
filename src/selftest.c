@@ -1405,8 +1405,8 @@ static void test_valgrind_option(const struct Options *o)
 
 		mod_opt.valgrind = false; /* gncov */
 		streams_init(&ss); /* gncov */
-		streams_exec(&mod_opt, &ss, chp{"valgrind", /* gncov */
-		                                "--version", NULL});
+		streams_exec(&mod_opt, &ss, chp{ "valgrind", /* gncov */
+		                                 "--version", NULL });
 		if (!strstr(ss.out.buf, "valgrind-")) { /* gncov */
 			ok(1, "Valgrind is not installed," /* gncov */
 			      " disabling Valgrind checks");
@@ -1417,7 +1417,7 @@ static void test_valgrind_option(const struct Options *o)
 		streams_free(&ss); /* gncov */
 	}
 
-	sc(chp{execname, "--valgrind", "-h", NULL},
+	sc(chp{ execname, "--valgrind", "-h", NULL },
 	   "Show this",
 	   "",
 	   EXIT_SUCCESS,
@@ -1514,23 +1514,23 @@ static void test_standard_options(void)
 static void test_format_option(void)
 {
 	diag("Test -F/--format");
-	sc(chp{execname, "-vvvv", "-F", "FoRmAt", NULL},
+	sc(chp{ execname, "-vvvv", "-F", "FoRmAt", NULL },
 	   "",
 	   EXECSTR ": setup_options(): o.format = \"FoRmAt\"\n",
 	   EXIT_FAILURE,
 	   "-vvvv -F FoRmAt: o.format is correct");
-	sc(chp{execname, "-vvvv", "--format", "FoRmAt", NULL},
+	sc(chp{ execname, "-vvvv", "--format", "FoRmAt", NULL },
 	   "",
 	   EXECSTR ": setup_options(): o.format = \"FoRmAt\"\n",
 	   EXIT_FAILURE,
 	   "-vvvv --format FoRmAt: o.format is correct");
-	sc(chp{execname, "-vvvv", "-F", "FoRmAt", NULL},
+	sc(chp{ execname, "-vvvv", "-F", "FoRmAt", NULL },
 	   NULL,
 	   EXECSTR ": FoRmAt: Unknown output format\n",
 	   EXIT_FAILURE,
 	   "-vvvv -F FoRmAt: It says it's unknown");
-	tc(chp{execname, "-vvvv", "-F", "", "lpos", "54,7", "12,22",
-	       "0.23", NULL},
+	tc(chp{ execname, "-vvvv", "-F", "", "lpos", "54,7", "12,22",
+	        "0.23", NULL },
 	   "44.531328,12.145870\n",
 	   NULL,
 	   EXIT_SUCCESS,
@@ -1804,8 +1804,8 @@ static void test_cmd_course(void)
 	   EXECSTR ": r: Invalid number of points: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "course: Invalid value in number of points");
-	tc(chp{execname, "-F", "default", "course",
-	       "52.3731,4.891", "35.681,139.767", "5", NULL},
+	tc(chp{ execname, "-F", "default", "course",
+	        "52.3731,4.891", "35.681,139.767", "5", NULL },
 	   "52.373100,4.891000\n"
 	   "62.685860,22.579780\n"
 	   "68.869393,53.549146\n"
@@ -1816,8 +1816,8 @@ static void test_cmd_course(void)
 	   "",
 	   EXIT_SUCCESS,
 	   "-F default course, Amsterdam to Tokyo");
-	tc(chp{execname, "-F", "gpx", "course",
-	       "52.3731,4.891", "35.681,139.767", "5", NULL},
+	tc(chp{ execname, "-F", "gpx", "course",
+	        "52.3731,4.891", "35.681,139.767", "5", NULL },
 	   GPX_HEADER
 	   "  <rte>\n"
 	   "    <rtept lat=\"52.373100\" lon=\"4.891000\">\n"
