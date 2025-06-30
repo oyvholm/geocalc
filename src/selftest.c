@@ -26,6 +26,9 @@
  */
 
 #define EXECSTR  "__EXSTR__"
+#define OPTION_ERROR_STR  EXECSTR ": Option error\n" \
+                          EXECSTR ": Type \"" EXECSTR " --help\" for help screen." \
+                          " Returning with value 1.\n"
 #define chp  (char *[])
 #define failed_ok(a)  do { \
 	if (errno) \
@@ -1457,12 +1460,12 @@ static void test_standard_options(void)
 	   "-hv: Version number is printed along with the help text");
 	sc(chp{ execname, "-vvv", "--verbose", "--help", NULL },
 	   "  Show this help",
-	   ": main(): Using verbose level 4\n",
+	   EXECSTR ": main(): Using verbose level 4\n",
 	   EXIT_SUCCESS,
 	   "-vvv --verbose: Using correct verbose level");
 	sc(chp{ execname, "-vvvvq", "--verbose", "--verbose", "--help", NULL },
 	   "  Show this help",
-	   ": main(): Using verbose level 5\n",
+	   EXECSTR ": main(): Using verbose level 5\n",
 	   EXIT_SUCCESS,
 	   "--verbose: One -q reduces the verbosity level");
 
@@ -1499,14 +1502,9 @@ static void test_standard_options(void)
 	diag("Unknown option");
 	sc(chp{ execname, "--gurgle", NULL },
 	   "",
-	   ": Option error\n",
+	   OPTION_ERROR_STR,
 	   EXIT_FAILURE,
 	   "Unknown option: \"Option error\" message is printed");
-	sc(chp{ execname, "--gurgle", NULL },
-	   "",
-	   " --help\" for help screen. Returning with value 1.\n",
-	   EXIT_FAILURE,
-	   "Unknown option mentions --help");
 }
 
 /*
@@ -1518,17 +1516,17 @@ static void test_format_option(void)
 	diag("Test -F/--format");
 	sc(chp{execname, "-vvvv", "-F", "FoRmAt", NULL},
 	   "",
-	   ": setup_options(): o.format = \"FoRmAt\"\n",
+	   EXECSTR ": setup_options(): o.format = \"FoRmAt\"\n",
 	   EXIT_FAILURE,
 	   "-vvvv -F FoRmAt: o.format is correct");
 	sc(chp{execname, "-vvvv", "--format", "FoRmAt", NULL},
 	   "",
-	   ": setup_options(): o.format = \"FoRmAt\"\n",
+	   EXECSTR ": setup_options(): o.format = \"FoRmAt\"\n",
 	   EXIT_FAILURE,
 	   "-vvvv --format FoRmAt: o.format is correct");
 	sc(chp{execname, "-vvvv", "-F", "FoRmAt", NULL},
 	   NULL,
-	   ": FoRmAt: Unknown output format\n",
+	   EXECSTR ": FoRmAt: Unknown output format\n",
 	   EXIT_FAILURE,
 	   "-vvvv -F FoRmAt: It says it's unknown");
 	tc(chp{execname, "-vvvv", "-F", "", "lpos", "54,7", "12,22",
@@ -1551,9 +1549,9 @@ static void test_cmd_bench(void)
 	   "\nLooping haversine() for ",
 	   EXIT_SUCCESS,
 	   "bench 0");
-	sc(chp{ execname, "bench", "0", "0", NULL },
+	tc(chp{ execname, "bench", "0", "0", NULL },
 	   "",
-	   ": Too many arguments\n",
+	   EXECSTR ": Too many arguments\n",
 	   EXIT_FAILURE,
 	   "bench has 1 extra argument");
 	sc(chp{ execname, "--format", "sql", "bench", "0", NULL },
@@ -1561,9 +1559,9 @@ static void test_cmd_bench(void)
 	   "Looping haversine() for ",
 	   EXIT_SUCCESS,
 	   "--format sql bench");
-	sc(chp{ execname, "--format", "gpx", "bench", "0", NULL },
+	tc(chp{ execname, "--format", "gpx", "bench", "0", NULL },
 	   "",
-	   ": GPX output is not supported by the bench command\n",
+	   EXECSTR ": GPX output is not supported by the bench command\n",
 	   EXIT_FAILURE,
 	   "--format gpx bench");
 }
@@ -1615,44 +1613,44 @@ static void test_cmd_bpos(void)
 	   "",
 	   EXIT_SUCCESS,
 	   "bpos: South Pole, bearing 359");
-	sc(chp{ execname, "bpos", "1,2", "360.0000000001", "1000", NULL },
+	tc(chp{ execname, "bpos", "1,2", "360.0000000001", "1000", NULL },
 	   "",
-	   ": 360.0000000001: Bearing out of range\n",
+	   EXECSTR ": 360.0000000001: Bearing out of range\n",
 	   EXIT_FAILURE,
 	   "bpos: bearing is larger than 360 degrees");
-	sc(chp{ execname, "bpos", "1,2", "-0.0000000001", "1000", NULL },
+	tc(chp{ execname, "bpos", "1,2", "-0.0000000001", "1000", NULL },
 	   "",
-	   ": -0.0000000001: Bearing out of range\n",
+	   EXECSTR ": -0.0000000001: Bearing out of range\n",
 	   EXIT_FAILURE,
 	   "bpos: bearing is negative");
-	sc(chp{ execname, "bpos", "1,2", "r", "1000", NULL },
+	tc(chp{ execname, "bpos", "1,2", "r", "1000", NULL },
 	   "",
-	   ": r: Invalid bearing: Invalid argument\n",
+	   EXECSTR ": r: Invalid bearing: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "bpos: bearing is not a number");
-	sc(chp{ execname, "bpos", "1,2w", "3", "4", NULL },
+	tc(chp{ execname, "bpos", "1,2w", "3", "4", NULL },
 	   "",
-	   ": 1,2w: Invalid coordinate: Invalid argument\n",
+	   EXECSTR ": 1,2w: Invalid coordinate: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "bpos: lon has trailing letter");
-	sc(chp{ execname, "bpos", "90.0000000001,2", "3", "4", NULL },
+	tc(chp{ execname, "bpos", "90.0000000001,2", "3", "4", NULL },
 	   "",
-	   ": 90.0000000001,2: Invalid coordinate\n",
+	   EXECSTR ": 90.0000000001,2: Invalid coordinate\n",
 	   EXIT_FAILURE,
 	   "bpos: lat is out of range");
-	sc(chp{ execname, "bpos", "1,2", "b", "4", NULL },
+	tc(chp{ execname, "bpos", "1,2", "b", "4", NULL },
 	   "",
-	   ": b: Invalid bearing: Invalid argument\n",
+	   EXECSTR ": b: Invalid bearing: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "bpos: Invalid bearing");
-	sc(chp{ execname, "bpos", "1,2", "3", "d", NULL },
+	tc(chp{ execname, "bpos", "1,2", "3", "d", NULL },
 	   "",
-	   ": d: Invalid distance: Invalid argument\n",
+	   EXECSTR ": d: Invalid distance: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "bpos: Invalid distance");
-	sc(chp{ execname, "bpos", "1,2", "3", "4", "5", NULL },
+	tc(chp{ execname, "bpos", "1,2", "3", "4", "5", NULL },
 	   "",
-	   ": Too many arguments\n",
+	   EXECSTR ": Too many arguments\n",
 	   EXIT_FAILURE,
 	   "bpos: 1 extra argument");
 	tc(chp{ execname, "-F", "default", "bpos", "40.80542,-73.96546",
@@ -1672,9 +1670,9 @@ static void test_cmd_bpos(void)
 	   "",
 	   EXIT_SUCCESS,
 	   "--format gpx bpos");
-	sc(chp{ execname, "-K", "bpos", "1,2", "3", "4", NULL },
+	tc(chp{ execname, "-K", "bpos", "1,2", "3", "4", NULL },
 	   "",
-	   ": -K/--karney is not supported by the bpos command\n",
+	   EXECSTR ": -K/--karney is not supported by the bpos command\n",
 	   EXIT_FAILURE,
 	   "-K bpos");
 
@@ -1723,9 +1721,9 @@ static void test_cmd_course(void)
 	   "",
 	   EXIT_SUCCESS,
 	   "course: Across the North Pole");
-	sc(chp{ execname, "course", "0,0", "0,180", "7", NULL },
+	tc(chp{ execname, "course", "0,0", "0,180", "7", NULL },
 	   "",
-	   ": Antipodal points, answer is undefined\n",
+	   EXECSTR ": Antipodal points, answer is undefined\n",
 	   EXIT_FAILURE,
 	   "course 0,0 0,180 7");
 	tc(chp{ execname, "course", "90,0", "0,0", "3", NULL },
@@ -1760,29 +1758,29 @@ static void test_cmd_course(void)
 	   "",
 	   EXIT_SUCCESS,
 	   "--km course: From Bergen to Tokyo");
-	sc(chp{ execname, "course", "1,2", "3,4", NULL },
+	tc(chp{ execname, "course", "1,2", "3,4", NULL },
 	   "",
-	   ": Missing arguments\n",
+	   EXECSTR ": Missing arguments\n",
 	   EXIT_FAILURE,
 	   "course: Missing 1 argument");
-	sc(chp{ execname, "course", "1,2", "3,4", "5", "6", NULL },
+	tc(chp{ execname, "course", "1,2", "3,4", "5", "6", NULL },
 	   "",
-	   ": Too many arguments\n",
+	   EXECSTR ": Too many arguments\n",
 	   EXIT_FAILURE,
 	   "course: 1 argument too much");
-	sc(chp{ execname, "course", "90.00001,0", "12,34", "1", NULL },
+	tc(chp{ execname, "course", "90.00001,0", "12,34", "1", NULL },
 	   "",
-	   ": 90.00001,0: Invalid coordinate\n",
+	   EXECSTR ": 90.00001,0: Invalid coordinate\n",
 	   EXIT_FAILURE,
 	   "course: lat1 is outside range");
-	sc(chp{ execname, "course", "17,0", "12,34", "-1", NULL },
+	tc(chp{ execname, "course", "17,0", "12,34", "-1", NULL },
 	   "",
-	   ": -1: Number of intermediate points cannot be negative\n",
+	   EXECSTR ": -1: Number of intermediate points cannot be negative\n",
 	   EXIT_FAILURE,
 	   "course: numpoints is -1");
-	sc(chp{ execname, "course", "17,6", "12,34", "-0.5", NULL },
+	tc(chp{ execname, "course", "17,6", "12,34", "-0.5", NULL },
 	   "",
-	   ": -0.5: Number of intermediate points cannot be negative\n",
+	   EXECSTR ": -0.5: Number of intermediate points cannot be negative\n",
 	   EXIT_FAILURE,
 	   "course: numpoints is -0.5");
 	tc(chp{ execname, "course", "22,33", "44,55", "0", NULL },
@@ -1791,19 +1789,19 @@ static void test_cmd_course(void)
 	   "",
 	   EXIT_SUCCESS,
 	   "course: numpoints is 0");
-	sc(chp{ execname, "course", "17,6%", "12,34", "-1", NULL },
+	tc(chp{ execname, "course", "17,6%", "12,34", "-1", NULL },
 	   "",
-	   ": 17,6%: Invalid coordinate: Invalid argument\n",
+	   EXECSTR ": 17,6%: Invalid coordinate: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "course: lon1 is invalid number");
-	sc(chp{ execname, "course", "1,2", "xxx", "4", NULL },
+	tc(chp{ execname, "course", "1,2", "xxx", "4", NULL },
 	   "",
-	   ": xxx: Invalid coordinate\n",
+	   EXECSTR ": xxx: Invalid coordinate\n",
 	   EXIT_FAILURE,
 	   "course: coor2 is invalid");
-	sc(chp{ execname, "course", "1,2", "3,4", "r", NULL },
+	tc(chp{ execname, "course", "1,2", "3,4", "r", NULL },
 	   "",
-	   ": r: Invalid number of points: Invalid argument\n",
+	   EXECSTR ": r: Invalid number of points: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "course: Invalid value in number of points");
 	tc(chp{execname, "-F", "default", "course",
@@ -1841,9 +1839,9 @@ static void test_cmd_course(void)
 	   "",
 	   EXIT_SUCCESS,
 	   "-F gpx course, Amsterdam to Tokyo");
-	sc(chp{ execname, "--karney", "course", "1,2", "3,4", "5", NULL },
+	tc(chp{ execname, "--karney", "course", "1,2", "3,4", "5", NULL },
 	   "",
-	   ": -K/--karney is not supported by the course command\n",
+	   EXECSTR ": -K/--karney is not supported by the course command\n",
 	   EXIT_FAILURE,
 	   "--karney course");
 
@@ -1929,34 +1927,34 @@ static void test_cmd_lpos(void)
 	   "",
 	   EXIT_SUCCESS,
 	   "lpos: Point is moved 1 cm");
-	sc(chp{ execname, "lpos", "-90,0", "90,0", "3", NULL },
+	tc(chp{ execname, "lpos", "-90,0", "90,0", "3", NULL },
 	   "",
-	   ": Antipodal points, answer is undefined\n",
+	   EXECSTR ": Antipodal points, answer is undefined\n",
 	   EXIT_FAILURE,
 	   "lpos: South Pole to the North Pole");
-	sc(chp{ execname, "lpos", "1,2", "3,4", NULL },
+	tc(chp{ execname, "lpos", "1,2", "3,4", NULL },
 	   "",
-	   ": Missing arguments\n",
+	   EXECSTR ": Missing arguments\n",
 	   EXIT_FAILURE,
 	   "lpos: Missing 1 argument");
-	sc(chp{ execname, "lpos", "1,2", "3,4", "5", "6", NULL },
+	tc(chp{ execname, "lpos", "1,2", "3,4", "5", "6", NULL },
 	   "",
-	   ": Too many arguments\n",
+	   EXECSTR ": Too many arguments\n",
 	   EXIT_FAILURE,
 	   "lpos: 1 argument too much");
-	sc(chp{ execname, "lpos", "-90.00001,0", "12,34", "1", NULL },
+	tc(chp{ execname, "lpos", "-90.00001,0", "12,34", "1", NULL },
 	   "",
-	   ": -90.00001,0: Invalid coordinate\n",
+	   EXECSTR ": -90.00001,0: Invalid coordinate\n",
 	   EXIT_FAILURE,
 	   "lpos: lat1 is outside range");
-	sc(chp{ execname, "lpos", "17,6%", "12,34", "-1", NULL },
+	tc(chp{ execname, "lpos", "17,6%", "12,34", "-1", NULL },
 	   "",
-	   ": 17,6%: Invalid coordinate: Invalid argument\n",
+	   EXECSTR ": 17,6%: Invalid coordinate: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "lpos: lon1 is invalid number");
-	sc(chp{ execname, "lpos", "17,6", "12%,34", "-1", NULL },
+	tc(chp{ execname, "lpos", "17,6", "12%,34", "-1", NULL },
 	   "",
-	   ": 12%,34: Invalid coordinate: Invalid argument\n",
+	   EXECSTR ": 12%,34: Invalid coordinate: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "lpos: lat in coor1 is invalid number");
 	tc(chp{ execname, "lpos", "1,2", "3,4", "0", NULL },
@@ -1976,24 +1974,24 @@ static void test_cmd_lpos(void)
 	   "",
 	   EXIT_SUCCESS,
 	   "--km lpos: fracdist is 1");
-	sc(chp{ execname, "lpos", "1,2", "3,4", "INF", NULL },
+	tc(chp{ execname, "lpos", "1,2", "3,4", "INF", NULL },
 	   "",
-	   ": INF: Invalid fraction: Numerical result out of range\n",
+	   EXECSTR ": INF: Invalid fraction: Numerical result out of range\n",
 	   EXIT_FAILURE,
 	   "lpos: fracdist is INF");
-	sc(chp{ execname, "lpos", "0,0", "0,180", "0.5", NULL },
+	tc(chp{ execname, "lpos", "0,0", "0,180", "0.5", NULL },
 	   "",
-	   ": Antipodal points, answer is undefined\n",
+	   EXECSTR ": Antipodal points, answer is undefined\n",
 	   EXIT_FAILURE,
 	   "lpos: Antipodal positions, 0,0 and 0,180");
-	sc(chp{ execname, "lpos", "90,0", "-90,0", "0.5", NULL },
+	tc(chp{ execname, "lpos", "90,0", "-90,0", "0.5", NULL },
 	   "",
-	   ": Antipodal points, answer is undefined\n",
+	   EXECSTR ": Antipodal points, answer is undefined\n",
 	   EXIT_FAILURE,
 	   "lpos: Antipodal positions, 90,0 and -90,0");
-	sc(chp{ execname, "--karney", "lpos", "1,2", "3,4", "0.2", NULL },
+	tc(chp{ execname, "--karney", "lpos", "1,2", "3,4", "0.2", NULL },
 	   "",
-	   ": -K/--karney is not supported by the lpos command\n",
+	   EXECSTR ": -K/--karney is not supported by the lpos command\n",
 	   EXIT_FAILURE,
 	   "--karney lpos");
 	tc(chp{ execname, "-F", "sql", "lpos", "1,2", "87.188,-130.77", "0.2",
@@ -2020,14 +2018,14 @@ static void test_multiple(char *cmd)
 	}
 
 	diag("Test %s command", !strcmp(cmd, "bear") ? "bear" : "dist");
-	sc(chp{ execname, "-vv", cmd, NULL },
+	tc(chp{ execname, "-vv", cmd, NULL },
 	   "",
-	   ": Missing arguments\n",
+	   EXECSTR ": Missing arguments\n",
 	   EXIT_FAILURE,
 	   "%s with no arguments", cmd);
-	sc(chp{ execname, cmd, "1,2", "3", NULL },
+	tc(chp{ execname, cmd, "1,2", "3", NULL },
 	   "",
-	   ": 3: Invalid coordinate\n",
+	   EXECSTR ": 3: Invalid coordinate\n",
 	   EXIT_FAILURE,
 	   "%s: Argument 2 is not a coordinate", cmd);
 	tc(chp{ execname, cmd, "1,2", "3,4", NULL },
@@ -2036,9 +2034,9 @@ static void test_multiple(char *cmd)
 	   EXIT_SUCCESS,
 	   "%s 1,2 3,4", cmd);
 	if (!strcmp(cmd, "bear")) {
-		sc(chp{ execname, "bear", "12,34", "-12,-146", NULL },
+		tc(chp{ execname, "bear", "12,34", "-12,-146", NULL },
 		   "",
-		   ": Antipodal points, answer is undefined\n",
+		   EXECSTR ": Antipodal points, answer is undefined\n",
 		   EXIT_FAILURE,
 		   "bear 12,34 -12,-146 - antipodal points");
 	} else {
@@ -2048,29 +2046,29 @@ static void test_multiple(char *cmd)
 		   EXIT_SUCCESS,
 		   "dist 12,34 -12,-146 - antipodal points");
 	}
-	sc(chp{ execname, cmd, "1,2", "3,4", "5", NULL },
+	tc(chp{ execname, cmd, "1,2", "3,4", "5", NULL },
 	   "",
-	   ": Too many arguments\n",
+	   EXECSTR ": Too many arguments\n",
 	   EXIT_FAILURE,
 	   "%s with 1 argument too much", cmd);
-	sc(chp{ execname, cmd, "1,2", "3,1e+900", NULL },
+	tc(chp{ execname, cmd, "1,2", "3,1e+900", NULL },
 	   "",
-	   ": 3,1e+900: Invalid coordinate: Numerical result out of range\n",
+	   EXECSTR ": 3,1e+900: Invalid coordinate: Numerical result out of range\n",
 	   EXIT_FAILURE,
 	   "%s with 1 number too large", cmd);
-	sc(chp{ execname, cmd, "1,2", "urgh,4", NULL },
+	tc(chp{ execname, cmd, "1,2", "urgh,4", NULL },
 	   "",
-	   ": urgh,4: Invalid coordinate: Invalid argument\n",
+	   EXECSTR ": urgh,4: Invalid coordinate: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "%s with 1 non-number", cmd);
-	sc(chp{ execname, cmd, "1,2.9y", "3,4", NULL },
+	tc(chp{ execname, cmd, "1,2.9y", "3,4", NULL },
 	   "",
-	   ": 1,2.9y: Invalid coordinate: Invalid argument\n",
+	   EXECSTR ": 1,2.9y: Invalid coordinate: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "%s with non-digit after number", cmd);
-	sc(chp{ execname, cmd, "1,2 g", "3,4", NULL },
+	tc(chp{ execname, cmd, "1,2 g", "3,4", NULL },
 	   "",
-	   ": 1,2 g: Invalid coordinate: Invalid argument\n",
+	   EXECSTR ": 1,2 g: Invalid coordinate: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "%s with whitespace and non-digit after number", cmd);
 	tc(chp{ execname, cmd, "10,2,", "3,4", NULL },
@@ -2078,35 +2076,35 @@ static void test_multiple(char *cmd)
 	   "",
 	   EXIT_SUCCESS,
 	   "%s with comma after number", cmd);
-	sc(chp{ execname, cmd, "1,2", "3,NAN", NULL },
+	tc(chp{ execname, cmd, "1,2", "3,NAN", NULL },
 	   "",
-	   ": 3,NAN: Invalid coordinate: Invalid argument\n",
+	   EXECSTR ": 3,NAN: Invalid coordinate: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "%s with NAN", cmd);
-	sc(chp{ execname, cmd, "1,2", "3,INF", NULL },
+	tc(chp{ execname, cmd, "1,2", "3,INF", NULL },
 	   "",
-	   ": 3,INF: Invalid coordinate: Numerical result out of range\n",
+	   EXECSTR ": 3,INF: Invalid coordinate: Numerical result out of range\n",
 	   EXIT_FAILURE,
 	   "%s with INF", cmd);
-	sc(chp{ execname, cmd, "1,2", "", NULL },
+	tc(chp{ execname, cmd, "1,2", "", NULL },
 	   "",
-	   ": : Invalid coordinate\n",
+	   EXECSTR ": : Invalid coordinate\n",
 	   EXIT_FAILURE,
 	   "%s with empty argument", cmd);
-	sc(chp{ execname, cmd, "1,180.001", "3,4", NULL },
+	tc(chp{ execname, cmd, "1,180.001", "3,4", NULL },
 	   "",
-	   ": 1,180.001: Invalid coordinate\n",
+	   EXECSTR ": 1,180.001: Invalid coordinate\n",
 	   EXIT_FAILURE,
 	   "%s: lon1 out of range", cmd);
 	if (!strcmp(cmd, "bear")) {
-		sc(chp{ execname, "bear", "90,0", "-90,0", NULL },
+		tc(chp{ execname, "bear", "90,0", "-90,0", NULL },
 		   "",
-		   ": Antipodal points, answer is undefined",
+		   EXECSTR ": Antipodal points, answer is undefined\n",
 		   EXIT_FAILURE,
 		   "bear 90,0 -90,0");
-		sc(chp{ execname, "--km", cmd, "90,0", "-90,0", NULL },
+		tc(chp{ execname, "--km", cmd, "90,0", "-90,0", NULL },
 		   "",
-		   ": Antipodal points, answer is undefined\n",
+		   EXECSTR ": Antipodal points, answer is undefined\n",
 		   EXIT_FAILURE,
 		   "--km bear 90,0 -90,0");
 	} else {
@@ -2126,18 +2124,18 @@ static void test_multiple(char *cmd)
 	   "",
 	   EXIT_SUCCESS,
 	   "-F default %s", cmd);
-	sc(chp{ execname, "--format", "gpx", cmd, "34,56", "-78,9", NULL },
+	tc(chp{ execname, "--format", "gpx", cmd, "34,56", "-78,9", NULL },
 	   "",
 	   !strcmp(cmd, "bear")
-	       ? ": GPX output is not supported by the bear command\n"
-	       : ": GPX output is not supported by the dist command\n",
+	       ? EXECSTR ": GPX output is not supported by the bear command\n"
+	       : EXECSTR ": GPX output is not supported by the dist command\n",
 	   EXIT_FAILURE,
 	   "--format gpx %s", cmd);
 	if (!strcmp(cmd, "bear"))
 	{
-		sc(chp{ execname, "-K", "bear", "1,2", "3,4", NULL },
+		tc(chp{ execname, "-K", "bear", "1,2", "3,4", NULL },
 		   "",
-		   ": -K/--karney is not supported by the bear command\n",
+		   EXECSTR ": -K/--karney is not supported by the bear command\n",
 		   EXIT_FAILURE,
 		   "-K bear");
 	}
@@ -2457,9 +2455,9 @@ static void test_cmd_randpos(const struct Options *o)
 	assert(o);
 	diag("Test randpos command");
 
-	sc(chp{ execname, "randpos", "1,2", "100", "90", "5", NULL },
+	tc(chp{ execname, "randpos", "1,2", "100", "90", "5", NULL },
 	   "",
-	   ": Too many arguments\n",
+	   EXECSTR ": Too many arguments\n",
 	   EXIT_FAILURE,
 	   "randpos with 1 extra argument");
 
@@ -2481,29 +2479,34 @@ static void test_cmd_randpos(const struct Options *o)
 	           "-F gpx --count 9 randpos, stdout is ok");
 
 	diag("--count with invalid argument");
-	sc(chp{ execname, "--count", "", "randpos", NULL },
+	tc(chp{ execname, "--count", "", "randpos", NULL },
 	   "",
-	   ": : Invalid --count argument\n",
+	   EXECSTR ": : Invalid --count argument\n"
+	   OPTION_ERROR_STR,
 	   EXIT_FAILURE,
 	   "Empty argument to --count");
-	sc(chp{ execname, "--count", "g", "randpos", NULL },
+	tc(chp{ execname, "--count", "g", "randpos", NULL },
 	   "",
-	   ": g: Invalid --count argument\n",
+	   EXECSTR ": g: Invalid --count argument\n"
+	   OPTION_ERROR_STR,
 	   EXIT_FAILURE,
 	   "--count receives non-number");
-	sc(chp{ execname, "--count", "11y", "randpos", NULL },
+	tc(chp{ execname, "--count", "11y", "randpos", NULL },
 	   "",
-	   ": 11y: Invalid --count argument\n",
+	   EXECSTR ": 11y: Invalid --count argument\n"
+	   OPTION_ERROR_STR,
 	   EXIT_FAILURE,
 	   "--count 11y");
-	sc(chp{ execname, "--count", "11.3", "randpos", NULL },
+	tc(chp{ execname, "--count", "11.3", "randpos", NULL },
 	   "",
-	   ": 11.3: Invalid --count argument\n",
+	   EXECSTR ": 11.3: Invalid --count argument\n"
+	   OPTION_ERROR_STR,
 	   EXIT_FAILURE,
 	   "--count 11.3");
-	sc(chp{ execname, "--count", "-2", "randpos", NULL },
+	tc(chp{ execname, "--count", "-2", "randpos", NULL },
 	   "",
-	   ": -2: Invalid --count argument\n",
+	   EXECSTR ": -2: Invalid --count argument\n"
+	   OPTION_ERROR_STR,
 	   EXIT_FAILURE,
 	   "--count -2");
 
@@ -2541,41 +2544,41 @@ static void test_cmd_randpos(const struct Options *o)
 
 	diag("randpos with max_dist, invalid arguments");
 
-	sc(chp{ execname, "randpos", "12.34,56.34y", "10", NULL },
+	tc(chp{ execname, "randpos", "12.34,56.34y", "10", NULL },
 	   "",
-	   ": 12.34,56.34y: Invalid coordinate: Invalid argument\n",
+	   EXECSTR ": 12.34,56.34y: Invalid coordinate: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "randpos with error in coordinate");
 
-	sc(chp{ execname, "randpos", "12.34,56.34", "10y", NULL },
+	tc(chp{ execname, "randpos", "12.34,56.34", "10y", NULL },
 	   "",
-	   ": 10y: Invalid max_dist argument: Invalid argument\n",
+	   EXECSTR ": 10y: Invalid max_dist argument: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "randpos with error in max_dist");
 
-	sc(chp{ execname, "randpos", "12.34,56.34", "-17.9", NULL },
+	tc(chp{ execname, "randpos", "12.34,56.34", "-17.9", NULL },
 	   "",
-	   ": Distance cannot be negative\n",
+	   EXECSTR ": Distance cannot be negative\n",
 	   EXIT_FAILURE,
 	   "randpos with negative max_dist");
 
 	diag("randpos with max_dist and min_dist, invalid arguments");
 
-	sc(chp{ execname, "randpos", "12.34,56.34", "10", "3y", NULL },
+	tc(chp{ execname, "randpos", "12.34,56.34", "10", "3y", NULL },
 	   "",
-	   ": 3y: Invalid min_dist argument: Invalid argument\n",
+	   EXECSTR ": 3y: Invalid min_dist argument: Invalid argument\n",
 	   EXIT_FAILURE,
 	   "randpos with error in min_dist");
 
-	sc(chp{ execname, "randpos", "12.34,56.34", "9", "-2", NULL },
+	tc(chp{ execname, "randpos", "12.34,56.34", "9", "-2", NULL },
 	   "",
-	   ": Distance cannot be negative\n",
+	   EXECSTR ": Distance cannot be negative\n",
 	   EXIT_FAILURE,
 	   "randpos with negative min_dist");
 
-	sc(chp{ execname, "--karney", "randpos", "1,2", "200", "100", NULL },
+	tc(chp{ execname, "--karney", "randpos", "1,2", "200", "100", NULL },
 	   "",
-	   ": -K/--karney is not supported by the randpos command\n",
+	   EXECSTR ": -K/--karney is not supported by the randpos command\n",
 	   EXIT_FAILURE,
 	   "--karney randpos");
 
@@ -2721,15 +2724,17 @@ static void test_seed_option(const struct Options *o)
 	   EXIT_SUCCESS,
 	   "--format gpx --seed 19999 --count 4 randpos");
 
-	sc(chp{ execname, "--seed", "", "randpos", NULL },
+	tc(chp{ execname, "--seed", "", "randpos", NULL },
 	   "",
-	   ": : Invalid --seed argument\n",
+	   EXECSTR ": : Invalid --seed argument\n"
+	   OPTION_ERROR_STR,
 	   EXIT_FAILURE,
 	   "Empty argument to --seed");
 
-	sc(chp{ execname, "--seed", "9.14", "randpos", NULL },
+	tc(chp{ execname, "--seed", "9.14", "randpos", NULL },
 	   "",
-	   ": 9.14: Invalid --seed argument\n",
+	   EXECSTR ": 9.14: Invalid --seed argument\n"
+	   OPTION_ERROR_STR,
 	   EXIT_FAILURE,
 	   "--seed 9.14 randpos");
 }
@@ -2785,9 +2790,9 @@ static void test_karney_option(void)
 	   EXIT_SUCCESS,
 	   "-K dist: Coincident points");
 
-	sc(chp{ execname, "-K", "dist", "37,7", "-37,-173", NULL },
+	tc(chp{ execname, "-K", "dist", "37,7", "-37,-173", NULL },
 	   "",
-	   ": Formula did not converge, antipodal points\n",
+	   EXECSTR ": Formula did not converge, antipodal points\n",
 	   EXIT_FAILURE,
 	   "--karney dist: Antipodal points");
 }
@@ -2869,9 +2874,9 @@ static void test_executable(const struct Options *o)
 	test_valgrind_option(o);
 	print_version_info(o);
 	test_streams_exec(o);
-	sc(chp{ execname, "abc", NULL },
+	tc(chp{ execname, "abc", NULL },
 	   "",
-	   ": Unknown command: abc\n",
+	   EXECSTR ": Unknown command: abc\n",
 	   EXIT_FAILURE,
 	   "Unknown command");
 	test_standard_options();
@@ -2918,6 +2923,7 @@ int opt_selftest(char *main_execname, const struct Options *o)
 }
 
 #undef EXECSTR
+#undef OPTION_ERROR_STR
 #undef chp
 #undef failed_ok
 
