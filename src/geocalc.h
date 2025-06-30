@@ -174,6 +174,8 @@ int string_to_double(const char *s, double *dest);
 char *mystrdup(const char *s);
 char *allocstr_va(const char *format, va_list ap);
 char *allocstr(const char *format, ...);
+size_t count_substr(const char *s, const char *substr);
+char *str_replace(const char *s, const char *s1, const char *s2);
 int parse_coordinate(const char *s, bool validate,
                      double *dest_lat, double *dest_lon);
 
