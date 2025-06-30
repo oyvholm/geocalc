@@ -889,7 +889,7 @@ static void chk_rand_pos(const char *coor,
 		dist = haversine(clat, clon, rlat, rlon);
 		r_dist = round(dist);
 		if (r_dist < r_exp_min || r_dist > r_exp_max) {
-			errcount <= maxtests /* gncov */
+			errcount <= maxtests
 			? ok(1, "randpos out of range (%.0f" /* gncov */
 			        " to %.0f m), center = %f,%f randpos ="
 			        " %f,%f dist = %f",
@@ -2223,7 +2223,7 @@ static void verify_coor_dist(const char *str, const char *coor,
 		}
 		dist = round(dist);
 		if (dist < mindist_r || dist > maxdist_r) {
-			errcount < 11 /* gncov */
+			errcount < 11
 			? ok(1, "Coordinate out of range (%f" /* gncov */
 			        " to %f m). center: %f,%f, coor = %f,%f,"
 			        " dist = %f",

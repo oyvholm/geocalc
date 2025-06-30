@@ -91,14 +91,14 @@ static void normalize_longitude(double *lon)
  * nothing.
  */
 
-void set_antipode(double *dlat, double *dlon) /* gncov */
+void set_antipode(double *dlat, double *dlon)
 {
 	assert(dlat);
 	assert(dlon);
 	*dlat *= -1.0;
 	*dlon -= 180;
 	normalize_longitude(dlon);
-} /* gncov */
+}
 
 /*
  * bearing_position() - Calculates the new geographic position after moving 
@@ -402,7 +402,7 @@ void rand_pos(double *dlat, double *dlon,
 		rand_bear = drand48() * 360.0;
 		rand_dist = mindist + sqrt(drand48()) * (maxdist - mindist);
 		if (rand_dist > MAX_EARTH_DISTANCE)
-			rand_dist = MAX_EARTH_DISTANCE; /* gncov */
+			rand_dist = MAX_EARTH_DISTANCE;
 
 		bearing_position(c_lat, c_lon, rand_bear, rand_dist,
 		                 dlat, dlon);

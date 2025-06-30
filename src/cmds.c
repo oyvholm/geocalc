@@ -628,17 +628,17 @@ static int bench_dist_func(const char *name,
  * `bench_result`.
  */
 
-static int cmd_bench_cmp_rounds(const void *s1, const void *s2) /* gncov */
+static int cmd_bench_cmp_rounds(const void *s1, const void *s2)
 {
 	const struct bench_result *br1, *br2;
 
-	assert(s1); /* gncov */
-	assert(s2); /* gncov */
+	assert(s1);
+	assert(s2);
 
-	br1 = (const struct bench_result *)s1; /* gncov */
-	br2 = (const struct bench_result *)s2; /* gncov */
+	br1 = (const struct bench_result *)s1;
+	br2 = (const struct bench_result *)s2;
 
-	return (int)(br2->rounds - br1->rounds); /* gncov */
+	return (int)(br2->rounds - br1->rounds);
 }
 
 /*
