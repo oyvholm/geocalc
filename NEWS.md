@@ -40,6 +40,8 @@ v0.x.x - 2025-xx-xx
   Use Perl instead, as it handles UTF-8 properly.
 - Add more warning options to DEVFLAGS in `Makefile`.
 - Create a `make asm` target to generate assembly files.
+- Add a new Makefile command `make gncov-refresh` to delete obsolete 
+  `gncov` markers used for coverage testing.
 
 v0.2.0 - 2024-12-27
 -------------------
