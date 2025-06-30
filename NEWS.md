@@ -7,7 +7,7 @@ Summary of user-visible changes in Geocalc
 For a complete log of changes, refer to the Git commit log in the 
 repositories mentioned in `README.md`.
 
-v0.x.x - 2025-xx-xx
+v0.3.0 - 2025-06-30
 -------------------
 
 - Add the `-K`/`--karney` option to use the Karney formula in the `dist` 
