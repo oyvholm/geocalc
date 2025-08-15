@@ -64,6 +64,7 @@
 } while (0)
 
 #define failed(a)  myerror("%s():%d: %s failed", __func__, __LINE__, (a))
+#define no_null(a)  ((a) ? (a) : "(null)")
 
 #if defined(__OpenBSD__)
 /*
