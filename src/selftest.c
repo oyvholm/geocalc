@@ -271,32 +271,6 @@ static int print_gotexp(const char *got, const char *exp)
 }
 
 /*
- * tc_cmp() - Comparison function used by test_command(). There are 2 types of 
- * verification: One that demands that the whole output must be identical to 
- * the expected value, and the other is just a substring search. `got` is the 
- * actual output from the program, and `exp` is the expected output or 
- * substring.
- *
- * If `identical` is 0 (substring search) and `exp` is empty, the output in 
- * `got` must also be empty for the test to succeed.
- *
- * Returns 0 if the string was found, otherwise 1.
- */
-
-static int tc_cmp(const int identical, const char *got, const char *exp)
-{
-	assert(got);
-	assert(exp);
-	if (!got || !exp)
-		return 1; /* gncov */
-
-	if (identical || !*exp)
-		return !!strcmp(got, exp);
-
-	return !strstr(got, exp);
-}
-
-/*
  * valgrind_lines() - Searches for Valgrind markers ("\n==DIGITS==") in `s`, 
  * used by test_command(). If a marker is found or `s` is NULL, it returns 1. 
  * Otherwise, it returns 0.
@@ -328,6 +302,32 @@ static int valgrind_lines(const char *s)
 	}
 
 	return 0;
+}
+
+/*
+ * tc_cmp() - Comparison function used by test_command(). There are 2 types of 
+ * verification: One that demands that the whole output must be identical to 
+ * the expected value, and the other is just a substring search. `got` is the 
+ * actual output from the program, and `exp` is the expected output or 
+ * substring.
+ *
+ * If `identical` is 0 (substring search) and `exp` is empty, the output in 
+ * `got` must also be empty for the test to succeed.
+ *
+ * Returns 0 if the string was found, otherwise 1.
+ */
+
+static int tc_cmp(const int identical, const char *got, const char *exp)
+{
+	assert(got);
+	assert(exp);
+	if (!got || !exp)
+		return 1; /* gncov */
+
+	if (identical || !*exp)
+		return !!strcmp(got, exp);
+
+	return !strstr(got, exp);
 }
 
 /*
@@ -436,6 +436,34 @@ static void tc(char *cmd[], const char *exp_stdout, const char *exp_stderr,
 	va_start(ap, desc);
 	test_command(1, cmd, exp_stdout, exp_stderr, exp_retval, desc, ap);
 	va_end(ap);
+}
+
+/*
+ * print_version_info() - Display output from the --version command. Returns 0 
+ * if ok, or 1 if streams_exec() failed.
+ */
+
+static int print_version_info(const struct Options *o)
+{
+	struct streams ss;
+	int res;
+
+	assert(o);
+	streams_init(&ss);
+	res = streams_exec(o, &ss, chp{ execname, "--version", NULL });
+	if (res) {
+		failed_ok("streams_exec()"); /* gncov */
+		if (ss.err.buf) /* gncov */
+			diag(ss.err.buf); /* gncov */
+		return 1; /* gncov */
+	}
+	diag("========== BEGIN version info ==========\n"
+	     "%s"
+	     "=========== END version info ===========",
+	     ss.out.buf ? ss.out.buf : "(null)");
+	streams_free(&ss);
+
+	return 0;
 }
 
 /*
@@ -626,86 +654,6 @@ static void test_valgrind_lines(void)
 }
 
 /*
- * chk_sr() - Used by test_str_replace(). Verifies that all non-overlapping 
- * occurrences of substring `s1` are replaced with the string `s2` in the 
- * string `s`, resulting in the string `exp`. Returns nothing.
- */
-
-static void chk_sr(const char *s, const char *s1, const char *s2,
-                   const char *exp, const char *desc)
-{
-	char *result;
-
-	assert(desc);
-
-	result = str_replace(s, s1, s2);
-	if (!result || !exp) {
-		ok(!(result == exp), "str_replace(): %s", desc);
-	} else {
-		ok(!!strcmp(result, exp), "str_replace(): %s", desc);
-		print_gotexp(result, exp);
-	}
-	free(result);
-}
-
-/*
- * test_str_replace() - Tests the str_replace() function. Returns nothing.
- */
-
-static void test_str_replace(void)
-{
-	char *s;
-	size_t bsize = 10000;
-
-	diag("Test str_replace()");
-
-	chk_sr("", "", "", "", "s, s1, and s2 are empty");
-	chk_sr("abc", "", "b", "abc", "s1 is empty");
-	chk_sr("", "a", "b", "", "s is empty");
-	chk_sr("", "a", "", "", "s and s2 is empty");
-
-	chk_sr(NULL, "a", "b", NULL, "s is NULL");
-	chk_sr("abc", NULL, "b", NULL, "s1 is NULL");
-	chk_sr("abc", "a", NULL, NULL, "s2 is NULL");
-	chk_sr(NULL, NULL, NULL, NULL, "s, s1, and s2 is NULL");
-
-	chk_sr("test", "test", "test", "test", "s, s1, and s2 are identical");
-	chk_sr("abc", "b", "DEF", "aDEFc", "abc, replace b with DEF");
-	chk_sr("abcabcabc", "b", "DEF", "aDEFcaDEFcaDEFc",
-	       "abcabcabc, replace all b with DEF");
-	chk_sr("abcdefgh", "defg", "", "abch", "Replace defg with nothing");
-	chk_sr("abcde", "bcd", "X", "aXe", "Replace bcd with X");
-	chk_sr("abc", "d", "X", "abc", "d not in abc");
-	chk_sr("ababab", "aba", "X", "Xbab", "Replace aba in ababab");
-	chk_sr("abc", "b", "", "ac", "Replace b with nothing");
-	chk_sr("abc", "", "X", "abc", "Replace empty with X");
-	chk_sr("Ḡṹṛḡḷḗ", "ḡ", "X", "ḠṹṛXḷḗ", "Replace UTF-8 character with X");
-
-	s = malloc(bsize + 1);
-	if (!s) {
-		failed_ok("malloc()"); /* gncov */
-		return; /* gncov */
-	}
-	memset(s, '!', bsize);
-	s[bsize] = '\0';
-	chk_sr(s, "!!!!!!!!!!", "", "", "Replace all text in large buffer");
-	free(s);
-
-	s = malloc(bsize + 1);
-	if (!s) {
-		failed_ok("malloc()"); /* gncov */
-		return; /* gncov */
-	}
-	memset(s, '!', bsize);
-	s[1234] = 'y';
-	s[bsize - 1] = 'z';
-	s[bsize] = '\0';
-	chk_sr(s, "!!!!!!!!!!", "", "!!!!y!!!!z",
-	       "Large buffer with y and z");
-	free(s);
-}
-
-/*
  * test_std_strerror() - Tests the std_strerror() function. Returns nothing.
  */
 
@@ -714,135 +662,6 @@ static void test_std_strerror(void)
 	diag("Test std_strerror()");
 	ok(!!strcmp(std_strerror(EACCES), "Permission denied"),
 	   "std_strerror(EACCES) is as expected");
-}
-
-/*
- * test_mystrdup() - Tests the mystrdup() function. Returns nothing.
- */
-
-static void test_mystrdup(void)
-{
-	const char *txt = "Test string";
-	char *s;
-
-	diag("Test mystrdup()");
-	ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
-
-	s = mystrdup(txt);
-	if (!s) {
-		failed_ok("mystrdup()"); /* gncov */
-		return; /* gncov */
-	}
-	ok(!!strcmp(s, txt), "mystrdup(): Strings are identical");
-	free(s);
-}
-
-/*
- * test_allocstr() - Tests the allocstr() function. Returns nothing.
- */
-
-static void test_allocstr(void)
-{
-	const size_t bufsize = BUFSIZ * 2 + 1;
-	char *p, *p2, *p3;
-	size_t alen;
-
-	diag("Test allocstr()");
-	p = malloc(bufsize);
-	if (!p) {
-		failed_ok("malloc()"); /* gncov */
-		return; /* gncov */
-	}
-	memset(p, 'a', bufsize - 1);
-	p[bufsize - 1] = '\0';
-	p2 = allocstr("%s", p);
-	if (!p2) {
-		failed_ok("allocstr() with BUFSIZ * 2"); /* gncov */
-		goto free_p; /* gncov */
-	}
-	alen = strlen(p2);
-	ok(!(alen == BUFSIZ * 2), "allocstr(): strlen is correct");
-	p3 = p2;
-	while (*p3) {
-		if (*p3 != 'a') {
-			p3 = NULL; /* gncov */
-			break; /* gncov */
-		}
-		p3++;
-	}
-	ok(!(p3 != NULL), "allocstr(): Content of string is correct");
-	free(p2);
-free_p:
-	free(p);
-}
-
-/*
- * chk_cs() - Used by test_count_substr(). Verifies that the number of 
- * non-overlapping substrings `substr` inside string `s` is `count`. `desc` is 
- * the test description. Returns nothing.
- */
-
-static void chk_cs(const char *s, const char *substr, const size_t count,
-                   const char *desc)
-{
-	size_t result;
-
-	result = count_substr(s, substr);
-	ok(!(result == count), "count_substr(): %s", desc);
-	if (result != count) {
-		char *s_result = allocstr("%zu", result), /* gncov */
-		     *s_count = allocstr("%zu", count); /* gncov */
-		if (s_result && s_count) /* gncov */
-			print_gotexp(s_result, s_count); /* gncov */
-		else
-			failed_ok("allocstr()"); /* gncov */
-		free(s_count); /* gncov */
-		free(s_result); /* gncov */
-	}
-}
-
-/*
- * test_count_substr() - Tests the count_substr() function. Returns nothing.
- */
-
-static void test_count_substr(void)
-{
-	char *s;
-	size_t bsize = 10000;
-
-	diag("Test count_substr()");
-
-	chk_cs("", "", 0, "s and substr are empty");
-	chk_cs("", "a", 0, "s is empty");
-	chk_cs("aaa", "", 0, "substr is empty");
-
-	chk_cs("", NULL, 0, "substr is NULL");
-	chk_cs(NULL, "abcdef", 0, "s is NULL");
-	chk_cs(NULL, NULL, 0, "s and substr is NULL");
-
-	chk_cs("Abc", "abc", 0, "Case sensitivity");
-	chk_cs("a", "aa", 0, "substr is longer than s");
-	chk_cs("aaa", "a", 3, "3 \"a\" in \"aaa\"");
-	chk_cs("aaa", "aa", 1, "Non-overlapping \"aa\" in \"aaa\"");
-	chk_cs("aaabaaa", "aaa", 2, "Non-overlapping \"aaa\" split by \"b\"");
-	chk_cs("abababab", "ab", 4, "4 \"ab\" in s");
-	chk_cs("abc", "b", 1, "Single character substring");
-	chk_cs("abc", "d", 0, "Substring not found");
-	chk_cs("abcdeabc", "abc", 2, "Substring at start and end");
-	chk_cs("abcdef" "abcdef" "abcdef", "abc", 3, "3 \"abc\" in s");
-	chk_cs("abcdef", "abcdef", 1, "s and substr are identical");
-	chk_cs("zzzGHJ\nabc\nGHJ\nabcGHJ", "GHJ", 3, "s with newlines");
-	chk_cs("Ḡṹṛḡḷḗ", "ḡ", 1, "UTF-8, U+1Exx area");
-
-	s = malloc(bsize + 1);
-	if (!s) {
-		failed_ok("malloc()"); /* gncov */
-		return; /* gncov */
-	}
-	memset(s, '!', bsize);
-	s[bsize] = '\0';
-	chk_cs(s, "!!!!!!!!!!", bsize / 10, "Large buffer");
-	free(s);
 }
 
 /*
@@ -885,188 +704,6 @@ static void test_round_number(void)
 	chk_round(99.999499, 3, 99.999);
 	chk_round(99.999999, 3, 100.0);
 	chk_round(99.999999999999, 9, 100.0);
-}
-
-/*
- * chk_rand_pos() - Used by test_rand_pos(). Executes rand_pos() with the 
- * values in `coor`, `maxdist` and `mindist` and checks that they're in the 
- * range defined by `exp_maxdist` and `exp_mindist`. Returns nothing.
- */
-
-static void chk_rand_pos(const char *coor,
-                         const double maxdist, const double mindist,
-                         const double exp_maxdist, const double exp_mindist)
-{
-	int errcount = 0, maxtests = 20;
-	unsigned long l, numloop = 1e+4;
-	double r_exp_max = round(exp_maxdist), r_exp_min = round(exp_mindist);
-
-	for (l = 0; l < numloop; l++) {
-		double clat = 1000.0, clon = 1000.0, rlat, rlon, dist, r_dist;
-		if (coor && parse_coordinate(coor, true, &clat, &clon)) {
-			failed_ok("parse_coordinate()"); /* gncov */
-			diag("test %d: coor = \"%s\"", /* gncov */
-			     testnum, coor);
-			return; /* gncov */
-		}
-		rand_pos(&rlat, &rlon, clat, clon, maxdist, mindist);
-		if (fabs(rlat) > 90.0) {
-			ok(1, "rand_pos(): Coordinate %lu:" /* gncov */
-			      " lat is outside [-90,90] range,"
-			      " lat = %.15f", l, rlat);
-			errcount++; /* gncov */
-		}
-		if (fabs(rlon) > 180.0) {
-			ok(1, "rand_pos(): Coordinate %lu:" /* gncov */
-			      " lon is outside [-180,180] range,"
-			      " lon = %.15f", l, rlon);
-			errcount++; /* gncov */
-		}
-		if (errcount >= maxtests) {
-			diag("Aborting rand_pos() range test after" /* gncov */
-			     " %d errors", maxtests);
-			break; /* gncov */
-		}
-		if (!coor)
-			continue;
-		dist = haversine(clat, clon, rlat, rlon);
-		r_dist = round(dist);
-		if (r_dist < r_exp_min || r_dist > r_exp_max) {
-			errcount <= maxtests
-			? ok(1, "randpos out of range (%.0f" /* gncov */
-			        " to %.0f m), center = %f,%f randpos ="
-			        " %f,%f dist = %f",
-			        exp_mindist, exp_maxdist, clat, clon,
-			        rlat, rlon, dist)
-			: 1; /* gncov */
-			errcount++; /* gncov */
-		}
-	}
-	ok(!!errcount, "rand_pos(): All %lu coordinates %.0f-%.0f m are in"
-	               " range, failed = %lu (%f%%)",
-	               numloop, exp_mindist, exp_maxdist, errcount,
-	               100.0 * (double)errcount / (double)numloop);
-}
-
-/*
- * test_rand_pos() - Tests the rand_pos() function. Returns nothing.
- */
-
-static void test_rand_pos(void)
-{
-	double MED = MAX_EARTH_DISTANCE;
-
-	diag("Test rand_pos()");
-
-	chk_rand_pos("-3.14,-123.45", 1e+20, 1e+20, MED, MED);
-	chk_rand_pos("-3.14,-123.45", 1e+20, 1e+7, MED, 1e+7);
-	chk_rand_pos("-3.14,-123.45", 1e+7 + 1, 1e+20, MED, 1e+7 + 1);
-	chk_rand_pos("-55.91,-107.32", 0, 2e+7, MED, 2e+7);
-	chk_rand_pos("-59.2105,44.47485", 1000.0, 1000.0, 1000.0, 1000.0);
-	chk_rand_pos("-90,0", 10.0, 0.0, 10.0, 0.0);
-	chk_rand_pos("12,34", 0.1, 0.0, 0.0, 0.0);
-	chk_rand_pos("12,34", 1.0, 0.0, 1.0, 0.0);
-	chk_rand_pos("12,34", 10.0, 20.0, 20.0, 10.0);
-	chk_rand_pos("65,7", 2000.0, 1000.0, 2000.0, 1000.0);
-	chk_rand_pos("90,0", 0.0, 1e+6, MED, 1e+6);
-	chk_rand_pos(NULL, 0.0, 0.0, MED, 0.0);
-}
-
-/*
- * test_streams_exec() - Tests the streams_exec() function. Returns nothing.
- */
-
-static void test_streams_exec(const struct Options *o)
-{
-	struct Options mod_opt;
-	struct streams ss;
-	char *s;
-
-	assert(o);
-	diag("Test streams_exec()");
-
-	diag("Send input to the program");
-	streams_init(&ss);
-	ss.in.buf = "This is sent to stdin.\n";
-	ss.in.len = strlen(ss.in.buf);
-	mod_opt = *o;
-	mod_opt.valgrind = false;
-	streams_exec(&mod_opt, &ss, chp{ execname, NULL });
-	s = "streams_exec() with stdin data";
-	ok(!!strcmp(ss.out.buf, ""), "%s (stdout)", s);
-	ok(!strstr(ss.err.buf, ": No arguments specified\n"),
-	   "%s (stderr)", s);
-	ok(!(ss.ret == EXIT_FAILURE), "%s (retval)", s);
-	streams_free(&ss);
-}
-
-/*
- * chk_coor() - Try to parse the coordinate in `s` with `parse_coordinate()` 
- * and test that `parse_coordinate()` returns the expected values.
- * Returns nothing.
- */
-
-static void chk_coor(const char *s, const int exp_ret,
-                     const double exp_lat, const double exp_lon)
-{
-	double lat, lon;
-	int result;
-
-	result = parse_coordinate(s, true, &lat, &lon);
-	ok(!(result == exp_ret), "parse_coordinate(\"%s\"), expected to %s",
-	                         s, exp_ret ? "fail" : "succeed");
-
-	if (result)
-		return;
-
-	ok(!(lat == exp_lat), "parse_coordinate(\"%s\"): lat is ok", s);
-	ok(!(lon == exp_lon), "parse_coordinate(\"%s\"): lon is ok", s);
-}
-
-/*
- * test_parse_coordinate() - Various tests for `parse_coordinate()`. Returns 
- * nothing.
- */
-
-static void test_parse_coordinate(void) {
-	diag("Test parse_coordinate()");
-	chk_coor("12.34,56.78", 0, 12.34, 56.78);
-	chk_coor("12.34", 1, 0, 0);
-	chk_coor("", 1, 0, 0);
-	chk_coor("995.456,,456.345", 1, 0, 0);
-	chk_coor("56,78", 0, 56, 78);
-	chk_coor("-56,-78", 0, -56, -78);
-	chk_coor("-56.234,-78.345", 0, -56.234, -78.345);
-	chk_coor(" -56.234,-78.345", 0, -56.234, -78.345);
-	chk_coor("-56.234, -78.345", 0, -56.234, -78.345);
-	chk_coor("56.2r4,-78.345", 1, 0, 0);
-	chk_coor("+56.24,-78.345", 0, 56.24, -78.345);
-	chk_coor(NULL, 1, 0, 0);
-}
-
-/*
- * chk_xmlesc() - Helper function used by test_xml_escape_string(). `s` is the 
- * string to test, and `exp` is the expected outcome. Returns nothing.
- */
-
-static void chk_xmlesc(const char *s, const char *exp)
-{
-	char *got;
-
-	assert(s);
-	assert(exp);
-	if (!s || !exp) {
-		ok(1, "%s() received NULL", __func__); /* gncov */
-		return; /* gncov */
-	}
-
-	got = xml_escape_string(s);
-	if (!got) {
-		failed_ok("xml_escape_string()"); /* gncov */
-		return; /* gncov */
-	}
-	ok(!!strcmp(got, exp), "xml escape: \"%s\"", s);
-	free(got);
 }
 
 /*
@@ -1216,6 +853,208 @@ static void test_bearing_position(void)
 }
 
 /*
+ * chk_karney() - Used by test_karney_distance(). Verifies that 
+ * `karney_distance(coor1, coor2)` returns the value in `exp_result`. Returns 
+ * nothing.
+ */
+
+static void chk_karney(const char *coor1, const char *coor2,
+                       const double exp_result)
+{
+	double lat1, lon1, lat2, lon2;
+	double exp_res = exp_result, result;
+	char *res_s, *exp_s;
+
+	assert(coor1);
+	assert(coor2);
+
+	if (parse_coordinate(coor1, true, &lat1, &lon1)
+	    || parse_coordinate(coor2, true, &lat2, &lon2)) {
+		ok(1, "%s() received invalid coordinate", /* gncov */
+		      __func__);
+		return; /* gncov */
+	}
+	result = karney_distance(lat1, lon1, lat2, lon2);
+	res_s = allocstr("%.8f", result);
+	exp_s = allocstr("%.8f", exp_result);
+	if (!res_s || !exp_s) {
+		failed_ok("allocstr()"); /* gncov */
+		free(exp_s); /* gncov */
+		free(res_s); /* gncov */
+		return; /* gncov */
+	}
+	ok(!!strcmp(res_s, exp_s), "karney_distance(): %s %s", coor1, coor2);
+	if (strcmp(res_s, exp_s)) {
+		print_gotexp(res_s, exp_s); /* gncov */
+		diag("        diff: %.15f", result - exp_res); /* gncov */
+	}
+	free(exp_s);
+	free(res_s);
+}
+
+/*
+ * test_karney_distance() - Tests the karney_distance() function. Returns 
+ * nothing.
+ */
+
+static void test_karney_distance(void)
+{
+	diag("Test karney_distance()");
+
+	chk_karney("0,0", "0,0.00000000000001", 0.0);
+	chk_karney("0,0", "0,0.0000000000001", 0.00000001);
+	chk_karney("0,0", "0,180", nan(""));
+	chk_karney("0,0", "0.00000000000001,0", 0.0);
+	chk_karney("0,0", "0.0000000000001,0", 0.00000001);
+	chk_karney("45,9", "-45,-171", nan(""));
+	chk_karney("7,7", "7,7", 0.0);
+	chk_karney("90,0", "-90,0", 20003931.4586235844);
+	chk_karney("90,180", "-90,180", 20003931.4586235844);
+	chk_karney("90,37.37", "-90,37.37", 20003931.4586235844);
+
+	/*
+	 * Generated with
+	 *
+	 * `for f in $(seq 1 20); do (c1=$(./geocalc randpos); c2=$(./geocalc 
+	 * randpos); echo "chk_karney(\"$c1\", \"$c2\", $(./geocalc -K dist $c1 
+	 * $c2));"); done`
+	 *
+	 * with a version compiled with KARNEY_DECIMALS=10
+	 */
+
+	chk_karney("-0.086162,167.759028", "11.437259,153.119746", 2060263.15110668);
+	chk_karney("-0.316970,-125.026617", "11.201875,-139.665899", 2060454.26482576);
+	chk_karney("-0.547782,-57.812261", "10.966681,-72.451543", 2060637.67237515);
+	chk_karney("-23.521104,-16.569585", "-11.495340,-31.208868", 2043439.35405501);
+	chk_karney("-23.773066,50.644770", "-11.730970,36.005488", 2043024.45155100);
+	chk_karney("-52.433055,91.887446", "-36.359012,77.248164", 2124196.47358499);
+	chk_karney("-53.196823,-133.683843", "-36.934352,-148.323125", 2134461.58793276);
+	chk_karney("-53.583847,-66.469488", "-37.223653,-81.108770", 2139944.21629653);
+	chk_karney("-53.974449,0.744868", "-37.514068,-13.894415", 2145674.54815034);
+	chk_karney("0.144644,100.544672", "11.672840,85.905390", 2060064.68360481);
+	chk_karney("0.375452,33.330317", "11.908621,18.691035", 2059858.80968563);
+	chk_karney("23.082171,59.301997", "36.288361,44.662714", 2032333.49135906);
+	chk_karney("23.333298,-7.912359", "36.575232,-22.551641", 2032541.47454734);
+	chk_karney("23.584900,-75.126714", "36.863173,-89.765997", 2032782.84901715);
+	chk_karney("24.089562,150.444575", "37.442341,135.805292", 2033370.13841218);
+	chk_karney("52.151310,-116.369390", "81.663040,-131.008672", 3328004.48296593);
+	chk_karney("52.529079,176.416254", "83.444023,161.776972", 3475511.53412101);
+	chk_karney("52.910126,109.201899", "85.938907,94.562617", 3700004.85902363);
+	chk_karney("53.294554,41.987543", "-86.843207,27.348261", 15567459.61860570);
+	chk_karney("53.682474,-25.226812", "-83.963037,-39.866094", 15297527.07716241);
+}
+
+/*
+ * chk_rand_pos() - Used by test_rand_pos(). Executes rand_pos() with the 
+ * values in `coor`, `maxdist` and `mindist` and checks that they're in the 
+ * range defined by `exp_maxdist` and `exp_mindist`. Returns nothing.
+ */
+
+static void chk_rand_pos(const char *coor,
+                         const double maxdist, const double mindist,
+                         const double exp_maxdist, const double exp_mindist)
+{
+	int errcount = 0, maxtests = 20;
+	unsigned long l, numloop = 1e+4;
+	double r_exp_max = round(exp_maxdist), r_exp_min = round(exp_mindist);
+
+	for (l = 0; l < numloop; l++) {
+		double clat = 1000.0, clon = 1000.0, rlat, rlon, dist, r_dist;
+		if (coor && parse_coordinate(coor, true, &clat, &clon)) {
+			failed_ok("parse_coordinate()"); /* gncov */
+			diag("test %d: coor = \"%s\"", /* gncov */
+			     testnum, coor);
+			return; /* gncov */
+		}
+		rand_pos(&rlat, &rlon, clat, clon, maxdist, mindist);
+		if (fabs(rlat) > 90.0) {
+			ok(1, "rand_pos(): Coordinate %lu:" /* gncov */
+			      " lat is outside [-90,90] range,"
+			      " lat = %.15f", l, rlat);
+			errcount++; /* gncov */
+		}
+		if (fabs(rlon) > 180.0) {
+			ok(1, "rand_pos(): Coordinate %lu:" /* gncov */
+			      " lon is outside [-180,180] range,"
+			      " lon = %.15f", l, rlon);
+			errcount++; /* gncov */
+		}
+		if (errcount >= maxtests) {
+			diag("Aborting rand_pos() range test after" /* gncov */
+			     " %d errors", maxtests);
+			break; /* gncov */
+		}
+		if (!coor)
+			continue;
+		dist = haversine(clat, clon, rlat, rlon);
+		r_dist = round(dist);
+		if (r_dist < r_exp_min || r_dist > r_exp_max) {
+			errcount <= maxtests
+			? ok(1, "randpos out of range (%.0f" /* gncov */
+			        " to %.0f m), center = %f,%f randpos ="
+			        " %f,%f dist = %f",
+			        exp_mindist, exp_maxdist, clat, clon,
+			        rlat, rlon, dist)
+			: 1; /* gncov */
+			errcount++; /* gncov */
+		}
+	}
+	ok(!!errcount, "rand_pos(): All %lu coordinates %.0f-%.0f m are in"
+	               " range, failed = %lu (%f%%)",
+	               numloop, exp_mindist, exp_maxdist, errcount,
+	               100.0 * (double)errcount / (double)numloop);
+}
+
+/*
+ * test_rand_pos() - Tests the rand_pos() function. Returns nothing.
+ */
+
+static void test_rand_pos(void)
+{
+	double MED = MAX_EARTH_DISTANCE;
+
+	diag("Test rand_pos()");
+
+	chk_rand_pos("-3.14,-123.45", 1e+20, 1e+20, MED, MED);
+	chk_rand_pos("-3.14,-123.45", 1e+20, 1e+7, MED, 1e+7);
+	chk_rand_pos("-3.14,-123.45", 1e+7 + 1, 1e+20, MED, 1e+7 + 1);
+	chk_rand_pos("-55.91,-107.32", 0, 2e+7, MED, 2e+7);
+	chk_rand_pos("-59.2105,44.47485", 1000.0, 1000.0, 1000.0, 1000.0);
+	chk_rand_pos("-90,0", 10.0, 0.0, 10.0, 0.0);
+	chk_rand_pos("12,34", 0.1, 0.0, 0.0, 0.0);
+	chk_rand_pos("12,34", 1.0, 0.0, 1.0, 0.0);
+	chk_rand_pos("12,34", 10.0, 20.0, 20.0, 10.0);
+	chk_rand_pos("65,7", 2000.0, 1000.0, 2000.0, 1000.0);
+	chk_rand_pos("90,0", 0.0, 1e+6, MED, 1e+6);
+	chk_rand_pos(NULL, 0.0, 0.0, MED, 0.0);
+}
+
+/*
+ * chk_xmlesc() - Helper function used by test_xml_escape_string(). `s` is the 
+ * string to test, and `exp` is the expected outcome. Returns nothing.
+ */
+
+static void chk_xmlesc(const char *s, const char *exp)
+{
+	char *got;
+
+	assert(s);
+	assert(exp);
+	if (!s || !exp) {
+		ok(1, "%s() received NULL", __func__); /* gncov */
+		return; /* gncov */
+	}
+
+	got = xml_escape_string(s);
+	if (!got) {
+		failed_ok("xml_escape_string()"); /* gncov */
+		return; /* gncov */
+	}
+	ok(!!strcmp(got, exp), "xml escape: \"%s\"", s);
+	free(got);
+}
+
+/*
  * test_xml_escape_string() - Tests the xml_escape_string() function. Returns 
  * nothing.
  */
@@ -1334,95 +1173,284 @@ static void test_gpx_wpt(void)
 }
 
 /*
- * chk_karney() - Used by test_karney_distance(). Verifies that 
- * `karney_distance(coor1, coor2)` returns the value in `exp_result`. Returns 
- * nothing.
+ * test_streams_exec() - Tests the streams_exec() function. Returns nothing.
  */
 
-static void chk_karney(const char *coor1, const char *coor2,
-                       const double exp_result)
+static void test_streams_exec(const struct Options *o)
 {
-	double lat1, lon1, lat2, lon2;
-	double exp_res = exp_result, result;
-	char *res_s, *exp_s;
+	struct Options mod_opt;
+	struct streams ss;
+	char *s;
 
-	assert(coor1);
-	assert(coor2);
+	assert(o);
+	diag("Test streams_exec()");
 
-	if (parse_coordinate(coor1, true, &lat1, &lon1)
-	    || parse_coordinate(coor2, true, &lat2, &lon2)) {
-		ok(1, "%s() received invalid coordinate", /* gncov */
-		      __func__);
-		return; /* gncov */
-	}
-	result = karney_distance(lat1, lon1, lat2, lon2);
-	res_s = allocstr("%.8f", result);
-	exp_s = allocstr("%.8f", exp_result);
-	if (!res_s || !exp_s) {
-		failed_ok("allocstr()"); /* gncov */
-		free(exp_s); /* gncov */
-		free(res_s); /* gncov */
-		return; /* gncov */
-	}
-	ok(!!strcmp(res_s, exp_s), "karney_distance(): %s %s", coor1, coor2);
-	if (strcmp(res_s, exp_s)) {
-		print_gotexp(res_s, exp_s); /* gncov */
-		diag("        diff: %.15f", result - exp_res); /* gncov */
-	}
-	free(exp_s);
-	free(res_s);
+	diag("Send input to the program");
+	streams_init(&ss);
+	ss.in.buf = "This is sent to stdin.\n";
+	ss.in.len = strlen(ss.in.buf);
+	mod_opt = *o;
+	mod_opt.valgrind = false;
+	streams_exec(&mod_opt, &ss, chp{ execname, NULL });
+	s = "streams_exec() with stdin data";
+	ok(!!strcmp(ss.out.buf, ""), "%s (stdout)", s);
+	ok(!strstr(ss.err.buf, ": No arguments specified\n"),
+	   "%s (stderr)", s);
+	ok(!(ss.ret == EXIT_FAILURE), "%s (retval)", s);
+	streams_free(&ss);
 }
 
 /*
- * test_karney_distance() - Tests the karney_distance() function. Returns 
+ * test_mystrdup() - Tests the mystrdup() function. Returns nothing.
+ */
+
+static void test_mystrdup(void)
+{
+	const char *txt = "Test string";
+	char *s;
+
+	diag("Test mystrdup()");
+	ok(!(mystrdup(NULL) == NULL), "mystrdup(NULL) == NULL");
+
+	s = mystrdup(txt);
+	if (!s) {
+		failed_ok("mystrdup()"); /* gncov */
+		return; /* gncov */
+	}
+	ok(!!strcmp(s, txt), "mystrdup(): Strings are identical");
+	free(s);
+}
+
+/*
+ * test_allocstr() - Tests the allocstr() function. Returns nothing.
+ */
+
+static void test_allocstr(void)
+{
+	const size_t bufsize = BUFSIZ * 2 + 1;
+	char *p, *p2, *p3;
+	size_t alen;
+
+	diag("Test allocstr()");
+	p = malloc(bufsize);
+	if (!p) {
+		failed_ok("malloc()"); /* gncov */
+		return; /* gncov */
+	}
+	memset(p, 'a', bufsize - 1);
+	p[bufsize - 1] = '\0';
+	p2 = allocstr("%s", p);
+	if (!p2) {
+		failed_ok("allocstr() with BUFSIZ * 2"); /* gncov */
+		goto free_p; /* gncov */
+	}
+	alen = strlen(p2);
+	ok(!(alen == BUFSIZ * 2), "allocstr(): strlen is correct");
+	p3 = p2;
+	while (*p3) {
+		if (*p3 != 'a') {
+			p3 = NULL; /* gncov */
+			break; /* gncov */
+		}
+		p3++;
+	}
+	ok(!(p3 != NULL), "allocstr(): Content of string is correct");
+	free(p2);
+free_p:
+	free(p);
+}
+
+/*
+ * chk_cs() - Used by test_count_substr(). Verifies that the number of 
+ * non-overlapping substrings `substr` inside string `s` is `count`. `desc` is 
+ * the test description. Returns nothing.
+ */
+
+static void chk_cs(const char *s, const char *substr, const size_t count,
+                   const char *desc)
+{
+	size_t result;
+
+	result = count_substr(s, substr);
+	ok(!(result == count), "count_substr(): %s", desc);
+	if (result != count) {
+		char *s_result = allocstr("%zu", result), /* gncov */
+		     *s_count = allocstr("%zu", count); /* gncov */
+		if (s_result && s_count) /* gncov */
+			print_gotexp(s_result, s_count); /* gncov */
+		else
+			failed_ok("allocstr()"); /* gncov */
+		free(s_count); /* gncov */
+		free(s_result); /* gncov */
+	}
+}
+
+/*
+ * test_count_substr() - Tests the count_substr() function. Returns nothing.
+ */
+
+static void test_count_substr(void)
+{
+	char *s;
+	size_t bsize = 10000;
+
+	diag("Test count_substr()");
+
+	chk_cs("", "", 0, "s and substr are empty");
+	chk_cs("", "a", 0, "s is empty");
+	chk_cs("aaa", "", 0, "substr is empty");
+
+	chk_cs("", NULL, 0, "substr is NULL");
+	chk_cs(NULL, "abcdef", 0, "s is NULL");
+	chk_cs(NULL, NULL, 0, "s and substr is NULL");
+
+	chk_cs("Abc", "abc", 0, "Case sensitivity");
+	chk_cs("a", "aa", 0, "substr is longer than s");
+	chk_cs("aaa", "a", 3, "3 \"a\" in \"aaa\"");
+	chk_cs("aaa", "aa", 1, "Non-overlapping \"aa\" in \"aaa\"");
+	chk_cs("aaabaaa", "aaa", 2, "Non-overlapping \"aaa\" split by \"b\"");
+	chk_cs("abababab", "ab", 4, "4 \"ab\" in s");
+	chk_cs("abc", "b", 1, "Single character substring");
+	chk_cs("abc", "d", 0, "Substring not found");
+	chk_cs("abcdeabc", "abc", 2, "Substring at start and end");
+	chk_cs("abcdef" "abcdef" "abcdef", "abc", 3, "3 \"abc\" in s");
+	chk_cs("abcdef", "abcdef", 1, "s and substr are identical");
+	chk_cs("zzzGHJ\nabc\nGHJ\nabcGHJ", "GHJ", 3, "s with newlines");
+	chk_cs("Ḡṹṛḡḷḗ", "ḡ", 1, "UTF-8, U+1Exx area");
+
+	s = malloc(bsize + 1);
+	if (!s) {
+		failed_ok("malloc()"); /* gncov */
+		return; /* gncov */
+	}
+	memset(s, '!', bsize);
+	s[bsize] = '\0';
+	chk_cs(s, "!!!!!!!!!!", bsize / 10, "Large buffer");
+	free(s);
+}
+
+/*
+ * chk_sr() - Used by test_str_replace(). Verifies that all non-overlapping 
+ * occurrences of substring `s1` are replaced with the string `s2` in the 
+ * string `s`, resulting in the string `exp`. Returns nothing.
+ */
+
+static void chk_sr(const char *s, const char *s1, const char *s2,
+                   const char *exp, const char *desc)
+{
+	char *result;
+
+	assert(desc);
+
+	result = str_replace(s, s1, s2);
+	if (!result || !exp) {
+		ok(!(result == exp), "str_replace(): %s", desc);
+	} else {
+		ok(!!strcmp(result, exp), "str_replace(): %s", desc);
+		print_gotexp(result, exp);
+	}
+	free(result);
+}
+
+/*
+ * test_str_replace() - Tests the str_replace() function. Returns nothing.
+ */
+
+static void test_str_replace(void)
+{
+	char *s;
+	size_t bsize = 10000;
+
+	diag("Test str_replace()");
+
+	chk_sr("", "", "", "", "s, s1, and s2 are empty");
+	chk_sr("abc", "", "b", "abc", "s1 is empty");
+	chk_sr("", "a", "b", "", "s is empty");
+	chk_sr("", "a", "", "", "s and s2 is empty");
+
+	chk_sr(NULL, "a", "b", NULL, "s is NULL");
+	chk_sr("abc", NULL, "b", NULL, "s1 is NULL");
+	chk_sr("abc", "a", NULL, NULL, "s2 is NULL");
+	chk_sr(NULL, NULL, NULL, NULL, "s, s1, and s2 is NULL");
+
+	chk_sr("test", "test", "test", "test", "s, s1, and s2 are identical");
+	chk_sr("abc", "b", "DEF", "aDEFc", "abc, replace b with DEF");
+	chk_sr("abcabcabc", "b", "DEF", "aDEFcaDEFcaDEFc",
+	       "abcabcabc, replace all b with DEF");
+	chk_sr("abcdefgh", "defg", "", "abch", "Replace defg with nothing");
+	chk_sr("abcde", "bcd", "X", "aXe", "Replace bcd with X");
+	chk_sr("abc", "d", "X", "abc", "d not in abc");
+	chk_sr("ababab", "aba", "X", "Xbab", "Replace aba in ababab");
+	chk_sr("abc", "b", "", "ac", "Replace b with nothing");
+	chk_sr("abc", "", "X", "abc", "Replace empty with X");
+	chk_sr("Ḡṹṛḡḷḗ", "ḡ", "X", "ḠṹṛXḷḗ", "Replace UTF-8 character with X");
+
+	s = malloc(bsize + 1);
+	if (!s) {
+		failed_ok("malloc()"); /* gncov */
+		return; /* gncov */
+	}
+	memset(s, '!', bsize);
+	s[bsize] = '\0';
+	chk_sr(s, "!!!!!!!!!!", "", "", "Replace all text in large buffer");
+	free(s);
+
+	s = malloc(bsize + 1);
+	if (!s) {
+		failed_ok("malloc()"); /* gncov */
+		return; /* gncov */
+	}
+	memset(s, '!', bsize);
+	s[1234] = 'y';
+	s[bsize - 1] = 'z';
+	s[bsize] = '\0';
+	chk_sr(s, "!!!!!!!!!!", "", "!!!!y!!!!z",
+	       "Large buffer with y and z");
+	free(s);
+}
+
+/*
+ * chk_coor() - Try to parse the coordinate in `s` with `parse_coordinate()` 
+ * and test that `parse_coordinate()` returns the expected values.
+ * Returns nothing.
+ */
+
+static void chk_coor(const char *s, const int exp_ret,
+                     const double exp_lat, const double exp_lon)
+{
+	double lat, lon;
+	int result;
+
+	result = parse_coordinate(s, true, &lat, &lon);
+	ok(!(result == exp_ret), "parse_coordinate(\"%s\"), expected to %s",
+	                         s, exp_ret ? "fail" : "succeed");
+
+	if (result)
+		return;
+
+	ok(!(lat == exp_lat), "parse_coordinate(\"%s\"): lat is ok", s);
+	ok(!(lon == exp_lon), "parse_coordinate(\"%s\"): lon is ok", s);
+}
+
+/*
+ * test_parse_coordinate() - Various tests for `parse_coordinate()`. Returns 
  * nothing.
  */
 
-static void test_karney_distance(void)
-{
-	diag("Test karney_distance()");
-
-	chk_karney("0,0", "0,0.00000000000001", 0.0);
-	chk_karney("0,0", "0,0.0000000000001", 0.00000001);
-	chk_karney("0,0", "0,180", nan(""));
-	chk_karney("0,0", "0.00000000000001,0", 0.0);
-	chk_karney("0,0", "0.0000000000001,0", 0.00000001);
-	chk_karney("45,9", "-45,-171", nan(""));
-	chk_karney("7,7", "7,7", 0.0);
-	chk_karney("90,0", "-90,0", 20003931.4586235844);
-	chk_karney("90,180", "-90,180", 20003931.4586235844);
-	chk_karney("90,37.37", "-90,37.37", 20003931.4586235844);
-
-	/*
-	 * Generated with
-	 *
-	 * `for f in $(seq 1 20); do (c1=$(./geocalc randpos); c2=$(./geocalc 
-	 * randpos); echo "chk_karney(\"$c1\", \"$c2\", $(./geocalc -K dist $c1 
-	 * $c2));"); done`
-	 *
-	 * with a version compiled with KARNEY_DECIMALS=10
-	 */
-
-	chk_karney("-0.086162,167.759028", "11.437259,153.119746", 2060263.15110668);
-	chk_karney("-0.316970,-125.026617", "11.201875,-139.665899", 2060454.26482576);
-	chk_karney("-0.547782,-57.812261", "10.966681,-72.451543", 2060637.67237515);
-	chk_karney("-23.521104,-16.569585", "-11.495340,-31.208868", 2043439.35405501);
-	chk_karney("-23.773066,50.644770", "-11.730970,36.005488", 2043024.45155100);
-	chk_karney("-52.433055,91.887446", "-36.359012,77.248164", 2124196.47358499);
-	chk_karney("-53.196823,-133.683843", "-36.934352,-148.323125", 2134461.58793276);
-	chk_karney("-53.583847,-66.469488", "-37.223653,-81.108770", 2139944.21629653);
-	chk_karney("-53.974449,0.744868", "-37.514068,-13.894415", 2145674.54815034);
-	chk_karney("0.144644,100.544672", "11.672840,85.905390", 2060064.68360481);
-	chk_karney("0.375452,33.330317", "11.908621,18.691035", 2059858.80968563);
-	chk_karney("23.082171,59.301997", "36.288361,44.662714", 2032333.49135906);
-	chk_karney("23.333298,-7.912359", "36.575232,-22.551641", 2032541.47454734);
-	chk_karney("23.584900,-75.126714", "36.863173,-89.765997", 2032782.84901715);
-	chk_karney("24.089562,150.444575", "37.442341,135.805292", 2033370.13841218);
-	chk_karney("52.151310,-116.369390", "81.663040,-131.008672", 3328004.48296593);
-	chk_karney("52.529079,176.416254", "83.444023,161.776972", 3475511.53412101);
-	chk_karney("52.910126,109.201899", "85.938907,94.562617", 3700004.85902363);
-	chk_karney("53.294554,41.987543", "-86.843207,27.348261", 15567459.61860570);
-	chk_karney("53.682474,-25.226812", "-83.963037,-39.866094", 15297527.07716241);
+static void test_parse_coordinate(void) {
+	diag("Test parse_coordinate()");
+	chk_coor("12.34,56.78", 0, 12.34, 56.78);
+	chk_coor("12.34", 1, 0, 0);
+	chk_coor("", 1, 0, 0);
+	chk_coor("995.456,,456.345", 1, 0, 0);
+	chk_coor("56,78", 0, 56, 78);
+	chk_coor("-56,-78", 0, -56, -78);
+	chk_coor("-56.234,-78.345", 0, -56.234, -78.345);
+	chk_coor(" -56.234,-78.345", 0, -56.234, -78.345);
+	chk_coor("-56.234, -78.345", 0, -56.234, -78.345);
+	chk_coor("56.2r4,-78.345", 1, 0, 0);
+	chk_coor("+56.24,-78.345", 0, 56.24, -78.345);
+	chk_coor(NULL, 1, 0, 0);
 }
 
 /*
@@ -1572,6 +1600,162 @@ static void test_format_option(void)
 	   NULL,
 	   EXIT_SUCCESS,
 	   "-F with an empty argument");
+}
+
+/*
+ * test_haversine_option() - Tests the -H/--haversine option. Returns nothing.
+ */
+
+static void test_haversine_option(void)
+{
+	diag("Test -H/--haversine");
+
+	tc(chp{ execname, "-H", "dist", "13.389820,-71.453489",
+	        "-24.171099,-162.897613", NULL },
+	   "10755873.395009\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-H dist 13.389820,-71.453489 -24.171099,-162.897613");
+
+	tc(chp{ execname, "--haversine", "dist", "-51.548124,19.706076",
+	        "-35.721304,13.064358", NULL },
+	   "1837351.151434\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--haversine dist -51.548124,19.706076 -35.721304,13.064358");
+}
+
+/*
+ * test_karney_option() - Tests the -K/--karney option. Returns nothing.
+ */
+
+static void test_karney_option(void)
+{
+	diag("Test -K/--karney");
+
+	tc(chp{ execname, "-K", "dist", "13.389820,-71.453489",
+	        "-24.171099,-162.897613", NULL },
+	   "10759030.94409290\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-K dist 13.389820,-71.453489 -24.171099,-162.897613");
+
+	tc(chp{ execname, "--karney", "dist", "-51.548124,19.706076",
+	        "-35.721304,13.064358", NULL },
+	   "1836406.16934653\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--karney dist -51.548124,19.706076 -35.721304,13.064358");
+
+	tc(chp{ execname, "-K", "dist", "12.34,56.789", "12.34,56.789", NULL },
+	   "0.00000000\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-K dist: Coincident points");
+
+	tc(chp{ execname, "-K", "dist", "37,7", "-37,-173", NULL },
+	   "",
+	   EXECSTR ": Formula did not converge, antipodal points\n",
+	   EXIT_FAILURE,
+	   "--karney dist: Antipodal points");
+}
+
+/*
+ * test_seed_option() - Tests the --seed option. Returns nothing.
+ */
+
+static void test_seed_option(const struct Options *o)
+{
+	struct binbuf bb1, bb2, bb3;
+
+	assert(o);
+	diag("Test --seed");
+
+	binbuf_init(&bb1);
+	binbuf_init(&bb2);
+	binbuf_init(&bb3);
+	exec_output(o, &bb1, chp{ execname, "--seed", "64738",
+	                          "--count", "20", "randpos", NULL });
+	exec_output(o, &bb2, chp{ execname, "--seed", "64739",
+	                          "--count", "20", "randpos", NULL });
+	exec_output(o, &bb3, chp{ execname, "--seed", "64738",
+	                          "--count", "20", "randpos", NULL });
+	ok(!strcmp(bb1.buf, bb2.buf),
+	   "randpos with seed 64738 and 64739 are different");
+	ok(!!strcmp(bb3.buf, bb1.buf),
+	   "randpos with seed 64738 is identical to the first");
+	binbuf_free(&bb3);
+	binbuf_free(&bb2);
+	binbuf_free(&bb1);
+
+	tc(chp{ execname, "--seed", "-29271", "--count", "10", "randpos",
+	        NULL },
+	   "56.398026,65.672317\n"
+	   "-62.545731,39.973376\n"
+	   "-12.953591,-109.219631\n"
+	   "71.625404,10.907732\n"
+	   "-49.720325,-97.898594\n"
+	   "-9.863466,161.067034\n"
+	   "-21.125676,-179.454884\n"
+	   "-20.152272,-58.458280\n"
+	   "11.179247,79.685331\n"
+	   "-47.058531,149.678499\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--seed -29271 --count 10 randpos");
+
+	tc(chp{ execname, "--seed", "29271", "--count", "10", "randpos",
+	        NULL },
+	   "-8.603169,114.257108\n"
+	   "-46.646685,-133.238413\n"
+	   "32.233828,-45.004903\n"
+	   "-10.383696,-105.396018\n"
+	   "14.981908,-85.632935\n"
+	   "-2.551390,93.617273\n"
+	   "-45.194786,6.814725\n"
+	   "-4.491350,-102.252955\n"
+	   "-54.462817,-25.117826\n"
+	   "-23.940993,-89.915442\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--seed 29271 --count 10 randpos");
+
+	tc(chp{ execname, "--format", "gpx", "--seed", "19999",
+	        "--count", "4", "randpos", NULL },
+	   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+	   "<gpx xmlns=\"http://www.topografix.com/GPX/1/1\""
+	   " version=\"1.1\" creator=\"Geocalc -"
+	   " https://gitlab.com/oyvholm/geocalc\">\n"
+	   "  <wpt lat=\"-17.914770\" lon=\"127.654700\">\n"
+	   "    <name>Random 1, seed 19999</name>\n"
+	   "  </wpt>\n"
+	   "  <wpt lat=\"-27.493377\" lon=\"115.562443\">\n"
+	   "    <name>Random 2, seed 19999</name>\n"
+	   "  </wpt>\n"
+	   "  <wpt lat=\"-22.699248\" lon=\"152.244953\">\n"
+	   "    <name>Random 3, seed 19999</name>\n"
+	   "  </wpt>\n"
+	   "  <wpt lat=\"-52.359745\" lon=\"-142.812430\">\n"
+	   "    <name>Random 4, seed 19999</name>\n"
+	   "  </wpt>\n"
+	   "</gpx>\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--format gpx --seed 19999 --count 4 randpos");
+
+	tc(chp{ execname, "--seed", "", "randpos", NULL },
+	   "",
+	   EXECSTR ": : Invalid --seed argument\n"
+	   OPTION_ERROR_STR,
+	   EXIT_FAILURE,
+	   "Empty argument to --seed");
+
+	tc(chp{ execname, "--seed", "9.14", "randpos", NULL },
+	   "",
+	   EXECSTR ": 9.14: Invalid --seed argument\n"
+	   OPTION_ERROR_STR,
+	   EXIT_FAILURE,
+	   "--seed 9.14 randpos");
 }
 
 /*
@@ -2679,162 +2863,6 @@ static void test_cmd_randpos(const struct Options *o)
 }
 
 /*
- * test_seed_option() - Tests the --seed option. Returns nothing.
- */
-
-static void test_seed_option(const struct Options *o)
-{
-	struct binbuf bb1, bb2, bb3;
-
-	assert(o);
-	diag("Test --seed");
-
-	binbuf_init(&bb1);
-	binbuf_init(&bb2);
-	binbuf_init(&bb3);
-	exec_output(o, &bb1, chp{ execname, "--seed", "64738",
-	                          "--count", "20", "randpos", NULL });
-	exec_output(o, &bb2, chp{ execname, "--seed", "64739",
-	                          "--count", "20", "randpos", NULL });
-	exec_output(o, &bb3, chp{ execname, "--seed", "64738",
-	                          "--count", "20", "randpos", NULL });
-	ok(!strcmp(bb1.buf, bb2.buf),
-	   "randpos with seed 64738 and 64739 are different");
-	ok(!!strcmp(bb3.buf, bb1.buf),
-	   "randpos with seed 64738 is identical to the first");
-	binbuf_free(&bb3);
-	binbuf_free(&bb2);
-	binbuf_free(&bb1);
-
-	tc(chp{ execname, "--seed", "-29271", "--count", "10", "randpos",
-	        NULL },
-	   "56.398026,65.672317\n"
-	   "-62.545731,39.973376\n"
-	   "-12.953591,-109.219631\n"
-	   "71.625404,10.907732\n"
-	   "-49.720325,-97.898594\n"
-	   "-9.863466,161.067034\n"
-	   "-21.125676,-179.454884\n"
-	   "-20.152272,-58.458280\n"
-	   "11.179247,79.685331\n"
-	   "-47.058531,149.678499\n",
-	   "",
-	   EXIT_SUCCESS,
-	   "--seed -29271 --count 10 randpos");
-
-	tc(chp{ execname, "--seed", "29271", "--count", "10", "randpos",
-	        NULL },
-	   "-8.603169,114.257108\n"
-	   "-46.646685,-133.238413\n"
-	   "32.233828,-45.004903\n"
-	   "-10.383696,-105.396018\n"
-	   "14.981908,-85.632935\n"
-	   "-2.551390,93.617273\n"
-	   "-45.194786,6.814725\n"
-	   "-4.491350,-102.252955\n"
-	   "-54.462817,-25.117826\n"
-	   "-23.940993,-89.915442\n",
-	   "",
-	   EXIT_SUCCESS,
-	   "--seed 29271 --count 10 randpos");
-
-	tc(chp{ execname, "--format", "gpx", "--seed", "19999",
-	        "--count", "4", "randpos", NULL },
-	   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-	   "<gpx xmlns=\"http://www.topografix.com/GPX/1/1\""
-	   " version=\"1.1\" creator=\"Geocalc -"
-	   " https://gitlab.com/oyvholm/geocalc\">\n"
-	   "  <wpt lat=\"-17.914770\" lon=\"127.654700\">\n"
-	   "    <name>Random 1, seed 19999</name>\n"
-	   "  </wpt>\n"
-	   "  <wpt lat=\"-27.493377\" lon=\"115.562443\">\n"
-	   "    <name>Random 2, seed 19999</name>\n"
-	   "  </wpt>\n"
-	   "  <wpt lat=\"-22.699248\" lon=\"152.244953\">\n"
-	   "    <name>Random 3, seed 19999</name>\n"
-	   "  </wpt>\n"
-	   "  <wpt lat=\"-52.359745\" lon=\"-142.812430\">\n"
-	   "    <name>Random 4, seed 19999</name>\n"
-	   "  </wpt>\n"
-	   "</gpx>\n",
-	   "",
-	   EXIT_SUCCESS,
-	   "--format gpx --seed 19999 --count 4 randpos");
-
-	tc(chp{ execname, "--seed", "", "randpos", NULL },
-	   "",
-	   EXECSTR ": : Invalid --seed argument\n"
-	   OPTION_ERROR_STR,
-	   EXIT_FAILURE,
-	   "Empty argument to --seed");
-
-	tc(chp{ execname, "--seed", "9.14", "randpos", NULL },
-	   "",
-	   EXECSTR ": 9.14: Invalid --seed argument\n"
-	   OPTION_ERROR_STR,
-	   EXIT_FAILURE,
-	   "--seed 9.14 randpos");
-}
-
-/*
- * test_haversine_option() - Tests the -H/--haversine option. Returns nothing.
- */
-
-static void test_haversine_option(void)
-{
-	diag("Test -H/--haversine");
-
-	tc(chp{ execname, "-H", "dist", "13.389820,-71.453489",
-	        "-24.171099,-162.897613", NULL },
-	   "10755873.395009\n",
-	   "",
-	   EXIT_SUCCESS,
-	   "-H dist 13.389820,-71.453489 -24.171099,-162.897613");
-
-	tc(chp{ execname, "--haversine", "dist", "-51.548124,19.706076",
-	        "-35.721304,13.064358", NULL },
-	   "1837351.151434\n",
-	   "",
-	   EXIT_SUCCESS,
-	   "--haversine dist -51.548124,19.706076 -35.721304,13.064358");
-}
-
-/*
- * test_karney_option() - Tests the -K/--karney option. Returns nothing.
- */
-
-static void test_karney_option(void)
-{
-	diag("Test -K/--karney");
-
-	tc(chp{ execname, "-K", "dist", "13.389820,-71.453489",
-	        "-24.171099,-162.897613", NULL },
-	   "10759030.94409290\n",
-	   "",
-	   EXIT_SUCCESS,
-	   "-K dist 13.389820,-71.453489 -24.171099,-162.897613");
-
-	tc(chp{ execname, "--karney", "dist", "-51.548124,19.706076",
-	        "-35.721304,13.064358", NULL },
-	   "1836406.16934653\n",
-	   "",
-	   EXIT_SUCCESS,
-	   "--karney dist -51.548124,19.706076 -35.721304,13.064358");
-
-	tc(chp{ execname, "-K", "dist", "12.34,56.789", "12.34,56.789", NULL },
-	   "0.00000000\n",
-	   "",
-	   EXIT_SUCCESS,
-	   "-K dist: Coincident points");
-
-	tc(chp{ execname, "-K", "dist", "37,7", "-37,-173", NULL },
-	   "",
-	   EXECSTR ": Formula did not converge, antipodal points\n",
-	   EXIT_FAILURE,
-	   "--karney dist: Antipodal points");
-}
-
-/*
  * test_functions() - Tests various functions directly. Returns nothing.
  */
 
@@ -2850,49 +2878,22 @@ static void test_functions(const struct Options *o)
 	test_diag();
 	test_gotexp_output();
 	test_valgrind_lines();
-	test_str_replace();
 
 	diag("Test various routines");
 	test_std_strerror();
+	test_round_number();
+	test_are_antipodal();
+	test_bearing_position();
+	test_karney_distance();
+	test_rand_pos();
+	test_xml_escape_string();
+	test_gpx_wpt();
+	test_streams_exec(o);
 	test_mystrdup();
 	test_allocstr();
 	test_count_substr();
-	test_round_number();
-	test_rand_pos();
+	test_str_replace();
 	test_parse_coordinate();
-	test_are_antipodal();
-	test_bearing_position();
-	test_xml_escape_string();
-	test_gpx_wpt();
-	test_karney_distance();
-}
-
-/*
- * print_version_info() - Display output from the --version command. Returns 0 
- * if ok, or 1 if streams_exec() failed.
- */
-
-static int print_version_info(const struct Options *o)
-{
-	struct streams ss;
-	int res;
-
-	assert(o);
-	streams_init(&ss);
-	res = streams_exec(o, &ss, chp{ execname, "--version", NULL });
-	if (res) {
-		failed_ok("streams_exec()"); /* gncov */
-		if (ss.err.buf) /* gncov */
-			diag(ss.err.buf); /* gncov */
-		return 1; /* gncov */
-	}
-	diag("========== BEGIN version info ==========\n"
-	     "%s"
-	     "=========== END version info ===========",
-	     ss.out.buf ? ss.out.buf : "(null)");
-	streams_free(&ss);
-
-	return 0;
 }
 
 /*
@@ -2909,7 +2910,6 @@ static void test_executable(const struct Options *o)
 	diag("Test the executable");
 	test_valgrind_option(o);
 	print_version_info(o);
-	test_streams_exec(o);
 	tc(chp{ execname, "abc", NULL },
 	   "",
 	   EXECSTR ": Unknown command: abc\n",
@@ -2917,6 +2917,9 @@ static void test_executable(const struct Options *o)
 	   "Unknown command");
 	test_standard_options();
 	test_format_option();
+	test_haversine_option();
+	test_karney_option();
+	test_seed_option(o);
 	test_cmd_bench();
 	test_cmd_bpos();
 	test_cmd_course();
@@ -2924,9 +2927,6 @@ static void test_executable(const struct Options *o)
 	test_multiple("bear");
 	test_multiple("dist");
 	test_cmd_randpos(o);
-	test_seed_option(o);
-	test_haversine_option();
-	test_karney_option();
 	print_version_info(o);
 }
 
