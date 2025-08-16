@@ -374,8 +374,6 @@ static int usage(const struct Options *o, const int retval)
 static int choose_opt_action(struct Options *dest,
                              const int c, const struct option *opts)
 {
-	int retval = 0;
-
 	assert(dest);
 	assert(opts);
 
@@ -440,11 +438,11 @@ static int choose_opt_action(struct Options *dest,
 	default:
 		myerror("%s(): getopt_long() returned character code %d",
 		        __func__, c);
-		retval = 1;
+		return 1;
 		break;
 	}
 
-	return retval;
+	return 0;
 }
 
 /*
