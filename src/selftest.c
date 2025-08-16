@@ -1749,7 +1749,7 @@ static void test_valgrind_option(const struct Options *o)
 		streams_free(&ss); /* gncov */
 	}
 
-	sc(((chp{ execname, "--valgrind", "-h", NULL })),
+	sc((chp{ execname, "--valgrind", "-h", NULL }),
 	   "Show this",
 	   "",
 	   EXIT_SUCCESS,
@@ -1770,34 +1770,34 @@ static void test_standard_options(void)
 	diag("Test standard options");
 
 	diag("Test -h/--help");
-	sc(((chp{ execname, "-h", NULL })),
+	sc((chp{ execname, "-h", NULL }),
 	   "  Show this help",
 	   "",
 	   EXIT_SUCCESS,
 	   "-h");
-	sc(((chp{ execname, "--help", NULL })),
+	sc((chp{ execname, "--help", NULL }),
 	   "  Show this help",
 	   "",
 	   EXIT_SUCCESS,
 	   "--help");
 
 	diag("Test -v/--verbose");
-	sc(((chp{ execname, "-h", "--verbose", NULL })),
+	sc((chp{ execname, "-h", "--verbose", NULL }),
 	   "  Show this help",
 	   "",
 	   EXIT_SUCCESS,
 	   "-hv: Help text is displayed");
-	sc(((chp{ execname, "-hv", NULL })),
+	sc((chp{ execname, "-hv", NULL }),
 	   EXEC_VERSION,
 	   "",
 	   EXIT_SUCCESS,
 	   "-hv: Version number is printed along with the help text");
-	sc(((chp{ execname, "-vvv", "--verbose", "--help", NULL })),
+	sc((chp{ execname, "-vvv", "--verbose", "--help", NULL }),
 	   "  Show this help",
 	   EXECSTR ": main(): Using verbose level 4\n",
 	   EXIT_SUCCESS,
 	   "-vvv --verbose: Using correct verbose level");
-	sc(((chp{ execname, "-vvvvq", "-v", "--verbose", "--help", NULL })),
+	sc((chp{ execname, "-vvvvq", "-v", "--verbose", "--help", NULL }),
 	   "  Show this help",
 	   EXECSTR ": main(): Using verbose level 5\n",
 	   EXIT_SUCCESS,
@@ -1806,7 +1806,7 @@ static void test_standard_options(void)
 	diag("Test --version");
 	s = allocstr("%s %s (%s)\n", execname, EXEC_VERSION, EXEC_DATE);
 	if (s) {
-		sc(((chp{ execname, "--version", NULL })),
+		sc((chp{ execname, "--version", NULL }),
 		   s,
 		   "",
 		   EXIT_SUCCESS,
@@ -1815,26 +1815,26 @@ static void test_standard_options(void)
 	} else {
 		failed_ok("allocstr()"); /* gncov */
 	}
-	tc(((chp{ execname, "--version", "-q", NULL })),
+	tc((chp{ execname, "--version", "-q", NULL }),
 	   EXEC_VERSION "\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "--version with -q shows only the version number");
 
 	diag("Test --license");
-	sc(((chp{ execname, "--license", NULL })),
+	sc((chp{ execname, "--license", NULL }),
 	   "GNU General Public License",
 	   "",
 	   EXIT_SUCCESS,
 	   "--license: It's GPL");
-	sc(((chp{ execname, "--license", NULL })),
+	sc((chp{ execname, "--license", NULL }),
 	   "either version 2 of the License",
 	   "",
 	   EXIT_SUCCESS,
 	   "--license: It's version 2 of the GPL");
 
 	diag("Unknown option");
-	sc(((chp{ execname, "--gurgle", NULL })),
+	sc((chp{ execname, "--gurgle", NULL }),
 	   "",
 	   OPTION_ERROR_STR,
 	   EXIT_FAILURE,
