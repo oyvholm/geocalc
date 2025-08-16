@@ -30,6 +30,31 @@
                           EXECSTR ": Type \"" EXECSTR " --help\" for help screen." \
                           " Returning with value 1.\n"
 #define chp  (char *[])
+#define print_gotexp_nostr(seq, got, exp)  do { \
+	char *g = allocstr((seq), (got)), *e = allocstr((seq), (exp)); \
+	if (!g || !e) \
+		failed_ok("allocstr()"); \
+	else \
+		print_gotexp(g, e); \
+	free(e); \
+	free(g); \
+} while (0)
+#define print_gotexp_double(got, exp)  do { \
+	if ((got) != (exp)) \
+		print_gotexp_nostr("%.8f", (got), (exp)); \
+} while (0)
+#define print_gotexp_int(got, exp)  do { \
+	if ((got) != (exp)) \
+		print_gotexp_nostr("%d", (got), (exp)); \
+} while (0)
+#define print_gotexp_size_t(got, exp)  do { \
+	if ((got) != (exp)) \
+		print_gotexp_nostr("%zu", (got), (exp)); \
+} while (0)
+#define print_gotexp_ulong(got, exp)  do { \
+	if ((got) != (exp)) \
+		print_gotexp_nostr("%lu", (got), (exp)); \
+} while (0)
 
 /*
  * Main test macros, meant to be a human-friendly frontend against ok(). Unlike 
@@ -503,19 +528,11 @@ static void test_command(const int linenum, const char identical, char *cmd[],
 			print_gotexp(ss.err.buf, e_stderr); /* gncov */
 	}
 	OK_EQUAL_L(ss.ret, exp_retval, linenum, "%s (retval)", descbuf);
+	print_gotexp_int(ss.ret, exp_retval);
 	free(descbuf);
 	free(e_stderr);
 	free(e_stdout);
-	if (ss.ret != exp_retval) {
-		char *g = allocstr("%d", ss.ret), /* gncov */
-		     *e = allocstr("%d", exp_retval); /* gncov */
-		if (!g || !e) /* gncov */
-			failed_ok("allocstr()"); /* gncov */
-		else
-			print_gotexp(g, e); /* gncov */
-		free(e); /* gncov */
-		free(g); /* gncov */
-	}
+	print_gotexp_int(ss.ret, exp_retval);
 	if (valgrind_lines(ss.err.buf))
 		OK_ERROR_L(linenum, "Found valgrind output"); /* gncov */
 	streams_free(&ss);
@@ -660,6 +677,7 @@ static void test_diag_big(void)
 	outp = diag_output("%s", p);
 	OK_NOTNULL(outp, "diag_big: diag_output() returns ok");
 	OK_EQUAL(strlen(outp), size + 2, "diag_big: String length is correct");
+	print_gotexp_size_t(strlen(outp), size + 2);
 	OK_STRNCMP(outp, "# aaabcaaa", 10, "diag_big: Beginning is ok");
 	free(outp);
 	free(p);
@@ -1503,16 +1521,7 @@ static void chk_cs(const int linenum, const char *s, const char *substr,
 
 	result = count_substr(s, substr);
 	OK_EQUAL_L(result, count, linenum, "count_substr(): %s", desc);
-	if (result != count) {
-		char *s_result = allocstr("%zu", result), /* gncov */
-		     *s_count = allocstr("%zu", count); /* gncov */
-		if (s_result && s_count) /* gncov */
-			print_gotexp(s_result, s_count); /* gncov */
-		else
-			failed_ok("allocstr()"); /* gncov */
-		free(s_count); /* gncov */
-		free(s_result); /* gncov */
-	}
+	print_gotexp_size_t(result, count);
 }
 
 /*
@@ -1665,8 +1674,10 @@ static void chk_coor(const int linenum, const char *s, const int exp_ret,
 
 	OK_EQUAL_L(lat, exp_lat, linenum,
 	           "parse_coordinate(\"%s\"): lat is ok", s);
+	print_gotexp_double(lat, exp_lat);
 	OK_EQUAL_L(lon, exp_lon, linenum,
 	           "parse_coordinate(\"%s\"): lon is ok", s);
+	print_gotexp_double(lon, exp_lon);
 }
 
 /*
@@ -3291,6 +3302,11 @@ int opt_selftest(char *main_execname, const struct Options *o)
 #undef Tc
 #undef chp
 #undef failed_ok
+#undef print_gotexp_double
+#undef print_gotexp_int
+#undef print_gotexp_nostr
+#undef print_gotexp_size_t
+#undef print_gotexp_ulong
 #undef sc
 #undef tc
 
