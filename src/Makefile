@@ -134,6 +134,7 @@ all: $(EXEC) $(MANPAGE)
 
 $(EXEC): $(OBJS)
 	$(LD) -o $(EXEC) $(LDFLAGS) $(OBJS) $(LIBS)
+	[ -z "$(STRIP)" ] || strip $(EXEC)
 
 $(HTMLFILE): $(MANPAGE)
 	man -Thtml ./$(MANPAGE) >$@.tmp
