@@ -43,6 +43,10 @@ static char *execname;
 static int failcount = 0;
 static int testnum = 0;
 
+/******************************************************************************
+                             --selftest functions
+******************************************************************************/
+
 /*
  * bail_out() - Aborts the test suite with an optional message written to 
  * stdout. To abort without a message, use NULL in `msg`. Returns nothing.
@@ -466,6 +470,10 @@ static int print_version_info(const struct Options *o)
 	return 0;
 }
 
+/******************************************************************************
+                      geocalc-specific selftest functions
+******************************************************************************/
+
 /*
  * verify_constants() - Check that certain constants are unmodified. Some of 
  * these constants are used in the tests themselves, so the tests will be 
@@ -496,6 +504,12 @@ static void verify_constants(void)
 	ok(!!strcmp(PROJ_URL, e), "PROJ_URL is correct");
 	print_gotexp(PROJ_URL, e);
 }
+
+/******************************************************************************
+                                Function tests
+******************************************************************************/
+
+                             /*** selftest.c ***/
 
 /*
  * test_diag_big() - Tests diag_output() with a string larger than BUFSIZ. 
@@ -653,6 +667,8 @@ static void test_valgrind_lines(void)
 	}
 }
 
+                              /*** geocalc.c ***/
+
 /*
  * test_std_strerror() - Tests the std_strerror() function. Returns nothing.
  */
@@ -663,6 +679,8 @@ static void test_std_strerror(void)
 	ok(!!strcmp(std_strerror(EACCES), "Permission denied"),
 	   "std_strerror(EACCES) is as expected");
 }
+
+                               /*** cmds.c ***/
 
 /*
  * chk_round() - Used by test_round_number(). Verifies that `round_number(num, 
@@ -705,6 +723,8 @@ static void test_round_number(void)
 	chk_round(99.999999, 3, 100.0);
 	chk_round(99.999999999999, 9, 100.0);
 }
+
+                              /*** geomath.c ***/
 
 /*
  * chk_antip() - Used by test_are_antipodal(), checks that are_antipodal() 
@@ -1029,6 +1049,8 @@ static void test_rand_pos(void)
 	chk_rand_pos(NULL, 0.0, 0.0, MED, 0.0);
 }
 
+                                /*** gpx.c ***/
+
 /*
  * chk_xmlesc() - Helper function used by test_xml_escape_string(). `s` is the 
  * string to test, and `exp` is the expected outcome. Returns nothing.
@@ -1172,6 +1194,8 @@ static void test_gpx_wpt(void)
 	free(s);
 }
 
+                                /*** io.c ***/
+
 /*
  * test_streams_exec() - Tests the streams_exec() function. Returns nothing.
  */
@@ -1199,6 +1223,8 @@ static void test_streams_exec(const struct Options *o)
 	ok(!(ss.ret == EXIT_FAILURE), "%s (retval)", s);
 	streams_free(&ss);
 }
+
+                              /*** strings.c ***/
 
 /*
  * test_mystrdup() - Tests the mystrdup() function. Returns nothing.
@@ -1453,6 +1479,14 @@ static void test_parse_coordinate(void) {
 	chk_coor(NULL, 1, 0, 0);
 }
 
+/******************************************************************************
+                           Test the executable file
+******************************************************************************/
+
+                         /****** Option tests ******/
+
+                             /*** --valgrind ***/
+
 /*
  * test_valgrind_option() - Tests the --valgrind command line option. Returns 
  * nothing.
@@ -1488,6 +1522,8 @@ static void test_valgrind_option(const struct Options *o)
 	   EXIT_SUCCESS,
 	   "--valgrind -h");
 }
+
+                          /*** Standard options ***/
 
 /*
  * test_standard_options() - Tests the various generic options available in 
@@ -1572,6 +1608,8 @@ static void test_standard_options(void)
 	   "Unknown option: \"Option error\" message is printed");
 }
 
+                             /*** -F/--format ***/
+
 /*
  * test_format_option() - Tests the -F/--format option. Returns nothing.
  */
@@ -1602,6 +1640,8 @@ static void test_format_option(void)
 	   "-F with an empty argument");
 }
 
+                           /*** -H/--haversine ***/
+
 /*
  * test_haversine_option() - Tests the -H/--haversine option. Returns nothing.
  */
@@ -1624,6 +1664,8 @@ static void test_haversine_option(void)
 	   EXIT_SUCCESS,
 	   "--haversine dist -51.548124,19.706076 -35.721304,13.064358");
 }
+
+                             /*** -K/--karney ***/
 
 /*
  * test_karney_option() - Tests the -K/--karney option. Returns nothing.
@@ -1659,6 +1701,8 @@ static void test_karney_option(void)
 	   EXIT_FAILURE,
 	   "--karney dist: Antipodal points");
 }
+
+                               /*** --seed ***/
 
 /*
  * test_seed_option() - Tests the --seed option. Returns nothing.
@@ -1758,6 +1802,10 @@ static void test_seed_option(const struct Options *o)
 	   "--seed 9.14 randpos");
 }
 
+                         /****** Command tests ******/
+
+                                /*** bench ***/
+
 /*
  * test_cmd_bench() - Tests the `bench` command. Returns nothing.
  */
@@ -1786,6 +1834,8 @@ static void test_cmd_bench(void)
 	   EXIT_FAILURE,
 	   "--format gpx bench");
 }
+
+                                /*** bpos ***/
 
 /*
  * test_cmd_bpos() - Tests the `bpos` command. Returns nothing.
@@ -1925,6 +1975,8 @@ static void test_cmd_bpos(void)
 	   EXIT_SUCCESS,
 	   "-F sql --km bpos: dist = 15000 km");
 }
+
+                               /*** course ***/
 
 /*
  * test_cmd_course() - Tests the `course` command. Returns nothing.
@@ -2099,6 +2151,8 @@ static void test_cmd_course(void)
 	   "-F sql course 60,5 -35,135 5");
 }
 
+                                /*** lpos ***/
+
 /*
  * test_cmd_lpos() - Tests the `lpos` command. Returns nothing.
  */
@@ -2225,6 +2279,8 @@ static void test_cmd_lpos(void)
 	   EXIT_SUCCESS,
 	   "-F sql lpos");
 }
+
+                            /*** bear and dist ***/
 
 /*
  * test_multiple() - Tests the `bear` or `dist` command. Returns nothing.
@@ -2384,6 +2440,8 @@ static void test_multiple(char *cmd)
 		   "--format sql %s", cmd);
 	}
 }
+
+                               /*** randpos ***/
 
 /*
  * verify_coor_dist() - Verifies that the distance between `coor` and all 
@@ -2862,6 +2920,10 @@ static void test_cmd_randpos(const struct Options *o)
 	   "-F sql randpos with maxdist and mindist");
 }
 
+/******************************************************************************
+                        Top-level --selftest functions
+******************************************************************************/
+
 /*
  * test_functions() - Tests various functions directly. Returns nothing.
  */
@@ -2874,21 +2936,35 @@ static void test_functions(const struct Options *o)
 		return; /* gncov */
 
 	diag("Test selftest routines");
+
+	/* selftest.c */
 	verify_constants();
 	test_diag();
 	test_gotexp_output();
 	test_valgrind_lines();
 
 	diag("Test various routines");
+
+	/* geocalc.c */
 	test_std_strerror();
+
+	/* cmds.c */
 	test_round_number();
+
+	/* geomath.c */
 	test_are_antipodal();
 	test_bearing_position();
 	test_karney_distance();
 	test_rand_pos();
+
+	/* gpx.c */
 	test_xml_escape_string();
 	test_gpx_wpt();
+
+	/* io.c */
 	test_streams_exec(o);
+
+	/* strings.c */
 	test_mystrdup();
 	test_allocstr();
 	test_count_substr();
