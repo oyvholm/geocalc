@@ -55,6 +55,7 @@
 	if ((got) != (exp)) \
 		print_gotexp_nostr("%lu", (got), (exp)); \
 } while (0)
+#define DIAG_DEBL  diag("DEBL: %s:%s():%d", __FILE__, __func__, __LINE__)
 
 /*
  * Main test macros, meant to be a human-friendly frontend against ok(). Unlike 
@@ -167,6 +168,10 @@
 #define OK_SUCCESS(func, desc, ...)  OK_SUCCESS_L((func), __LINE__, (desc), ##__VA_ARGS__)
 #define OK_TRUE(val, desc, ...)  OK_TRUE_L((val), __LINE__, (desc), ##__VA_ARGS__)
 
+#define diag_errno()  do { \
+	diag("errno = %d (%s)", errno, strerror(errno)); \
+	errno = 0; \
+} while (0)
 #define failed_ok(a)  do { \
 	if (errno) \
 		OK_ERROR("%s():%d: %s failed: %s", \
@@ -3275,6 +3280,7 @@ int opt_selftest(char *main_execname, const struct Options *o)
 	return failcount ? EXIT_FAILURE : EXIT_SUCCESS;
 }
 
+#undef DIAG_DEBL
 #undef EXECSTR
 #undef OK_EQUAL
 #undef OK_EQUAL_L
@@ -3301,6 +3307,7 @@ int opt_selftest(char *main_execname, const struct Options *o)
 #undef OPTION_ERROR_STR
 #undef Tc
 #undef chp
+#undef diag_errno
 #undef failed_ok
 #undef print_gotexp_double
 #undef print_gotexp_int
