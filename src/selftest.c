@@ -439,16 +439,6 @@ static void tc(char *cmd[], const char *exp_stdout, const char *exp_stderr,
 }
 
 /*
- ******************
- * Function tests *
- ******************
- */
-
-/*
- * selftest functions
- */
-
-/*
  * verify_constants() - Check that certain constants are unmodified. Some of 
  * these constants are used in the tests themselves, so the tests will be 
  * automatically updated to match the new text or value. This function contains 
@@ -714,10 +704,6 @@ static void test_str_replace(void)
 	       "Large buffer with y and z");
 	free(s);
 }
-
-/*
- * Various functions
- */
 
 /*
  * test_std_strerror() - Tests the std_strerror() function. Returns nothing.
@@ -1438,12 +1424,6 @@ static void test_karney_distance(void)
 	chk_karney("53.294554,41.987543", "-86.843207,27.348261", 15567459.61860570);
 	chk_karney("53.682474,-25.226812", "-83.963037,-39.866094", 15297527.07716241);
 }
-
-/*
- ****************
- * Option tests *
- ****************
- */
 
 /*
  * test_valgrind_option() - Tests the --valgrind command line option. Returns 
