@@ -86,9 +86,11 @@ const char *std_strerror(const int errnum)
 		 * value is missing from `std_strerror()`, and tests may fail 
 		 * on other platforms.
 		 */
+#ifdef CHECK_ERRNO
 		fprintf(stderr, /* gncov */
 		        "\n%s: %s(): Unknown errno received: %d, \"%s\"\n",
 		        progname, __func__, errnum, strerror(errnum));
+#endif
 		return strerror(errnum); /* gncov */
 	}
 }
@@ -179,6 +181,9 @@ static int print_version(const struct Options *o)
 		return EXIT_SUCCESS;
 	}
 	printf("%s %s (%s)\n", progname, EXEC_VERSION, EXEC_DATE);
+#ifdef CHECK_ERRNO
+	printf("has CHECK_ERRNO\n");
+#endif
 #ifdef FAKE_MEMLEAK
 	printf("has FAKE_MEMLEAK\n");
 #endif
