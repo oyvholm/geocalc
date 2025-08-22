@@ -241,6 +241,7 @@ static int ok_va(const int i, const int linenum, const char *desc, va_list ap)
 	char *s, *s2;
 
 	assert(desc);
+	assert(*desc);
 
 	if (!desc)
 		bail_out("%s(): desc is NULL", __func__); /* gncov */
@@ -276,6 +277,7 @@ static int ok(const int i, const int linenum, const char *desc, ...)
 	va_list ap;
 
 	assert(desc);
+	assert(*desc);
 
 	if (!desc)
 		bail_out("%s(): desc is NULL", __func__); /* gncov */
@@ -504,7 +506,9 @@ static void test_command(const int linenum, const char identical, char *cmd[],
 	char *e_stdout, *e_stderr, *descbuf;
 
 	assert(cmd);
+	assert(*cmd);
 	assert(desc);
+	assert(*desc);
 	if (!cmd) {
 		OK_ERROR_L(linenum, "%s(): cmd is NULL", __func__); /* gncov */
 		return; /* gncov */
@@ -565,7 +569,9 @@ static void sc_func(const int linenum, char *cmd[], const char *exp_stdout,
 	va_list ap;
 
 	assert(cmd);
+	assert(*cmd);
 	assert(desc);
+	assert(*desc);
 
 	va_start(ap, desc);
 	test_command(linenum, 0, cmd, exp_stdout, exp_stderr, exp_retval,
@@ -588,7 +594,9 @@ static void tc_func(const int linenum, char *cmd[], const char *exp_stdout,
 	va_list ap;
 
 	assert(cmd);
+	assert(*cmd);
 	assert(desc);
+	assert(*desc);
 
 	va_start(ap, desc);
 	test_command(linenum, 1, cmd, exp_stdout, exp_stderr, exp_retval,
@@ -1558,6 +1566,9 @@ static void chk_cs(const int linenum, const char *s, const char *substr,
 {
 	size_t result;
 
+	assert(desc);
+	assert(*desc);
+
 	result = count_substr(s, substr);
 	OK_EQUAL_L(result, count, linenum, "count_substr(): %s", desc);
 	print_gotexp_size_t(result, count);
@@ -1622,6 +1633,7 @@ static void chk_sr(const int linenum, const char *s, const char *s1,
 	char *result;
 
 	assert(desc);
+	assert(*desc);
 
 	result = str_replace(s, s1, s2);
 	if (!result || !exp)
@@ -2557,6 +2569,7 @@ static void test_cmd_lpos(void)
 static void test_multiple(const int linenum, char *cmd)
 {
 	assert(cmd);
+	assert(!strcmp(cmd, "bear") || !strcmp(cmd, "dist"));
 	if (!cmd) {
 		OK_ERROR_L(linenum, "%s(): cmd is NULL", __func__); /* gncov */
 		return; /* gncov */
@@ -2882,7 +2895,9 @@ static void te_randpos(const int linenum, const OutputFormat format,
 	struct Options o = opt_struct();
 
 	assert(cmd);
+	assert(*cmd);
 	assert(desc);
+	assert(*desc);
 
 	streams_init(&ss);
 	streams_exec(&o, &ss, cmd);
@@ -3295,6 +3310,7 @@ static void test_executable(const struct Options *o)
 int opt_selftest(char *main_execname, const struct Options *o)
 {
 	assert(main_execname);
+	assert(*main_execname);
 	assert(o);
 
 	execname = main_execname;
