@@ -87,7 +87,7 @@ const char *std_strerror(const int errnum)
 		 * on other platforms.
 		 */
 #ifdef CHECK_ERRNO
-		fprintf(stderr, /* gncov */
+		fprintf(stderr,
 		        "\n%s: %s(): Unknown errno received: %d, \"%s\"\n",
 		        progname, __func__, errnum, strerror(errnum));
 #endif

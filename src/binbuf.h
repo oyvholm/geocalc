@@ -28,8 +28,8 @@ struct binbuf {
 };
 
 void binbuf_init(struct binbuf *sb);
-char *binbuf_cpy(struct binbuf *dest, const struct binbuf *src);
 void binbuf_free(struct binbuf *sb);
+char *binbuf_cpy(struct binbuf *dest, const struct binbuf *src);
 
 #endif /* ifndef _BINBUF_H */
 
