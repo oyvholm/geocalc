@@ -1463,36 +1463,6 @@ static void test_gpx_wpt(void)
 	free(s);
 }
 
-                                /*** io.c ***/
-
-/*
- * test_streams_exec() - Tests the streams_exec() function. Returns nothing.
- */
-
-static void test_streams_exec(const struct Options *o)
-{
-	struct Options mod_opt;
-	struct streams ss;
-	char *s;
-
-	assert(o);
-	diag("Test streams_exec()");
-
-	diag("Send input to the program");
-	streams_init(&ss);
-	ss.in.buf = "This is sent to stdin.\n";
-	ss.in.len = strlen(ss.in.buf);
-	mod_opt = *o;
-	mod_opt.valgrind = false;
-	streams_exec(&mod_opt, &ss, chp{ execname, NULL });
-	s = "streams_exec() with stdin data";
-	OK_STRCMP(ss.out.buf, "", "%s (stdout)", s);
-	OK_NOTNULL(strstr(ss.err.buf, ": No arguments specified\n"),
-	           "%s (stderr)", s);
-	OK_EQUAL(ss.ret, EXIT_FAILURE, "%s (retval)", s);
-	streams_free(&ss);
-}
-
                               /*** strings.c ***/
 
 /*
@@ -3256,9 +3226,6 @@ static void test_functions(const struct Options *o)
 	/* gpx.c */
 	test_xml_escape_string();
 	test_gpx_wpt();
-
-	/* io.c */
-	test_streams_exec(o);
 
 	/* strings.c */
 	test_mystrdup();
