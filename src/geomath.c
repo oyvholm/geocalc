@@ -23,6 +23,11 @@
 const double EARTH_RADIUS = 6371000; /* Meters */
 const double MAX_EARTH_DISTANCE = 20015086.79602057114243507385; /* Meters */
 
+static const double DEG_TO_RAD = M_PI / 180.0;
+static const double RAD_TO_DEG = 180.0 / M_PI;
+#define deg2rad(a)  ((a) * DEG_TO_RAD)
+#define rad2deg(a)  ((a) * RAD_TO_DEG)
+
 /*
  * are_antipodal() - Check if two points are antipodal, i.e. on exactly 
  * opposite positions of a spherical planet. To account for rounding errors, a 
@@ -46,24 +51,6 @@ int are_antipodal(const double lat1, const double lon1,
 		return 1;
 
 	return 0;
-}
-
-/*
- * deg2rad() - Convert degrees to radians.
- */
-
-static inline double deg2rad(const double deg)
-{
-	return deg * M_PI / 180.0;
-}
-
-/*
- * rad2deg() - Convert radians to degrees.
- */
-
-static inline double rad2deg(const double rad)
-{
-	return rad * 180.0 / M_PI;
 }
 
 /*
@@ -434,5 +421,8 @@ int routepoint(const double lat1, const double lon1,
 	                        haversine(lat1, lon1, lat2, lon2) * fracdist,
 	                        next_lat, next_lon);
 }
+
+#undef deg2rad
+#undef rad2deg
 
 /* vim: set ts=8 sw=8 sts=8 noet fo+=w tw=79 fenc=UTF-8 : */
