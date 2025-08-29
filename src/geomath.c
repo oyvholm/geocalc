@@ -203,6 +203,10 @@ double haversine(const double lat1, const double lon1,
 double karney_distance(const double lat1, const double lon1,
                        const double lat2, const double lon2)
 {
+	if (fabs(lat1) > 90.0 || fabs(lat2) > 90.0
+	    || fabs(lon1) > 180.0 || fabs(lon2) > 180.0)
+		return -1.0;
+
 	const double a = 6378137.0;
 	const double f = 1.0 / 298.257223563;
 	const double b = (a * (1.0 - f));

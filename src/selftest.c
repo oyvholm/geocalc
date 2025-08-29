@@ -1137,8 +1137,8 @@ static void chk_karney(const int linenum, const char *coor1, const char *coor2,
 	assert(coor1);
 	assert(coor2);
 
-	if (parse_coordinate(coor1, true, &lat1, &lon1)
-	    || parse_coordinate(coor2, true, &lat2, &lon2)) {
+	if (parse_coordinate(coor1, false, &lat1, &lon1)
+	    || parse_coordinate(coor2, false, &lat2, &lon2)) {
 		OK_ERROR_L(linenum, /* gncov */
 		           "%s() received invalid coordinate", __func__);
 		return; /* gncov */
@@ -1153,7 +1153,7 @@ static void chk_karney(const int linenum, const char *coor1, const char *coor2,
 		return; /* gncov */
 	}
 	OK_STRCMP_L(res_s, exp_s, linenum,
-	            "karney_distance(): %s %s", coor1, coor2);
+	            "karney_distance(\"%s\", \"%s\")", coor1, coor2);
 	if (strcmp(res_s, exp_s)) {
 		print_gotexp(res_s, exp_s); /* gncov */
 		diag("        diff: %.15f", result - exp_res); /* gncov */
@@ -1184,6 +1184,20 @@ static void test_karney_distance(void)
 	chk_karney("90,0", "-90,0", 20003931.4586235844);
 	chk_karney("90,180", "-90,180", 20003931.4586235844);
 	chk_karney("90,37.37", "-90,37.37", 20003931.4586235844);
+
+	/* Coordinates out of range */
+
+	chk_karney("-90.00000001,2", "3,4", -1.0);
+	chk_karney("90.00000001,2", "3,4", -1.0);
+
+	chk_karney("1,-180.0000001", "3,4", -1.0);
+	chk_karney("1,180.0000000001", "3,4", -1.0);
+
+	chk_karney("1,2", "-90.0000001,4", -1.0);
+	chk_karney("1,2", "90.0000001,4", -1.0);
+
+	chk_karney("1,2", "3,-180.0000000001", -1.0);
+	chk_karney("1,2", "3,180.0000000001", -1.0);
 
 	/*
 	 * Generated with
@@ -1951,6 +1965,48 @@ static void test_karney_option(void)
 	   EXECSTR ": Formula did not converge, antipodal points\n",
 	   EXIT_FAILURE,
 	   "--karney dist: Antipodal points");
+
+	tc((chp{ execname, "--karney", "dist", "90.00001,0", "10,0",
+	         NULL }),
+	   "",
+	   EXECSTR ": 90.00001,0: Invalid coordinate\n",
+	   EXIT_FAILURE,
+	   "--karney dist: lat1 out of range (90.00001)");
+
+	tc((chp{ execname, "--karney", "dist", "-90.0000001,0", "10,0",
+	         NULL }),
+	   "",
+	   EXECSTR ": -90.0000001,0: Invalid coordinate\n",
+	   EXIT_FAILURE,
+	   "--karney dist: lat1 out of range (-90.0000001)");
+
+	tc((chp{ execname, "--karney", "dist", "10,180.000000001", "10,0",
+	         NULL }),
+	   "",
+	   EXECSTR ": 10,180.000000001: Invalid coordinate\n",
+	   EXIT_FAILURE,
+	   "--karney dist: lon1 out of range (180.000000001)");
+
+	tc((chp{ execname, "--karney", "dist", "10,-180.000000001", "10,0",
+	         NULL }),
+	   "",
+	   EXECSTR ": 10,-180.000000001: Invalid coordinate\n",
+	   EXIT_FAILURE,
+	   "--karney dist: lon1 out of range (-180.000000001)");
+
+	tc((chp{ execname, "--karney", "dist", "10,10.123", "h,0",
+	         NULL }),
+	   "",
+	   EXECSTR ": h,0: Invalid coordinate: Invalid argument\n",
+	   EXIT_FAILURE,
+	   "--karney dist: lat2 is not a number");
+
+	tc((chp{ execname, "--karney", "dist", "10,10.123", "9,1..2",
+	         NULL }),
+	   "",
+	   EXECSTR ": 9,1..2: Invalid coordinate: Invalid argument\n",
+	   EXIT_FAILURE,
+	   "--karney dist: lat2 has 2 periods");
 }
 
                                /*** --seed ***/
