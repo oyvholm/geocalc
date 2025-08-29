@@ -200,20 +200,15 @@ double haversine(const double lat1, const double lon1,
  * Returns the distance in meters.
  */
 
-double karney_distance(double lat1, double lon1, double lat2, double lon2)
+double karney_distance(const double lat1, const double lon1,
+                       const double lat2, const double lon2)
 {
-	/* Convert to radians */
-	lat1 *= M_PI / 180.0;
-	lon1 *= M_PI / 180.0;
-	lat2 *= M_PI / 180.0;
-	lon2 *= M_PI / 180.0;
-
 	const double a = 6378137.0;
 	const double f = 1.0 / 298.257223563;
 	const double b = (a * (1.0 - f));
-	const double L = lon2 - lon1;
-	const double U1 = atan((1.0 - f) * tan(lat1));
-	const double U2 = atan((1.0 - f) * tan(lat2));
+	const double L = deg2rad(lon2) - deg2rad(lon1);
+	const double U1 = atan((1.0 - f) * tan(deg2rad(lat1)));
+	const double U2 = atan((1.0 - f) * tan(deg2rad(lat2)));
 	const double sinU1 = sin(U1), cosU1 = cos(U1);
 	const double sinU2 = sin(U2), cosU2 = cos(U2);
 
