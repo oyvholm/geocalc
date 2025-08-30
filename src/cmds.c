@@ -159,7 +159,7 @@ int cmd_bear_dist(const char *cmd, const struct Options *o,
 	                              : distance(o->distformula,
 	                                         lat1, lon1, lat2, lon2);
 	if (result == -2.0) {
-		myerror("Antipodal points, answer is undefined");
+		myerror("Antipodal or coincident points, answer is undefined");
 		return EXIT_FAILURE;
 	}
 	if (isnan(result) && o->distformula == FRM_KARNEY

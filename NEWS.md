@@ -7,6 +7,12 @@ Summary of user-visible changes in Geocalc
 For a complete log of changes, refer to the Git commit log in the 
 repositories mentioned in `README.md`.
 
+v0.x.x - 2025-xx-xx
+-------------------
+
+- `bear`: Generate an error for coincident points. As with antipodal 
+  points, the answer is undefined.
+
 v0.3.0 - 2025-06-30
 -------------------
 

@@ -309,8 +309,8 @@ double distance(const DistFormula formula,
  * south, 270 = west.
  *
  * Returns:
- * - -1.0: if values outside the valid coordinate range are provided
- * - -2.0: if points are antipodal, answer is undefined
+ * - -1.0 if values outside the valid coordinate range are provided
+ * - -2.0 if points are antipodal or coincident, answer is undefined
  */
 
 double initial_bearing(const double lat1, const double lon1,
@@ -320,7 +320,8 @@ double initial_bearing(const double lat1, const double lon1,
 	    || fabs(lon1) > 180.0 || fabs(lon2) > 180.0)
 		return -1.0;
 
-	if (are_antipodal(lat1, lon1, lat2, lon2))
+	if (are_antipodal(lat1, lon1, lat2, lon2)
+	    || (lat1 == lat2 && lon1 == lon2))
 		return -2.0;
 
 	const double lat1_rad = deg2rad(lat1);

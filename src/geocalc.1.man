@@ -96,7 +96,12 @@ Some arguments are specified as a coordinate. One format is allowed:
 and \-180..180, separated by a comma. The decimal comma must be a period, '.'.
 .TP
 \fBbear\fP <\fIcoor1\fP> <\fIcoor2\fP>
-Prints initial compass bearing (0\-360) between two points.
+Prints initial compass bearing (0\-360) between two points. For antipodal 
+points (points exactly opposite each other on the globe, including the poles), 
+the initial bearing is undefined because multiple paths (all directions) are 
+equally valid. This is also the case with coincident points. It's hard to tell 
+which direction to go when you're already there. In such cases, the command 
+fails with an error message and an exit status of 1.
 .TP
 \fBbench\fP [\fIseconds\fP]
 Executes various benchmarks and reports the results. The optional \fIseconds\fP 

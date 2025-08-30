@@ -2622,15 +2622,25 @@ static void test_multiple(const int linenum, char *cmd)
 	if (!strcmp(cmd, "bear")) {
 		Tc((chp{ execname, "bear", "12,34", "-12,-146", NULL }),
 		   "",
-		   EXECSTR ": Antipodal points, answer is undefined\n",
+		   EXECSTR ": Antipodal or coincident points, answer is undefined\n",
 		   EXIT_FAILURE,
 		   "bear 12,34 -12,-146 - antipodal points");
+		Tc((chp{ execname, "bear", "12,34", "12,34", NULL }),
+		   "",
+		   EXECSTR ": Antipodal or coincident points, answer is undefined\n",
+		   EXIT_FAILURE,
+		   "bear 12,34 -12,34 - coincident points");
 	} else {
 		Tc((chp{ execname, "dist", "12,34", "-12,-146", NULL }),
 		   "20015086.796021\n",
 		   "",
 		   EXIT_SUCCESS,
 		   "dist 12,34 -12,-146 - antipodal points");
+		Tc((chp{ execname, "dist", "12,34", "12,34", NULL }),
+		   "0.000000\n",
+		   "",
+		   EXIT_SUCCESS,
+		   "dist 12,34 12,34 - coincident points");
 	}
 	Tc((chp{ execname, cmd, "1,2", "3,4", "5", NULL }),
 	   "",
@@ -2685,12 +2695,14 @@ static void test_multiple(const int linenum, char *cmd)
 	if (!strcmp(cmd, "bear")) {
 		Tc((chp{ execname, "bear", "90,0", "-90,0", NULL }),
 		   "",
-		   EXECSTR ": Antipodal points, answer is undefined\n",
+		   EXECSTR ": Antipodal or coincident points, answer is"
+		   " undefined\n",
 		   EXIT_FAILURE,
 		   "bear 90,0 -90,0");
 		Tc((chp{ execname, "--km", cmd, "90,0", "-90,0", NULL }),
 		   "",
-		   EXECSTR ": Antipodal points, answer is undefined\n",
+		   EXECSTR ": Antipodal or coincident points, answer is"
+		   " undefined\n",
 		   EXIT_FAILURE,
 		   "--km bear 90,0 -90,0");
 	} else {
