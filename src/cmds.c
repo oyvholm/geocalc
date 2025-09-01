@@ -105,7 +105,9 @@ static int print_eor_coor(const struct Options *o,
 			        " cannot generate GPX output", __func__);
 			return 1; /* gncov */
 		}
-		cmt = allocstr("%s %s %s %s", cmd, par1, par2, par3);
+		cmt = allocstr("%s%s%s%s%s%s%s", cmd, *par1 ? " " : "", par1,
+		                                      *par2 ? " " : "", par2,
+		                                      *par3 ? " " : "", par3);
 		if (!cmt) {
 			failed("allocstr()"); /* gncov */
 			return 1; /* gncov */
