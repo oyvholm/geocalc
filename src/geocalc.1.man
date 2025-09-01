@@ -21,6 +21,8 @@ Plot shortest route between points
 .IP \[bu] 2
 Generate random positions on Earth with optional distance restraints
 .IP \[bu] 2
+Calculate antipodal positions
+.IP \[bu] 2
 Output in various formats
 .IP \[bu] 2
 Minimal dependencies, no extra C libraries needed
@@ -94,6 +96,11 @@ kilometers.
 Some arguments are specified as a coordinate. One format is allowed: 
 \fBlat,lon\fP where \fIlat\fP and \fIlon\fP is a number in the range \-90..90 
 and \-180..180, separated by a comma. The decimal comma must be a period, '.'.
+.TP
+\fBanti\fP <\fIcoor\fP>
+Prints the antipodal coordinate of \fIcoor\fP, i.e. the coordinate on the exact 
+opposite side of the planet. If the latitude is 90 or \-90, the longitude is 
+normalized to 0.0.
 .TP
 \fBbear\fP <\fIcoor1\fP> <\fIcoor2\fP>
 Prints initial compass bearing (0\-360) between two points. For antipodal 

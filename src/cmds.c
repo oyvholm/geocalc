@@ -130,6 +130,45 @@ static int print_eor_coor(const struct Options *o,
 }
 
 /*
+ * cmd_anti() - Executes the `anti` command. Returns EXIT_SUCCESS or 
+ * EXIT_FAILURE.
+ */
+
+int cmd_anti(const struct Options *o, const char *coor)
+{
+	double lat, lon, nlat, nlon;
+
+	if (parse_coordinate(coor, true, &lat, &lon)) {
+		myerror("%s: Invalid coordinate", coor);
+		return EXIT_FAILURE;
+	}
+
+	nlat = lat;
+	nlon = lon;
+	set_antipode(&nlat, &nlon);
+
+	switch (o->outpformat) {
+	case OF_DEFAULT:
+	case OF_GPX:
+		return print_eor_coor(o, nlat, nlon, "anti", coor, "", "")
+		       ? EXIT_FAILURE : EXIT_SUCCESS;
+	case OF_SQL:
+		puts("BEGIN;");
+		puts("CREATE TABLE IF NOT EXISTS anti (lat REAL, lon REAL,"
+		     " a_lat REAL, a_lon REAL);");
+		printf("INSERT INTO anti VALUES (%f, %f, %f, %f);\n",
+		       lat, lon, nlat, nlon);
+		puts("COMMIT;");
+		return EXIT_SUCCESS;
+	}
+
+	myerror("%s():%d: o->outpformat has unknown format %d", /* gncov */
+	        __func__, __LINE__, o->outpformat); /* gncov */
+
+	return EXIT_FAILURE; /* gncov */
+}
+
+/*
  * cmd_bear_dist() - Executes the `bear` or `dist` commands, specified in 
  * `cmd`. Returns `EXIT_SUCCESS` or `EXIT_FAILURE`.
  */

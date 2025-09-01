@@ -147,6 +147,7 @@ void set_opt_valgrind(bool b);
 
 /* cmds.c */
 void round_number(double *dest, const int decimals);
+int cmd_anti(const struct Options *o, const char *coor);
 int cmd_bear_dist(const char *cmd, const struct Options *o,
                   const char *coor1, const char *coor2);
 int cmd_bpos(const struct Options *o,const char *coor,

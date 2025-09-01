@@ -238,6 +238,10 @@ static int usage(const struct Options *o, const int retval)
 	       "separated by a comma. The decimal comma must be a period,"
 	       " '.'.\n");
 	printf("\n");
+	printf("  anti <coor>\n"
+	       "    Print the antipodal coordinate of `coor`, i.e. the"
+	       " coordinate on the \n"
+	       "    exact opposite side of the planet.\n");
 	printf("  bear <coor1> <coor2>\n"
 	       "    Print initial compass bearing (0-360) between"
 	       " two points.\n");
@@ -602,7 +606,13 @@ static int process_args(const struct Options *o, int argc, char *argv[])
 	assert(cmd);
 	msg(4, "%s(): cmd = %s", __func__, cmd);
 
-	if (!strcmp(cmd, "bear") || !strcmp(cmd, "dist")) {
+	if (!strcmp(cmd, "anti")) {
+		if (not_compatible(cmd, o))
+			return EXIT_FAILURE;
+		if (wrong_argcount(2, numargs))
+			return EXIT_FAILURE;
+		retval = cmd_anti(o, argv[optind + 1]);
+	} else if (!strcmp(cmd, "bear") || !strcmp(cmd, "dist")) {
 		if (not_compatible(cmd, o))
 			return EXIT_FAILURE;
 		if (wrong_argcount(3, numargs))

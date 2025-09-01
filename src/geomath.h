@@ -39,6 +39,7 @@ extern const double MAX_EARTH_DISTANCE;
 
 int are_antipodal(const double lat1, const double lon1,
                   const double lat2, const double lon2);
+void set_antipode(double *dlat, double *dlon);
 int bearing_position(const double lat, const double lon,
                      const double bearing_deg, const double dist_m,
                      double *new_lat, double *new_lon);

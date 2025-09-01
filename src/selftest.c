@@ -2293,6 +2293,121 @@ static void test_seed_option(const struct Options *o)
 
                          /****** Command tests ******/
 
+                                /*** anti ***/
+
+/*
+ * chk_ca() - Used by test_cmd_anti(). Verifies that the coordinate `coor` 
+ * results in the output `exp_stdout` on stdout. If `exp_stdout` is empty, an 
+ * "Invalid coordinate" error message is expected on stderr, and an exit status 
+ * of EXIT_FAILURE. If `exp_stdout` is "inv", it expects an "Invalid 
+ * coordinate" error message followed by "Invalid argument". Returns nothing.
+ */
+
+static void chk_ca(const int linenum, char *coor, const char *exp_stdout)
+{
+	char *e_stderr;
+	const char *e_stdout = exp_stdout;
+	int e_ret;
+
+	assert(coor);
+	assert(exp_stdout);
+
+	if (!*exp_stdout) {
+		e_stderr = allocstr("%s: %s: Invalid coordinate\n",
+		                    execname, coor);
+		e_ret = EXIT_FAILURE;
+	} else if (!strcmp(exp_stdout, "inv")) {
+		e_stderr = allocstr("%s: %s: Invalid coordinate:"
+		                    " Invalid argument\n", execname, coor);
+		e_stdout = "";
+		e_ret = EXIT_FAILURE;
+	} else {
+		e_stderr = mystrdup("");
+		e_ret = EXIT_SUCCESS;
+	}
+	if (!e_stderr) {
+		failed_ok("allocstr() or mystrdup()"); /* gncov */
+		return; /* gncov */
+	}
+
+	Tc((chp{ execname, "anti", coor, NULL }),
+	   e_stdout,
+	   e_stderr,
+	   e_ret,
+	   "anti %s", coor);
+
+	free(e_stderr);
+}
+
+/*
+ * test_cmd_anti() - Tests the `anti` command. Returns nothing.
+ */
+
+static void test_cmd_anti(void)
+{
+	diag("Test anti command");
+
+#define chk_ca(coor, exp_stdout)  chk_ca(__LINE__, (coor), (exp_stdout))
+	chk_ca("90,0", "-90.000000,0.000000\n");
+	chk_ca("-90,0", "90.000000,0.000000\n");
+	chk_ca("0,0", "0.000000,180.000000\n");
+	chk_ca("0,180", "0.000000,0.000000\n");
+	chk_ca("0,-180", "0.000000,0.000000\n");
+	chk_ca("90,78", "-90.000000,0.000000\n");
+	chk_ca("-90,-32.4", "90.000000,0.000000\n");
+	chk_ca("10,10", "-10.000000,-170.000000\n");
+	chk_ca("12.345678,-87.654321", "-12.345678,92.345679\n");
+	chk_ca("90.000001,0", "");
+	chk_ca("-90.000001,0", "");
+	chk_ca("0,180.000001", "");
+	chk_ca("0,-180.000001", "");
+	chk_ca("a,0", "inv");
+	chk_ca("0,b", "inv");
+	chk_ca("0,,1", "inv");
+	chk_ca("1.2,3..4", "inv");
+#undef chk_ca
+
+	tc((chp{ execname, "--format", "sql", "anti", "-14.861893,-69.128489",
+	         NULL }),
+	   "BEGIN;\n"
+	   "CREATE TABLE IF NOT EXISTS anti (lat REAL, lon REAL, a_lat REAL, a_lon REAL);\n"
+	   "INSERT INTO anti VALUES (-14.861893, -69.128489, 14.861893, 110.871511);\n"
+	   "COMMIT;\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--format sql anti -14.861893,-69.128489");
+
+	tc((chp{ execname, "-F", "gpx", "anti", "-61.859515,84.219729",
+	         NULL }),
+	   GPX_HEADER
+	   "  <wpt lat=\"61.859515\" lon=\"-95.780271\">\n"
+	   "    <name>anti</name>\n"
+	   "    <cmt>anti -61.859515,84.219729</cmt>\n"
+	   "  </wpt>\n"
+	   "</gpx>\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-F gpx anti -61.859515,84.219729");
+
+	tc((chp{ execname, "anti", NULL }),
+	   "",
+	   EXECSTR ": Missing arguments\n",
+	   EXIT_FAILURE,
+	   "anti, missing coor argument");
+
+	tc((chp{ execname, "anti", "1,2", "3,4", NULL }),
+	   "",
+	   EXECSTR ": Too many arguments\n",
+	   EXIT_FAILURE,
+	   "anti, 1 extra argument");
+
+	tc((chp{ execname, "--karney", "anti", "1,2", NULL }),
+	   "",
+	   EXECSTR ": -K/--karney is not supported by the anti command\n",
+	   EXIT_FAILURE,
+	   "--karney anti");
+}
+
                                 /*** bench ***/
 
 /*
@@ -3507,6 +3622,7 @@ static void test_executable(const struct Options *o)
 	test_haversine_option();
 	test_karney_option();
 	test_seed_option(o);
+	test_cmd_anti();
 	test_cmd_bench();
 	test_cmd_bpos();
 	test_cmd_course();
