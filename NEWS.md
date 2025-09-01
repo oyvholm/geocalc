@@ -10,6 +10,7 @@ repositories mentioned in `README.md`.
 v0.x.x - 2025-xx-xx
 -------------------
 
+- Add the `-K`/`--karney` option to the `bear` command.
 - `bear`: Generate an error for coincident points. As with antipodal 
   points, the answer is undefined.
 

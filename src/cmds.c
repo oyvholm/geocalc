@@ -155,9 +155,10 @@ int cmd_bear_dist(const char *cmd, const struct Options *o,
 		return EXIT_FAILURE;
 	}
 
-	result = !strcmp(cmd, "bear") ? initial_bearing(lat1, lon1, lat2, lon2)
-	                              : distance(o->distformula,
-	                                         lat1, lon1, lat2, lon2);
+	if (!strcmp(cmd, "bear"))
+		result = bearing(o->distformula, lat1, lon1, lat2, lon2);
+	else
+		result = distance(o->distformula, lat1, lon1, lat2, lon2);
 	if (result == -2.0) {
 		myerror("Antipodal or coincident points, answer is undefined");
 		return EXIT_FAILURE;

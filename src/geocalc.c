@@ -300,27 +300,29 @@ static int usage(const struct Options *o, const int retval)
 	       " default, gpx, sql.\n");
 	printf("  -H, --haversine\n"
 	       "    Use the Haversine formula (spherical Earth model) for the"
-	       " dist \n"
-	       "    command. This formula is the default due to its"
-	       " compatibility with \n"
-	       "    other %s commands, other software, and most GPS"
-	       " units. It is \n"
-	       "    accurate enough for most practical uses, but for"
+	       " dist or \n"
+	       "    bear command. This formula is the default due to its"
+	       " compatibility \n"
+	       "    with other Geocalc commands, other software, and most GPS"
+	       " units. It \n"
+	       "    is accurate enough for most practical uses, but for"
 	       " applications \n"
 	       "    requiring sub-millimeter accuracy, use the -K/--karney"
-	       " option.\n", PROJ_NAME);
+	       " option.\n");
 	printf("  -h, --help\n"
 	       "    Show this help.\n");
 	printf("  -K, --karney\n"
-	       "    Use the Karney formula for the dist command. This formula"
-	       " models the \n"
-	       "    Earth as an ellipsoid and provides significantly higher"
-	       " accuracy \n"
-	       "    than the default Haversine formula, which assumes a"
-	       " spherical Earth. \n"
-	       "    It achieves an accuracy of 15 nanometers for distance"
-	       " calculations, \n"
-	       "    making it suitable for high-precision applications.\n");
+	       "    Use the Karney formula for the dist or bear command. This"
+	       " formula \n"
+	       "    models the Earth as an ellipsoid and provides"
+	       " significantly higher \n"
+	       "    accuracy than the default Haversine formula, which assumes"
+	       " a \n"
+	       "    spherical Earth. It achieves an accuracy of 15 nanometers"
+	       " for \n"
+	       "    distance calculations, making it suitable for"
+	       " high-precision \n"
+	       "    applications.\n");
 	printf("  --km\n"
 	       "    Use kilometers instead of meters for input and output. An"
 	       " exception \n"
@@ -560,13 +562,15 @@ static int wrong_argcount(const int exp, const int got)
 static int not_compatible(const char *cmd, const struct Options *o)
 {
 	assert(cmd);
+	assert(*cmd);
 	assert(o);
 
 	if (!cmd) {
 		myerror("%s(): cmd is NULL", __func__); /* gncov */
 		return 1; /* gncov */
 	}
-	if (o->distformula == FRM_KARNEY && strcmp(cmd, "dist")) {
+	if (o->distformula == FRM_KARNEY && strcmp(cmd, "dist")
+	    && strcmp(cmd, "bear")) {
 		myerror("-K/--karney is not supported by the %s command", cmd);
 		return 1;
 	}

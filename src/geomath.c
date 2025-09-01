@@ -283,6 +283,115 @@ double karney_distance(const double lat1, const double lon1,
 }
 
 /*
+ * karney_bearing() - Calculate the initial bearing from point (lat1, lon1) to 
+ * point (lat2, lon2) using Karney's method on the WGS84 ellipsoid.
+ * Returns bearing in degrees, 0 to 360.
+ *
+ * Antipodal points, including pole-to-pole (e.g., 90,0 to -90,0), return -2.0 
+ * because the initial bearing is undefined due to multiple valid paths (all 
+ * meridians). This is also the case with coincident points. It's hard to tell 
+ * which direction to go when you're already there.
+ *
+ * Parameters:
+ * - lat1, lon1 - First position's latitude and longitude in decimal degrees
+ * - lat2, lon2 - Second position's latitude and longitude in decimal degrees
+ *
+ * Returns:
+ * - Initial bearing in degrees
+ * - -1.0 if values outside the valid coordinate range are provided
+ * - -2.0 if points are antipodal, coincident, or calculation fails
+ */
+
+double karney_bearing(const double lat1, const double lon1,
+                      const double lat2, const double lon2)
+{
+	double lat1_rad, lat2_rad;
+	const double f = 1.0 / 298.257223563, /* WGS84 flattening */
+	             eps_deg = 1e-10, eq_eps = 1e-13;
+	double lambda, lambda_prev, sin_lambda, cos_lambda, sin_sigma,
+	       cos_sigma, sigma, sin_alpha, cos_sq_alpha, cos2_sigma_m;
+	int iter_limit;
+
+	if (fabs(lat1) > 90.0 || fabs(lat2) > 90.0 || fabs(lon1) > 180.0
+	    || fabs(lon2) > 180.0)
+		return -1.0;
+
+	lat1_rad = deg2rad(lat1);
+	lat2_rad = deg2rad(lat2);
+
+	double dlon_deg = fmod((lon2 - lon1) + 540.0, 360.0) - 180.0;
+	const double L = deg2rad(dlon_deg);
+
+	/* Coincident points */
+	if (fabs(lat1 - lat2) < eps_deg && fabs(dlon_deg) < eps_deg)
+		return -2.0;
+
+	if ((fabs(lat1 - 90.0) < eps_deg && fabs(lat2 - 90.0) < eps_deg)
+	    || (fabs(lat1 + 90.0) < eps_deg && fabs(lat2 + 90.0) < eps_deg)) {
+		return -2.0; /* Same pole */
+	}
+
+	/* Antipodal points */
+	if (are_antipodal(lat1, lon1, lat2, lon2))
+		return -2.0;
+
+	if (fabs(lat1) < eq_eps && fabs(lat2) < eq_eps)
+		return (dlon_deg > 0.0) ? 90.0 : 270.0;
+
+	/* Vincenty/Karney inspired iteration (robust for non-antipodal) */
+	const double U1 = atan((1.0 - f) * tan(lat1_rad));
+	const double U2 = atan((1.0 - f) * tan(lat2_rad));
+	const double sinU1 = sin(U1), cosU1 = cos(U1);
+	const double sinU2 = sin(U2), cosU2 = cos(U2);
+
+	lambda = L;
+	iter_limit = 100;
+
+	do {
+		double C;
+
+		sin_lambda = sin(lambda);
+		cos_lambda = cos(lambda);
+
+		const double t1 = cosU2 * sin_lambda;
+		const double t2 = cosU1 * sinU2 - sinU1 * cosU2 * cos_lambda;
+
+		sin_sigma = sqrt(t1 * t1 + t2 * t2);
+
+		cos_sigma = sinU1 * sinU2 + cosU1 * cosU2 * cos_lambda;
+		sigma = atan2(sin_sigma, cos_sigma);
+		sin_alpha = cosU1 * cosU2 * sin_lambda / sin_sigma;
+		cos_sq_alpha = 1.0 - sin_alpha * sin_alpha;
+
+		if (cos_sq_alpha != 0.0) {
+			cos2_sigma_m = cos_sigma
+			               - 2.0 * sinU1 * sinU2 / cos_sq_alpha;
+		} else {
+			cos2_sigma_m = 0.0;
+		}
+
+		C = f / 16.0 * cos_sq_alpha
+		    * (4.0 + f * (4.0 - 3.0 * cos_sq_alpha));
+		lambda_prev = lambda;
+		lambda = L + (1.0 - C) * f * sin_alpha
+		             * (sigma + C * sin_sigma
+		                        * (cos2_sigma_m
+		                           + C * cos_sigma
+		                             * (-1.0 + 2.0 * cos2_sigma_m
+		                                       * cos2_sigma_m)));
+	} while (fabs(lambda - lambda_prev) > 1e-11 && --iter_limit > 0);
+
+	if (iter_limit == 0)
+		return -2.0; /* Formula did not converge */
+
+	const double alpha1_rad = atan2(cosU2 * sin_lambda,
+	                                cosU1 * sinU2
+	                                - sinU1 * cosU2 * cos_lambda);
+
+	return fmod(rad2deg(alpha1_rad) + 360.0, 360.0);
+}
+
+/*
  * distance() - Calculate the distance between 2 locations with the formula 
  * specified in `formula`. Returns the distance in meters.
  */
@@ -336,6 +445,28 @@ double initial_bearing(const double lat1, const double lon1,
 	                 - sin(lat1_rad) * cos_lat2 * cos(delta_lon);
 
 	return fmod(rad2deg(atan2(y, x)) + 360.0, 360.0);
+}
+
+/*
+ * bearing() - Calculate the initial bearing at position `lat1,lon1` towards 
+ * position `lat2,lon2` using the distance formula in `formula`. Returns the 
+ * compass direction as a value between 0 and 360 where north is 0.
+ */
+
+double bearing(const DistFormula formula,
+               const double lat1, const double lon1,
+               const double lat2, const double lon2)
+{
+	switch (formula) {
+	case FRM_HAVERSINE:
+		return initial_bearing(lat1, lon1, lat2, lon2);
+	case FRM_KARNEY:
+		return karney_bearing(lat1, lon1, lat2, lon2);
+	default: /* gncov */
+		myerror("%s() received unknown formula %d", /* gncov */
+		        __func__, formula);
+		return nan(""); /* gncov */
+	}
 }
 
 /*

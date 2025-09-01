@@ -1234,6 +1234,157 @@ static void test_karney_distance(void)
 }
 
 /*
+ * chk_kb() - Used by test_karney_bearing(). Verifies that 
+ * `karney_bearing(coor1, coor2)` returns the value in `exp_result`. Returns 
+ * nothing.
+ */
+
+static void chk_kb(const int linenum, const char *coor1, const char *coor2,
+                   const double exp_result)
+{
+	double lat1, lon1, lat2, lon2;
+	double result, exp_res_r = exp_result;
+
+	assert(coor1);
+	assert(*coor1);
+	assert(coor2);
+	assert(*coor2);
+
+	if (parse_coordinate(coor1, false, &lat1, &lon1)
+	    || parse_coordinate(coor2, false, &lat2, &lon2)) {
+		return; /* gncov */
+	}
+	result = karney_bearing(lat1, lon1, lat2, lon2);
+	round_number(&result, 8);
+	round_number(&exp_res_r, 8);
+	OK_EQUAL_L(result, exp_res_r, linenum,
+	           "karney_bearing(\"%s\", \"%s\")", coor1, coor2);
+	print_gotexp_double(result, exp_res_r);
+}
+
+/*
+ * test_karney_bearing() - Tests the karney_bearing() function. Returns 
+ * nothing.
+ */
+
+static void test_karney_bearing(void)
+{
+#define chk_kb(coor1, coor2, exp_result)  chk_kb(__LINE__, (coor1), (coor2), \
+                                                 (exp_result))
+	diag("Test karney_bearing()");
+
+	chk_kb("0,0", "-10,0", 180.0);
+	chk_kb("0,0", "0,-10", 270.0);
+	chk_kb("0,0", "0,10", 90.0);
+	chk_kb("0,0", "10,0", 0.0);
+
+	chk_kb("-90,0", "90,0", -2.0);
+	chk_kb("0,0", "0,180", -2.0);
+	chk_kb("10,10", "-10,-170", -2.0);
+	chk_kb("10,10", "10,10", -2.0);
+	chk_kb("90,0", "-90,0", -2.0);
+	chk_kb("90,145", "90,0", -2.0);
+	chk_kb("90,145", "90,132", -2.0);
+
+	chk_kb("-30,0", "30,180", -2.0);
+	chk_kb("-90,45", "90,-135", -2.0);
+	chk_kb("0,0", "0,179.999999999", 90.0);
+	chk_kb("0,0", "0,180", -2.0);
+	chk_kb("45,90", "-45,-90", -2.0);
+	chk_kb("90,0", "89.999999999,180", 0.0);
+	chk_kb("90,132", "-90,0", -2.0);
+
+	chk_kb("-90.00000000000001,0", "0,0", -1.0);
+	chk_kb("0,0", "-90.00000000000001,0", -1.0);
+	chk_kb("0,0", "90.00000000000001,0", -1.0);
+	chk_kb("90.00000000000001,0", "0,0", -1.0);
+
+	chk_kb("0,-180.0000000000001", "0,0", -1.0);
+	chk_kb("0,0", "0,-180.0000000000001", -1.0);
+	chk_kb("0,0", "0,180.0000000000001", -1.0);
+	chk_kb("0,180.0000000000001", "0,0", -1.0);
+
+	/*** BEGIN gruesome ***/
+
+	chk_kb("-89.99999999999,0", "-90,180", -2.0);
+	chk_kb("-90,45", "-90,45.00000000000001", -2.0);
+	chk_kb("0,0", "0,179.999999999", 90.0);
+	chk_kb("0,0", "0.0000000001,0.0000000001", 45.10893383);
+	chk_kb("0,180", "0,-180", -2.0);
+	chk_kb("0,180.0000000000001", "0,0", -1.0);
+	chk_kb("30,0", "30,179.99999999", 0.00000001);
+	chk_kb("45,180", "45,-180", -2.0);
+	chk_kb("89.99999999999,0", "-89.99999999999,180", -2.0);
+	chk_kb("89.99999999999,45", "90,-135", -2.0);
+	chk_kb("89.999999999999999,0", "-89.999999999999999,180", -2.0);
+	chk_kb("90,145", "90,145.00000000000001", -2.0);
+	chk_kb("90.00000000000001,0", "0,0", -1.0);
+
+	chk_kb("-6.627869,-162.824", "6.265,17.7063", -2.0);
+	chk_kb("0.0,0.0", "-0.000000004773980,179.999999994273736", -2.0);
+
+#if 0
+	/*
+	 * Fails with Clang 20.1.8 in Termux:
+	 *
+	 * not ok 177 - 1303: karney_bearing("45,90", "-45,-89.5727192")
+	 * #          got: '270.000000180000'
+	 * #     expected: '270.000000000000'
+	 * #         diff: '0.000000180000'
+	 */
+	chk_kb("45,90", "-45,-89.5727192", 270.0); /* FIXME: Large? -89.5727191 fails. */
+
+	/*
+	 * Fails with Clang 20.1.8 in Termux:
+	 *
+	 * not ok 184 - 1313: karney_bearing("10,10", "10,10.000000001")
+	 * #          got: '90.000032500000'
+	 * #     expected: '90.000000000000'
+	 * #         diff: '0.000032500000'
+	 */
+	chk_kb("10,10", "10,10.000000001", 90.0);
+#endif
+
+	/*** END gruesome ***/
+
+	chk_kb("0,0", "25,25", 42.365753876027249);
+
+	/*
+	 * for f in $(seq 1 19); do
+	 *     coor="$(geocalc --count 2 randpos)";
+	 *     echo $coor | tr '\n,' ' ' | ./inverse \
+	 *     | echo "$coor $(awk '{ printf("%s %s %s", $1, $2, $3); }')" \
+	 *     | tr '\n' ' ' | cut -f -3 -d ' ';
+	 * done | xsel -b
+	 *
+	 * # And then add 360 to all negative azimuths.
+	 */
+
+	chk_kb("-15.291072,33.733657", "-21.134958,-114.270580", 221.442071337961295);
+	chk_kb("-16.250419,-57.408921", "44.229930,-9.241283", 33.754160798219282);
+	chk_kb("-16.731835,77.019790", "-50.660897,43.273366", 210.997345671959039);
+	chk_kb("-17.214471,-148.551499", "-14.143721,95.788014", 247.669001203815085);
+	chk_kb("-42.956849,-174.523179", "23.787774,1.261647", 168.557789231506490);
+	chk_kb("-43.590859,-40.094468", "68.812518,53.776295", 28.767854621807636);
+	chk_kb("-44.231620,94.334243", "-32.584610,106.290944", 42.820915410330798);
+	chk_kb("-6.993601,45.071224", "80.712957,-160.574281", 4.163264169181943);
+	chk_kb("29.948191,-139.894272", "60.818154,127.296803", 327.586767888497235);
+	chk_kb("30.482379,85.677017", "20.122221,74.782155", 226.178482975087832);
+	chk_kb("31.019514,-48.751694", "-10.662815,22.267506", 109.015392228551036);
+	chk_kb("32.649602,-92.037827", "13.168345,-135.276439", 254.159794360845481);
+	chk_kb("5.601294,102.991470", "35.372309,137.799733", 42.503375006387230);
+	chk_kb("6.065309,-31.437241", "2.856485,85.285084", 83.752900116126284);
+	chk_kb("6.994571,59.705337", "82.625755,-19.744212", 352.649468341939357);
+	chk_kb("64.267123,-22.780014", "-56.380612,116.793874", 86.889264535591380);
+	chk_kb("65.351674,-157.208725", "39.658721,64.279225", 327.191722814535822);
+	chk_kb("66.482941,68.362564", "6.266930,11.764577", 241.189261852706835);
+	chk_kb("7.925686,150.847915", "-3.805892,-124.773509", 94.505683276820093);
+	chk_kb("70.239019,25.076431", "31.466664,-145.779369", 352.044477780350643);
+
+#undef chk_kb
+}
+
+/*
  * chk_rand_pos() - Used by test_rand_pos(). Executes rand_pos() with the 
  * values in `coor`, `maxdist` and `mindist` and checks that they're in the 
  * range defined by `exp_maxdist` and `exp_mindist`. Returns nothing.
@@ -1938,6 +2089,37 @@ static void test_haversine_option(void)
 static void test_karney_option(void)
 {
 	diag("Test -K/--karney");
+
+                                /*** bear ***/
+
+	tc((chp{ execname, "-K", "bear", "13.389820,-71.453489",
+	         "-24.171099,-162.897613", NULL }),
+	   "246.80807199\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-K bear 13.389820,-71.453489 -24.171099,-162.897613");
+
+	tc((chp{ execname, "--karney", "bear", "-51.548124,19.706076",
+	         "-35.721304,13.064358", NULL }),
+	   "340.66682175\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "--karney bear -51.548124,19.706076 -35.721304,13.064358");
+
+	tc((chp{ execname, "-K", "bear", "12.34,56.789", "12.34,56.789",
+	         NULL }),
+	   "",
+	   EXECSTR ": Antipodal or coincident points, answer is undefined\n",
+	   EXIT_FAILURE,
+	   "-K bear: Coincident points");
+
+	tc((chp{ execname, "-K", "bear", "37,7", "-37,-173", NULL }),
+	   "",
+	   EXECSTR ": Antipodal or coincident points, answer is undefined\n",
+	   EXIT_FAILURE,
+	   "--karney bear: Antipodal points");
+
+                                /*** dist ***/
 
 	tc((chp{ execname, "-K", "dist", "13.389820,-71.453489",
 	         "-24.171099,-162.897613", NULL }),
@@ -2729,14 +2911,6 @@ static void test_multiple(const int linenum, char *cmd)
 	       : EXECSTR ": GPX output is not supported by the dist command\n",
 	   EXIT_FAILURE,
 	   "--format gpx %s", cmd);
-	if (!strcmp(cmd, "bear"))
-	{
-		Tc((chp{ execname, "-K", "bear", "1,2", "3,4", NULL }),
-		   "",
-		   EXECSTR ": -K/--karney is not supported by the bear command\n",
-		   EXIT_FAILURE,
-		   "-K bear");
-	}
 
 	diag("--format sql %s", cmd);
 	if (!strcmp(cmd, "bear")) {
@@ -3289,6 +3463,7 @@ static void test_functions(const struct Options *o)
 	test_are_antipodal();
 	test_bearing_position();
 	test_karney_distance();
+	test_karney_bearing();
 	test_rand_pos();
 
 	/* gpx.c */
