@@ -56,9 +56,8 @@ int are_antipodal(const double lat1, const double lon1,
 /*
  * normalize_longitude() - Normalize a longitude value to the range [-180,180].
  *
- * This function adjusts the given longitude value to ensure it falls within 
- * the standard range of -180 to 180 degrees. If the input is already within 
- * this range, no change is made.
+ * Adjusts the given longitude to make sure it falls within -180 to 180 
+ * degrees. If the input is already within this range, no change is made.
  *
  * Parameters:
  * - lon: Pointer to the longitude value to be normalized (in degrees).
@@ -67,9 +66,15 @@ int are_antipodal(const double lat1, const double lon1,
 static void normalize_longitude(double *lon)
 {
 	assert(lon);
+	assert(isfinite(*lon) && "Invalid longitude");
+
 	if (fabs(*lon) <= 180.0)
 		return;
-	*lon = fmod(fmod(*lon + 180.0, 360.0) + 360.0, 360.0) - 180.0;
+	*lon = fmod(*lon, 360.0);
+	if (*lon > 180.0)
+		*lon -= 360.0;
+	else if (*lon <= -180.0)
+		*lon += 360.0;
 }
 
 /*
@@ -82,9 +87,14 @@ void set_antipode(double *dlat, double *dlon)
 {
 	assert(dlat);
 	assert(dlon);
+
 	*dlat *= -1.0;
-	*dlon -= 180;
-	normalize_longitude(dlon);
+	if (fabs(*dlat) == 90.0) {
+		*dlon = 0.0;
+	} else {
+		*dlon += 180.0;
+		normalize_longitude(dlon);
+	}
 }
 
 /*
