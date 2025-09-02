@@ -28,6 +28,9 @@ scripts and quick manual calculations.
 
 Contains the following commands:
 
+- **`anti`**\
+  Prints the antipodal coordinate of a position, i.e. the point on the 
+  exact opposite side of the planet.
 - **`bear`**\
   Prints initial compass bearing (0-360) between two points.
 - **`bench`**\
