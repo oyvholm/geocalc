@@ -1543,7 +1543,7 @@ static void test_gpx_wpt(void)
 
 	diag("Test gpx_wpt()");
 
-	e = "  <wpt lat=\"12.340000\" lon=\"56.780000\">\n"
+	e = "  <wpt lat=\"12.34\" lon=\"56.78\">\n"
 	    "    <name>abc def</name>\n"
 	    "    <cmt>ghi jkl MN</cmt>\n"
 	    "  </wpt>\n";
@@ -1552,7 +1552,7 @@ static void test_gpx_wpt(void)
 	print_gotexp(s, e);
 	free(s);
 
-	e = "  <wpt lat=\"12.340000\" lon=\"56.780000\">\n"
+	e = "  <wpt lat=\"12.34\" lon=\"56.78\">\n"
 	    "    <name>&amp;</name>\n"
 	    "    <cmt>&amp;</cmt>\n"
 	    "  </wpt>\n";
@@ -1561,7 +1561,7 @@ static void test_gpx_wpt(void)
 	print_gotexp(s, e);
 	free(s);
 
-	e = "  <wpt lat=\"12.340000\" lon=\"56.780000\">\n"
+	e = "  <wpt lat=\"12.34\" lon=\"56.78\">\n"
 	    "    <name>&lt;</name>\n"
 	    "    <cmt>&lt;</cmt>\n"
 	    "  </wpt>\n";
@@ -1570,7 +1570,7 @@ static void test_gpx_wpt(void)
 	print_gotexp(s, e);
 	free(s);
 
-	e = "  <wpt lat=\"12.340000\" lon=\"56.780000\">\n"
+	e = "  <wpt lat=\"12.34\" lon=\"56.78\">\n"
 	    "    <name>&gt;</name>\n"
 	    "    <cmt>&gt;</cmt>\n"
 	    "  </wpt>\n";
@@ -1587,7 +1587,7 @@ static void test_gpx_wpt(void)
 	    " &gt;;;;&amp;lt;;;åæø;abc🤘def\n"
 	    "def&gt;/&lt;€&gt;;&amp;amp;&amp;&lt;&amp;gt;&gt;&amp;\n"
 	    "\\$e=19;\n";
-	e = allocstr("  <wpt lat=\"12.340000\" lon=\"56.780000\">\n"
+	e = allocstr("  <wpt lat=\"12.34\" lon=\"56.78\">\n"
 	             "    <name>%s</name>\n"
 	             "    <cmt>%s</cmt>\n"
 	             "  </wpt>\n", c, c);
@@ -2116,7 +2116,7 @@ static void test_format_option(void)
 	   "-vvvv -F FoRmAt: It says it's unknown");
 	tc((chp{ execname, "-vvvv", "-F", "", "lpos", "54,7", "12,22",
 	         "0.23", NULL }),
-	   "44.531328,12.145870\n",
+	   "44.531328,12.14587\n",
 	   NULL,
 	   EXIT_SUCCESS,
 	   "-F with an empty argument");
@@ -2190,7 +2190,7 @@ static void test_karney_option(void)
 
 	tc((chp{ execname, "-K", "dist", "13.389820,-71.453489",
 	         "-24.171099,-162.897613", NULL }),
-	   "10759030.94409290\n",
+	   "10759030.9440929\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "-K dist 13.389820,-71.453489 -24.171099,-162.897613");
@@ -2204,7 +2204,7 @@ static void test_karney_option(void)
 
 	tc((chp{ execname, "-K", "dist", "12.34,56.789", "12.34,56.789",
 	         NULL }),
-	   "0.00000000\n",
+	   "0.0\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "-K dist: Coincident points");
@@ -2297,7 +2297,7 @@ static void test_seed_option(const struct Options *o)
 	   "-49.720325,-97.898594\n"
 	   "-9.863466,161.067034\n"
 	   "-21.125676,-179.454884\n"
-	   "-20.152272,-58.458280\n"
+	   "-20.152272,-58.45828\n"
 	   "11.179247,79.685331\n"
 	   "-47.058531,149.678499\n",
 	   "",
@@ -2311,9 +2311,9 @@ static void test_seed_option(const struct Options *o)
 	   "32.233828,-45.004903\n"
 	   "-10.383696,-105.396018\n"
 	   "14.981908,-85.632935\n"
-	   "-2.551390,93.617273\n"
+	   "-2.55139,93.617273\n"
 	   "-45.194786,6.814725\n"
-	   "-4.491350,-102.252955\n"
+	   "-4.49135,-102.252955\n"
 	   "-54.462817,-25.117826\n"
 	   "-23.940993,-89.915442\n",
 	   "",
@@ -2326,7 +2326,7 @@ static void test_seed_option(const struct Options *o)
 	   "<gpx xmlns=\"http://www.topografix.com/GPX/1/1\""
 	   " version=\"1.1\" creator=\"Geocalc -"
 	   " https://gitlab.com/oyvholm/geocalc\">\n"
-	   "  <wpt lat=\"-17.914770\" lon=\"127.654700\">\n"
+	   "  <wpt lat=\"-17.91477\" lon=\"127.6547\">\n"
 	   "    <name>Random 1, seed 19999</name>\n"
 	   "  </wpt>\n"
 	   "  <wpt lat=\"-27.493377\" lon=\"115.562443\">\n"
@@ -2335,7 +2335,7 @@ static void test_seed_option(const struct Options *o)
 	   "  <wpt lat=\"-22.699248\" lon=\"152.244953\">\n"
 	   "    <name>Random 3, seed 19999</name>\n"
 	   "  </wpt>\n"
-	   "  <wpt lat=\"-52.359745\" lon=\"-142.812430\">\n"
+	   "  <wpt lat=\"-52.359745\" lon=\"-142.81243\">\n"
 	   "    <name>Random 4, seed 19999</name>\n"
 	   "  </wpt>\n"
 	   "</gpx>\n",
@@ -2415,14 +2415,14 @@ static void test_cmd_anti(void)
 	diag("Test anti command");
 
 #define chk_ca(coor, exp_stdout)  chk_ca(__LINE__, (coor), (exp_stdout))
-	chk_ca("90,0", "-90.000000,0.000000\n");
-	chk_ca("-90,0", "90.000000,0.000000\n");
-	chk_ca("0,0", "0.000000,180.000000\n");
-	chk_ca("0,180", "0.000000,0.000000\n");
-	chk_ca("0,-180", "0.000000,0.000000\n");
-	chk_ca("90,78", "-90.000000,0.000000\n");
-	chk_ca("-90,-32.4", "90.000000,0.000000\n");
-	chk_ca("10,10", "-10.000000,-170.000000\n");
+	chk_ca("90,0", "-90.0,0.0\n");
+	chk_ca("-90,0", "90.0,0.0\n");
+	chk_ca("0,0", "0.0,180.0\n");
+	chk_ca("0,180", "0.0,0.0\n");
+	chk_ca("0,-180", "0.0,0.0\n");
+	chk_ca("90,78", "-90.0,0.0\n");
+	chk_ca("-90,-32.4", "90.0,0.0\n");
+	chk_ca("10,10", "-10.0,-170.0\n");
 	chk_ca("12.345678,-87.654321", "-12.345678,92.345679\n");
 	chk_ca("90.000001,0", "");
 	chk_ca("-90.000001,0", "");
@@ -2526,12 +2526,12 @@ static void test_cmd_bpos(void)
 	   EXIT_SUCCESS,
 	   "--km bpos 45,0 45 1");
 	tc((chp{ execname, "bpos", "0,0", "90.0000001", "1", NULL }),
-	   "0.000000,0.000009\n",
+	   "0.0,0.000009\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "bpos: No negative zero in lat");
 	tc((chp{ execname, "bpos", "0,0", "359.9999999", "1", NULL }),
-	   "0.000009,0.000000\n",
+	   "0.000009,0.0\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "bpos: No negative zero in lon");
@@ -2541,17 +2541,17 @@ static void test_cmd_bpos(void)
 	   EXIT_SUCCESS,
 	   "bpos: Longitude is normalized");
 	tc((chp{ execname, "--km", "bpos", "90,0", "180", "20000", NULL }),
-	   "-89.864321,0.000000\n",
+	   "-89.864321,0.0\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "bpos: North Pole, point is moved 1 cm");
 	tc((chp{ execname, "bpos", "90,97.97", "180", "1234567.89", NULL }),
-	   "78.897264,97.970000\n",
+	   "78.897264,97.97\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "bpos: North Pole, longitude is kept");
 	tc((chp{ execname, "--km", "bpos", "-90,0", "359", "7000", NULL }),
-	   "-27.047487,-1.000000\n",
+	   "-27.047487,-1.0\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "bpos: South Pole, bearing 359");
@@ -2597,14 +2597,14 @@ static void test_cmd_bpos(void)
 	   "bpos: 1 extra argument");
 	tc((chp{ execname, "-F", "default", "bpos", "40.80542,-73.96546",
 	         "188.7", "4817.84", NULL }),
-	   "40.762590,-73.974113\n",
+	   "40.76259,-73.974113\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "-F default bpos");
 	tc((chp{ execname, "--format", "gpx", "bpos", "40.80542,-73.96546",
 	         "188.7", "4817.84", NULL }),
 	         GPX_HEADER
-	         "  <wpt lat=\"40.762590\" lon=\"-73.974113\">\n"
+	         "  <wpt lat=\"40.76259\" lon=\"-73.974113\">\n"
 	         "    <name>bpos</name>\n"
 	         "    <cmt>bpos 40.80542,-73.96546 188.7 4817.84</cmt>\n"
 	         "  </wpt>\n"
@@ -2622,7 +2622,7 @@ static void test_cmd_bpos(void)
 	tc((chp{ execname, "-F", "sql", "bpos", "0,0", "90", "1000", NULL }),
 	   "BEGIN;\n"
 	   "CREATE TABLE IF NOT EXISTS bpos (lat1 REAL, lon1 REAL, lat2 REAL, lon2 REAL, bear REAL, dist REAL);\n"
-	   "INSERT INTO bpos VALUES (0.000000, 0.000000, 0.000000, 0.008993, 90.000000, 1000.000000);\n"
+	   "INSERT INTO bpos VALUES (0.0, 0.0, 0.0, 0.008993, 90.0, 1000.0);\n"
 	   "COMMIT;\n",
 	   "",
 	   EXIT_SUCCESS,
@@ -2631,7 +2631,7 @@ static void test_cmd_bpos(void)
 	         NULL }),
 	   "BEGIN;\n"
 	   "CREATE TABLE IF NOT EXISTS bpos (lat1 REAL, lon1 REAL, lat2 REAL, lon2 REAL, bear REAL, dist REAL);\n"
-	   "INSERT INTO bpos VALUES (0.000000, 0.000000, 0.000000, 0.008993, 90.000000, 1000.000000);\n"
+	   "INSERT INTO bpos VALUES (0.0, 0.0, 0.0, 0.008993, 90.0, 1000.0);\n"
 	   "COMMIT;\n",
 	   "",
 	   EXIT_SUCCESS,
@@ -2640,7 +2640,7 @@ static void test_cmd_bpos(void)
 	         "76.2379187,-134.9876543", "43.99999", "15000", NULL }),
 	   "BEGIN;\n"
 	   "CREATE TABLE IF NOT EXISTS bpos (lat1 REAL, lon1 REAL, lat2 REAL, lon2 REAL, bear REAL, dist REAL);\n"
-	   "INSERT INTO bpos VALUES (76.237919, -134.987654, -34.358442, 8.423430, 43.999990, 15000000.000000);\n"
+	   "INSERT INTO bpos VALUES (76.237919, -134.987654, -34.358442, 8.42343, 43.99999, 15000000.0);\n"
 	   "COMMIT;\n",
 	   "",
 	   EXIT_SUCCESS,
@@ -2659,9 +2659,9 @@ static void test_cmd_course(void)
 
 	diag("Test course command");
 	tc((chp{ execname, "course", "45,0", "45,180", "1", NULL }),
-	   "45.000000,0.000000\n"
-	   "90.000000,0.000000\n"
-	   "45.000000,180.000000\n",
+	   "45.0,0.0\n"
+	   "90.0,0.0\n"
+	   "45.0,180.0\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "course: Across the North Pole");
@@ -2671,23 +2671,23 @@ static void test_cmd_course(void)
 	   EXIT_FAILURE,
 	   "course 0,0 0,180 7");
 	tc((chp{ execname, "course", "90,0", "0,0", "3", NULL }),
-	   "90.000000,0.000000\n"
-	   "67.500000,0.000000\n"
-	   "45.000000,0.000000\n"
-	   "22.500000,0.000000\n"
-	   "0.000000,0.000000\n",
+	   "90.0,0.0\n"
+	   "67.5,0.0\n"
+	   "45.0,0.0\n"
+	   "22.5,0.0\n"
+	   "0.0,0.0\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "course 90,0 0,0 3");
-	exp_stdout = "60.392990,5.324150\n"
+	exp_stdout = "60.39299,5.32415\n"
 	             "66.169926,16.700678\n"
 	             "70.664233,33.818071\n"
 	             "72.834329,57.579125\n"
 	             "71.826607,82.903321\n"
 	             "68.075305,102.664288\n"
 	             "62.689678,115.951619\n"
-	             "56.449510,124.884500\n"
-	             "49.752575,131.215240\n"
+	             "56.44951,124.8845\n"
+	             "49.752575,131.21524\n"
 	             "42.795549,135.979229\n"
 	             "35.681389,139.766944\n";
 	tc((chp{ execname, "course", "60.39299,5.32415",
@@ -2728,8 +2728,8 @@ static void test_cmd_course(void)
 	   EXIT_FAILURE,
 	   "course: numpoints is -0.5");
 	tc((chp{ execname, "course", "22,33", "44,55", "0", NULL }),
-	   "22.000000,33.000000\n"
-	   "44.000000,55.000000\n",
+	   "22.0,33.0\n"
+	   "44.0,55.0\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "course: numpoints is 0");
@@ -2750,13 +2750,13 @@ static void test_cmd_course(void)
 	   "course: Invalid value in number of points");
 	tc((chp{ execname, "-F", "default", "course",
 	         "52.3731,4.891", "35.681,139.767", "5", NULL }),
-	   "52.373100,4.891000\n"
-	   "62.685860,22.579780\n"
+	   "52.3731,4.891\n"
+	   "62.68586,22.57978\n"
 	   "68.869393,53.549146\n"
 	   "67.245712,91.173953\n"
 	   "59.021383,116.487394\n"
 	   "47.913547,130.771879\n"
-	   "35.681000,139.767000\n",
+	   "35.681,139.767\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "-F default course, Amsterdam to Tokyo");
@@ -2764,9 +2764,9 @@ static void test_cmd_course(void)
 	         "52.3731,4.891", "35.681,139.767", "5", NULL }),
 	   GPX_HEADER
 	   "  <rte>\n"
-	   "    <rtept lat=\"52.373100\" lon=\"4.891000\">\n"
+	   "    <rtept lat=\"52.3731\" lon=\"4.891\">\n"
 	   "    </rtept>\n"
-	   "    <rtept lat=\"62.685860\" lon=\"22.579780\">\n"
+	   "    <rtept lat=\"62.68586\" lon=\"22.57978\">\n"
 	   "    </rtept>\n"
 	   "    <rtept lat=\"68.869393\" lon=\"53.549146\">\n"
 	   "    </rtept>\n"
@@ -2776,7 +2776,7 @@ static void test_cmd_course(void)
 	   "    </rtept>\n"
 	   "    <rtept lat=\"47.913547\" lon=\"130.771879\">\n"
 	   "    </rtept>\n"
-	   "    <rtept lat=\"35.681000\" lon=\"139.767000\">\n"
+	   "    <rtept lat=\"35.681\" lon=\"139.767\">\n"
 	   "    </rtept>\n"
 	   "  </rte>\n"
 	   "</gpx>\n",
@@ -2794,13 +2794,13 @@ static void test_cmd_course(void)
 	         NULL }),
 	   "BEGIN;\n"
 	   "CREATE TABLE IF NOT EXISTS course (num INTEGER, lat REAL, lon REAL, dist REAL, frac REAL, bear REAL);\n"
-	   "INSERT INTO course VALUES (0, -45.000000, -123.000000, 0.000000, 0.000000, 0.000000);\n"
-	   "INSERT INTO course VALUES (1, -30.000000, -123.000000, 1667923.899668, 0.166667, 0.000000);\n"
-	   "INSERT INTO course VALUES (2, -15.000000, -123.000000, 3335847.799337, 0.333333, 0.000000);\n"
-	   "INSERT INTO course VALUES (3, 0.000000, -123.000000, 5003771.699005, 0.500000, 0.000000);\n"
-	   "INSERT INTO course VALUES (4, 15.000000, -123.000000, 6671695.598674, 0.666667, 0.000000);\n"
-	   "INSERT INTO course VALUES (5, 30.000000, -123.000000, 8339619.498342, 0.833333, 0.000000);\n"
-	   "INSERT INTO course VALUES (6, 45.000000, -123.000000, 10007543.398010, 1.000000, NULL);\n"
+	   "INSERT INTO course VALUES (0, -45.0, -123.0, 0.0, 0.0, 0.0);\n"
+	   "INSERT INTO course VALUES (1, -30.0, -123.0, 1667923.899668, 0.166667, 0.0);\n"
+	   "INSERT INTO course VALUES (2, -15.0, -123.0, 3335847.799337, 0.333333, 0.0);\n"
+	   "INSERT INTO course VALUES (3, 0.0, -123.0, 5003771.699005, 0.5, 0.0);\n"
+	   "INSERT INTO course VALUES (4, 15.0, -123.0, 6671695.598674, 0.666667, 0.0);\n"
+	   "INSERT INTO course VALUES (5, 30.0, -123.0, 8339619.498342, 0.833333, 0.0);\n"
+	   "INSERT INTO course VALUES (6, 45.0, -123.0, 10007543.39801, 1.0, NULL);\n"
 	   "COMMIT;\n",
 	   "",
 	   EXIT_SUCCESS,
@@ -2809,13 +2809,13 @@ static void test_cmd_course(void)
 	         NULL }),
 	   "BEGIN;\n"
 	   "CREATE TABLE IF NOT EXISTS course (num INTEGER, lat REAL, lon REAL, dist REAL, frac REAL, bear REAL);\n"
-	   "INSERT INTO course VALUES (0, 60.000000, 5.000000, 0.000000, 0.000000, 74.908926);\n"
+	   "INSERT INTO course VALUES (0, 60.0, 5.0, 0.0, 0.0, 74.908926);\n"
 	   "INSERT INTO course VALUES (1, 57.898298, 50.808536, 2584622.088993, 0.166667, 114.711921);\n"
 	   "INSERT INTO course VALUES (2, 43.683265, 80.527411, 5169244.094446, 0.333333, 138.121194);\n"
-	   "INSERT INTO course VALUES (3, 24.968228, 97.421916, 7753866.163712, 0.500000, 147.823758);\n"
+	   "INSERT INTO course VALUES (3, 24.968228, 97.421916, 7753866.163712, 0.5, 147.823758);\n"
 	   "INSERT INTO course VALUES (4, 4.878069, 109.598447, 10338488.288345, 0.666667, 151.019525);\n"
 	   "INSERT INTO course VALUES (5, -15.417397, 121.038906, 12923110.365395, 0.833333, 149.948567);\n"
-	   "INSERT INTO course VALUES (6, -35.000000, 135.000000, 15507732.399720, 1.000000, NULL);\n"
+	   "INSERT INTO course VALUES (6, -35.0, 135.0, 15507732.39972, 1.0, NULL);\n"
 	   "COMMIT;\n",
 	   "",
 	   EXIT_SUCCESS,
@@ -2832,19 +2832,19 @@ static void test_cmd_lpos(void)
 {
 	diag("Test lpos command");
 	tc((chp{ execname, "lpos", "45,0", "45,180", "0.5", NULL }),
-	   "90.000000,0.000000\n",
+	   "90.0,0.0\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "lpos: At the North Pole");
 	tc((chp{ execname, "--km", "lpos", "45,0", "45,180", "0.5", NULL }),
-	   "90.000000,0.000000\n",
+	   "90.0,0.0\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "--km lpos: At the North Pole");
 	tc((chp{ execname, "--format", "gpx", "lpos", "45,0", "45,180",
 	         "0.5", NULL }),
 	             GPX_HEADER
-	             "  <wpt lat=\"90.000000\" lon=\"0.000000\">\n"
+	             "  <wpt lat=\"90.0\" lon=\"0.0\">\n"
 	             "    <name>lpos</name>\n"
 	             "    <cmt>lpos 45,0 45,180 0.5</cmt>\n"
 	             "  </wpt>\n"
@@ -2853,12 +2853,12 @@ static void test_cmd_lpos(void)
 	   EXIT_SUCCESS,
 	   "--format gpx lpos: At the North Pole");
 	tc((chp{ execname, "lpos", "0,0", "-0.0000001,0", "1", NULL }),
-	   "0.000000,0.000000\n",
+	   "0.0,0.0\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "lpos: No negative zero in lat");
 	tc((chp{ execname, "lpos", "0,0", "0,-0.0000001", "1", NULL }),
-	   "0.000000,0.000000\n",
+	   "0.0,0.0\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "lpos: No negative zero in lon");
@@ -2869,7 +2869,7 @@ static void test_cmd_lpos(void)
 	   EXIT_SUCCESS,
 	   "lpos: Longitude is normalized");
 	tc((chp{ execname, "lpos", "90,0", "0,0", "0.5", NULL }),
-	   "45.000000,0.000000\n",
+	   "45.0,0.0\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "lpos: Point is moved 1 cm");
@@ -2904,19 +2904,19 @@ static void test_cmd_lpos(void)
 	   EXIT_FAILURE,
 	   "lpos: lat in coor1 is invalid number");
 	tc((chp{ execname, "lpos", "1,2", "3,4", "0", NULL }),
-	   "1.000000,2.000000\n",
+	   "1.0,2.0\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "lpos: fracdist is 0");
 	tc((chp{ execname, "lpos", "11.231,-34.55", "29.97777,47.311001",
 	         "1", NULL }),
-	   "29.977770,47.311001\n",
+	   "29.97777,47.311001\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "lpos: fracdist is 1");
 	tc((chp{ execname, "--km", "lpos", "11.231,-34.55",
 	         "29.97777,47.311001", "1", NULL }),
-	   "29.977770,47.311001\n",
+	   "29.97777,47.311001\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "--km lpos: fracdist is 1");
@@ -2944,7 +2944,7 @@ static void test_cmd_lpos(void)
 	         NULL }),
 	   "BEGIN;\n"
 	   "CREATE TABLE IF NOT EXISTS lpos (lat1 REAL, lon1 REAL, lat2 REAL, lon2 REAL, frac REAL, dlat REAL, dlon REAL, dist REAL, bear REAL);\n"
-	   "INSERT INTO lpos VALUES (1.000000, 2.000000, 87.188000, -130.770000, 0.200000, 19.169669, 1.318240, 14327441.236686, 64.166424);\n"
+	   "INSERT INTO lpos VALUES (1.0, 2.0, 87.188, -130.77, 0.2, 19.169669, 1.31824, 14327441.236686, 64.166424);\n"
 	   "COMMIT;\n",
 	   "",
 	   EXIT_SUCCESS,
@@ -3001,7 +3001,7 @@ static void test_multiple(const int linenum, char *cmd)
 		   EXIT_SUCCESS,
 		   "dist 12,34 -12,-146 - antipodal points");
 		Tc((chp{ execname, "dist", "12,34", "12,34", NULL }),
-		   "0.000000\n",
+		   "0.0\n",
 		   "",
 		   EXIT_SUCCESS,
 		   "dist 12,34 12,34 - coincident points");
@@ -3100,7 +3100,7 @@ static void test_multiple(const int linenum, char *cmd)
 		         NULL }),
 		   "BEGIN;\n"
 		   "CREATE TABLE IF NOT EXISTS bear (lat1 REAL, lon1 REAL, lat2 REAL, lon2 REAL, bear REAL, dist REAL);\n"
-		   "INSERT INTO bear VALUES (34.000000, 56.000000, -78.000000, 9.000000, 189.693136, 12835310.777042);\n"
+		   "INSERT INTO bear VALUES (34.0, 56.0, -78.0, 9.0, 189.693136, 12835310.777042);\n"
 		   "COMMIT;\n",
 		   "",
 		   EXIT_SUCCESS,
@@ -3110,7 +3110,7 @@ static void test_multiple(const int linenum, char *cmd)
 		         NULL }),
 		   "BEGIN;\n"
 		   "CREATE TABLE IF NOT EXISTS dist (lat1 REAL, lon1 REAL, lat2 REAL, lon2 REAL, dist REAL, bear REAL);\n"
-		   "INSERT INTO dist VALUES (34.000000000000000, 56.000000000000000, -78.000000000000000, 9.000000000000000, 12835310.77704204, 189.69313615);\n"
+		   "INSERT INTO dist VALUES (34.0, 56.0, -78.0, 9.0, 12835310.77704204, 189.69313615);\n"
 		   "COMMIT;\n",
 		   "",
 		   EXIT_SUCCESS,
@@ -3492,15 +3492,15 @@ static void test_cmd_randpos(const struct Options *o)
 	         "randpos", "20,20", NULL }),
 	   "BEGIN;\n"
 	   "CREATE TABLE IF NOT EXISTS randpos (seed INTEGER, num INTEGER, lat REAL, lon REAL, dist REAL, bear REAL);\n"
-	   "INSERT INTO randpos VALUES (1000, 1, 71.133290, -57.468159, 7458038.290706, 339.955948);\n"
-	   "INSERT INTO randpos VALUES (1000, 2, 4.810956, -39.143396, 6605679.372550, 263.597432);\n"
+	   "INSERT INTO randpos VALUES (1000, 1, 71.13329, -57.468159, 7458038.290706, 339.955948);\n"
+	   "INSERT INTO randpos VALUES (1000, 2, 4.810956, -39.143396, 6605679.37255, 263.597432);\n"
 	   "INSERT INTO randpos VALUES (1000, 3, 31.762576, 91.243012, 7126548.517582, 63.514344);\n"
 	   "INSERT INTO randpos VALUES (1000, 4, -55.576794, -166.832537, 16018000.848656, 173.421528);\n"
-	   "INSERT INTO randpos VALUES (1000, 5, -3.788815, 152.508528, 14567412.132150, 77.097274);\n"
-	   "INSERT INTO randpos VALUES (1000, 6, 12.619138, 169.426644, 15080928.939060, 45.214445);\n"
-	   "INSERT INTO randpos VALUES (1000, 7, 32.292105, -106.309325, 11866448.651468, 314.662470);\n"
+	   "INSERT INTO randpos VALUES (1000, 5, -3.788815, 152.508528, 14567412.13215, 77.097274);\n"
+	   "INSERT INTO randpos VALUES (1000, 6, 12.619138, 169.426644, 15080928.93906, 45.214445);\n"
+	   "INSERT INTO randpos VALUES (1000, 7, 32.292105, -106.309325, 11866448.651468, 314.66247);\n"
 	   "INSERT INTO randpos VALUES (1000, 8, 65.299565, 16.899777, 5042230.856845, 358.179425);\n"
-	   "INSERT INTO randpos VALUES (1000, 9, -4.673171, -44.745272, 7581105.914090, 256.164898);\n"
+	   "INSERT INTO randpos VALUES (1000, 9, -4.673171, -44.745272, 7581105.91409, 256.164898);\n"
 	   "INSERT INTO randpos VALUES (1000, 10, 20.935854, 18.624757, 177068.647935, 306.231896);\n"
 	   "COMMIT;\n",
 	   "",
@@ -3555,15 +3555,15 @@ static void test_cmd_randpos(const struct Options *o)
 	   "BEGIN;\n"
 	   "CREATE TABLE IF NOT EXISTS randpos (seed INTEGER, num INTEGER, lat REAL, lon REAL, dist REAL, bear REAL);\n"
 	   "INSERT INTO randpos VALUES (19, 1, 25.603688, -130.636512, NULL, NULL);\n"
-	   "INSERT INTO randpos VALUES (19, 2, -48.273060, 77.529775, NULL, NULL);\n"
-	   "INSERT INTO randpos VALUES (19, 3, -17.117300, 140.106483, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 2, -48.27306, 77.529775, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 3, -17.1173, 140.106483, NULL, NULL);\n"
 	   "INSERT INTO randpos VALUES (19, 4, -52.240484, -115.036322, NULL, NULL);\n"
 	   "INSERT INTO randpos VALUES (19, 5, 3.344781, 17.095447, NULL, NULL);\n"
 	   "INSERT INTO randpos VALUES (19, 6, 16.755787, 9.521758, NULL, NULL);\n"
 	   "INSERT INTO randpos VALUES (19, 7, -19.490223, 12.660125, NULL, NULL);\n"
-	   "INSERT INTO randpos VALUES (19, 8, 69.696210, 156.752235, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 8, 69.69621, 156.752235, NULL, NULL);\n"
 	   "INSERT INTO randpos VALUES (19, 9, 52.694091, 90.355201, NULL, NULL);\n"
-	   "INSERT INTO randpos VALUES (19, 10, -6.449310, -117.032350, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 10, -6.44931, -117.03235, NULL, NULL);\n"
 	   "INSERT INTO randpos VALUES (19, 11, 13.210432, -169.948761, NULL, NULL);\n"
 	   "INSERT INTO randpos VALUES (19, 12, -22.225278, 129.713413, NULL, NULL);\n"
 	   "INSERT INTO randpos VALUES (19, 13, -1.595068, -106.917102, NULL, NULL);\n"
@@ -3573,7 +3573,7 @@ static void test_cmd_randpos(const struct Options *o)
 	   "INSERT INTO randpos VALUES (19, 17, -57.901507, 155.489707, NULL, NULL);\n"
 	   "INSERT INTO randpos VALUES (19, 18, 14.890397, 131.859757, NULL, NULL);\n"
 	   "INSERT INTO randpos VALUES (19, 19, 31.066093, -2.976285, NULL, NULL);\n"
-	   "INSERT INTO randpos VALUES (19, 20, 31.662070, 0.677547, NULL, NULL);\n"
+	   "INSERT INTO randpos VALUES (19, 20, 31.66207, 0.677547, NULL, NULL);\n"
 	   "COMMIT;\n",
 	   "",
 	   EXIT_SUCCESS,
@@ -3583,25 +3583,25 @@ static void test_cmd_randpos(const struct Options *o)
 	   "BEGIN;\n"
 	   "CREATE TABLE IF NOT EXISTS randpos (seed INTEGER, num INTEGER, lat REAL, lon REAL, dist REAL, bear REAL);\n"
 	   "INSERT INTO randpos VALUES (19, 1, 0.999739, 1.998795, 137.029826, 257.785884);\n"
-	   "INSERT INTO randpos VALUES (19, 2, 1.001160, 2.001187, 184.578986, 45.661444);\n"
+	   "INSERT INTO randpos VALUES (19, 2, 1.00116, 2.001187, 184.578986, 45.661444);\n"
 	   "INSERT INTO randpos VALUES (19, 3, 0.998948, 2.001395, 194.296589, 127.020796);\n"
 	   "INSERT INTO randpos VALUES (19, 4, 1.001014, 2.000784, 142.479955, 37.694182);\n"
 	   "INSERT INTO randpos VALUES (19, 5, 0.998461, 1.999715, 173.992388, 190.501973);\n"
 	   "INSERT INTO randpos VALUES (19, 6, 0.999042, 1.998779, 172.556828, 231.892738);\n"
-	   "INSERT INTO randpos VALUES (19, 7, 0.999223, 2.001350, 173.155110, 119.943720);\n"
+	   "INSERT INTO randpos VALUES (19, 7, 0.999223, 2.00135, 173.15511, 119.94372);\n"
 	   "INSERT INTO randpos VALUES (19, 8, 1.001736, 1.999657, 196.717262, 348.815877);\n"
 	   "INSERT INTO randpos VALUES (19, 9, 1.001344, 1.998994, 186.659487, 323.173976);\n"
 	   "INSERT INTO randpos VALUES (19, 10, 0.998803, 2.000441, 141.822259, 159.781653);\n"
 	   "INSERT INTO randpos VALUES (19, 11, 0.999209, 1.999309, 116.709311, 221.135064);\n"
 	   "INSERT INTO randpos VALUES (19, 12, 0.999353, 2.001608, 192.753169, 111.915138);\n"
-	   "INSERT INTO randpos VALUES (19, 13, 0.998700, 2.000114, 145.056415, 174.989594);\n"
-	   "INSERT INTO randpos VALUES (19, 14, 0.999461, 2.001323, 158.835986, 112.171800);\n"
+	   "INSERT INTO randpos VALUES (19, 13, 0.9987, 2.000114, 145.056415, 174.989594);\n"
+	   "INSERT INTO randpos VALUES (19, 14, 0.999461, 2.001323, 158.835986, 112.1718);\n"
 	   "INSERT INTO randpos VALUES (19, 15, 0.998532, 1.999946, 163.296314, 182.113987);\n"
-	   "INSERT INTO randpos VALUES (19, 16, 0.998618, 1.999337, 170.487140, 205.626063);\n"
+	   "INSERT INTO randpos VALUES (19, 16, 0.998618, 1.999337, 170.48714, 205.626063);\n"
 	   "INSERT INTO randpos VALUES (19, 17, 1.001568, 2.000817, 196.535789, 27.515539);\n"
 	   "INSERT INTO randpos VALUES (19, 18, 0.998799, 1.998745, 193.074008, 226.254748);\n"
 	   "INSERT INTO randpos VALUES (19, 19, 1.000077, 1.998472, 170.123644, 272.884771);\n"
-	   "INSERT INTO randpos VALUES (19, 20, 1.000120, 1.998468, 170.843636, 274.483494);\n"
+	   "INSERT INTO randpos VALUES (19, 20, 1.00012, 1.998468, 170.843636, 274.483494);\n"
 	   "COMMIT;\n",
 	   "",
 	   EXIT_SUCCESS,

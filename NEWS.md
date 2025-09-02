@@ -12,6 +12,8 @@ v0.x.x - 2025-xx-xx
 
 - Add the `anti` command, prints the antipodal position of a coordinate.
 - Add the `-K`/`--karney` option to the `bear` command.
+- Strip all trailing zeros from the output after the decimal point, but 
+  keep one zero to avoid turning numbers into integers.
 - `bear`: Generate an error for coincident points. As with antipodal 
   points, the answer is undefined.
 

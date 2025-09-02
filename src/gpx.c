@@ -76,7 +76,8 @@ char *xml_escape_string(const char *text)
 char *gpx_wpt(const double lat, const double lon,
               const char *name, const char *cmt)
 {
-	char *retval = NULL, *name_c = NULL, *cmt_elem = NULL;
+	char *retval = NULL, *name_c = NULL, *cmt_elem = NULL,
+	     *lat_s = NULL, *lon_s = NULL;
 
 	if (!name)
 		return NULL;
@@ -93,11 +94,20 @@ char *gpx_wpt(const double lat, const double lon,
 	name_c = xml_escape_string(name);
 	if (!name_c)
 		return NULL; /* gncov */
-	retval = allocstr("  <wpt lat=\"%f\" lon=\"%f\">\n"
+	lat_s = allocstr("%f", lat);
+	lon_s = allocstr("%f", lon);
+	if (!lat_s || !lon_s)
+		goto cleanup; /* gncov */
+	trim_zeros(lat_s);
+	trim_zeros(lon_s);
+	retval = allocstr("  <wpt lat=\"%s\" lon=\"%s\">\n"
 	                  "    <name>%s</name>\n"
 	                  "%s"
 	                  "  </wpt>\n",
-	                  lat, lon, name_c, cmt_elem ? cmt_elem : "");
+	                  lat_s, lon_s, name_c, cmt_elem ? cmt_elem : "");
+cleanup:
+	free(lon_s);
+	free(lat_s);
 	free(name_c);
 	free(cmt_elem);
 

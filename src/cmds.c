@@ -52,7 +52,20 @@ static int print_coordinate(const struct Options *o,
 	round_number(&nlat, 6);
 	round_number(&nlon, 6);
 	if (o->outpformat == OF_DEFAULT) {
-		printf("%f,%f\n", nlat, nlon);
+		char *nlat_s, *nlon_s;
+		nlat_s = allocstr("%f", nlat);
+		nlon_s = allocstr("%f", nlon);
+		if (!nlat_s || !nlon_s) {
+			failed("allocstr()"); /* gncov */
+			free(nlat_s); /* gncov */
+			free(nlon_s); /* gncov */
+			return 1; /* gncov */
+		}
+		trim_zeros(nlat_s);
+		trim_zeros(nlon_s);
+		printf("%s,%s\n", nlat_s, nlon_s);
+		free(nlon_s);
+		free(nlat_s);
 	} else if (o->outpformat == OF_GPX) {
 		char *s;
 		if (!name) {
@@ -87,46 +100,61 @@ static int print_eor_coor(const struct Options *o,
                           const double lat, const double lon, const char *cmd,
                           const char *par1, const char *par2, const char *par3)
 {
-	char *cmt, *s;
+	char *cmt = NULL, *s = NULL, *lat_s = NULL, *lon_s = NULL;
 	double nlat = lat, nlon = lon;
+	int retval = 1;
 
 	assert(o);
 
 	round_number(&nlat, 6);
 	round_number(&nlon, 6);
+	lat_s = allocstr("%f", nlat);
+	lon_s = allocstr("%f", nlon);
+	if (!lat_s || !lon_s) {
+		failed("allocstr()"); /* gncov */
+		goto cleanup; /* gncov */
+	}
+	trim_zeros(lat_s);
+	trim_zeros(lon_s);
 
 	switch (o->outpformat) {
 	case OF_DEFAULT:
-		printf("%f,%f\n", nlat, nlon);
+		printf("%s,%s\n", lat_s, lon_s);
 		break;
 	case OF_GPX:
 		if (!cmd || !par1 || !par2 || !par3) {
 			myerror("%s() received NULL argument," /* gncov */
 			        " cannot generate GPX output", __func__);
-			return 1; /* gncov */
+			goto cleanup; /* gncov */
 		}
 		cmt = allocstr("%s%s%s%s%s%s%s", cmd, *par1 ? " " : "", par1,
 		                                      *par2 ? " " : "", par2,
 		                                      *par3 ? " " : "", par3);
 		if (!cmt) {
 			failed("allocstr()"); /* gncov */
-			return 1; /* gncov */
+			goto cleanup; /* gncov */
 		}
 		s = gpx_wpt(nlat, nlon, cmd, cmt);
 		if (!s) {
 			failed("gpx_wpt()"); /* gncov */
 			free(cmt); /* gncov */
-			return 1; /* gncov */
+			goto cleanup; /* gncov */
 		}
 		printf("%s%s</gpx>\n", GPX_HEADER, s);
-		free(s);
-		free(cmt);
 		break;
 	default: /* gncov */
-		return 1; /* gncov */
+		goto cleanup; /* gncov */
 	}
 
-	return 0;
+	retval = 0;
+
+cleanup:
+	free(s);
+	free(cmt);
+	free(lon_s);
+	free(lat_s);
+
+	return retval;
 }
 
 /*
@@ -137,6 +165,8 @@ static int print_eor_coor(const struct Options *o,
 int cmd_anti(const struct Options *o, const char *coor)
 {
 	double lat, lon, nlat, nlon;
+	char *lat_s = NULL, *lon_s = NULL, *nlat_s = NULL, *nlon_s = NULL;
+	int retval = EXIT_FAILURE;
 
 	if (parse_coordinate(coor, true, &lat, &lon)) {
 		myerror("%s: Invalid coordinate", coor);
@@ -153,19 +183,41 @@ int cmd_anti(const struct Options *o, const char *coor)
 		return print_eor_coor(o, nlat, nlon, "anti", coor, "", "")
 		       ? EXIT_FAILURE : EXIT_SUCCESS;
 	case OF_SQL:
+		lat_s = allocstr("%f", lat);
+		lon_s = allocstr("%f", lon);
+		nlat_s = allocstr("%f", nlat);
+		nlon_s = allocstr("%f", nlon);
+		if (!lat_s || !lon_s || !nlat_s || !nlon_s) {
+			failed("allocstr()"); /* gncov */
+			goto cleanup; /* gncov */
+		}
+		trim_zeros(lat_s);
+		trim_zeros(lon_s);
+		trim_zeros(nlon_s);
+		trim_zeros(nlon_s);
 		puts("BEGIN;");
 		puts("CREATE TABLE IF NOT EXISTS anti (lat REAL, lon REAL,"
 		     " a_lat REAL, a_lon REAL);");
-		printf("INSERT INTO anti VALUES (%f, %f, %f, %f);\n",
-		       lat, lon, nlat, nlon);
+		printf("INSERT INTO anti VALUES (%s, %s, %s, %s);\n",
+		       lat_s, lon_s, nlat_s, nlon_s);
 		puts("COMMIT;");
-		return EXIT_SUCCESS;
+		break;
+	default: /* gncov */
+		myerror("%s():%d: o->outpformat has unknown" /* gncov */
+		        " format %d",
+		        __func__, __LINE__, o->outpformat); /* gncov */
+		goto cleanup; /* gncov */
 	}
 
-	myerror("%s():%d: o->outpformat has unknown format %d", /* gncov */
-	        __func__, __LINE__, o->outpformat); /* gncov */
+	retval = EXIT_SUCCESS;
 
-	return EXIT_FAILURE; /* gncov */
+cleanup:
+	free(lat_s);
+	free(lon_s);
+	free(nlat_s);
+	free(nlon_s);
+
+	return retval;
 }
 
 /*
@@ -177,7 +229,10 @@ int cmd_bear_dist(const char *cmd, const struct Options *o,
                   const char *coor1, const char *coor2)
 {
 	double lat1, lon1, lat2, lon2, result;
-	char *s;
+	char *s = NULL, *outp_s = NULL, *lat1_s = NULL, *lon1_s = NULL,
+	     *lat2_s = NULL, *lon2_s = NULL, *ib_s = NULL, *hav_s = NULL,
+	     *sql_patt;
+	int retval = EXIT_FAILURE;
 
 	assert(cmd);
 	assert(o);
@@ -215,48 +270,83 @@ int cmd_bear_dist(const char *cmd, const struct Options *o,
 		result /= 1000.0;
 	switch (o->outpformat) {
 	case OF_DEFAULT:
-		s = allocstr("%%.%uf\n",
+		s = allocstr("%%.%uf",
 		             o->distformula == FRM_KARNEY
 		               ? KARNEY_DECIMALS
 		               : HAVERSINE_DECIMALS);
 		if (!s) {
 			failed("allocstr()"); /* gncov */
-			return EXIT_FAILURE; /* gncov */
+			goto cleanup; /* gncov */
 		}
-		printf(s, result);
-		free(s);
-		return EXIT_SUCCESS;
+		outp_s = allocstr(s, result);
+		if (!outp_s) {
+			failed("allocstr()"); /* gncov */
+			goto cleanup; /* gncov */
+		}
+		trim_zeros(outp_s);
+		puts(outp_s);
+		break;
 	case OF_GPX: /* gncov */
-		return EXIT_FAILURE; /* gncov */
+		goto cleanup; /* gncov */
 	case OF_SQL:
 		puts("BEGIN;");
+		sql_patt = !strcmp(cmd, "bear") ? "%f" : "%.15f";
+		lat1_s = allocstr(sql_patt, lat1);
+		lon1_s = allocstr(sql_patt, lon1);
+		lat2_s = allocstr(sql_patt, lat2);
+		lon2_s = allocstr(sql_patt, lon2);
+		sql_patt = !strcmp(cmd, "bear") ? "%f" : "%.8f";
+		ib_s = allocstr(sql_patt, initial_bearing(lat1, lon1,
+		                                          lat2, lon2));
+		hav_s = allocstr(sql_patt, haversine(lat1, lon1, lat2, lon2));
+		if (!lat1_s || !lon1_s || !lat2_s || !lon2_s || !ib_s
+		    || !hav_s) {
+			failed(allocstr); /* gncov */
+			goto cleanup; /* gncov */
+		}
+		trim_zeros(lat1_s);
+		trim_zeros(lon1_s);
+		trim_zeros(lat2_s);
+		trim_zeros(lon2_s);
+		trim_zeros(ib_s);
+		trim_zeros(hav_s);
 		if (!strcmp(cmd, "bear")) {
 			puts("CREATE TABLE IF NOT EXISTS bear (lat1 REAL,"
 			     " lon1 REAL, lat2 REAL, lon2 REAL, bear REAL,"
 			     " dist REAL);");
-			printf("INSERT INTO bear VALUES (%f, %f, %f, %f, %f,"
-			       " %f);\n",
-			       lat1, lon1, lat2, lon2,
-			       initial_bearing(lat1, lon1, lat2, lon2),
-			       haversine(lat1, lon1, lat2, lon2));
+			printf("INSERT INTO bear VALUES (%s, %s, %s, %s, %s,"
+			       " %s);\n",
+			       lat1_s, lon1_s, lat2_s, lon2_s, ib_s, hav_s);
 		} else {
 			puts("CREATE TABLE IF NOT EXISTS dist (lat1 REAL,"
 			     " lon1 REAL, lat2 REAL, lon2 REAL, dist REAL,"
 			     " bear REAL);");
-			printf("INSERT INTO dist VALUES (%.15f, %.15f, %.15f,"
-			       " %.15f, %.8f, %.8f);\n",
-			       lat1, lon1, lat2, lon2,
-			       haversine(lat1, lon1, lat2, lon2),
-			       initial_bearing(lat1, lon1, lat2, lon2));
+			printf("INSERT INTO dist VALUES (%s, %s, %s,"
+			       " %s, %s, %s);\n",
+			       lat1_s, lon1_s, lat2_s, lon2_s, hav_s, ib_s);
 		}
 		puts("COMMIT;");
-		return EXIT_SUCCESS;
+		break;
+	default: /* gncov */
+		myerror("%s():%d: o->outpformat has unknown" /* gncov */
+		        " format %d",
+		        __func__, __LINE__, o->outpformat); /* gncov */
+		goto cleanup; /* gncov */
 	}
 
-	myerror("%s():%d: o->outpformat has unknown format %d", /* gncov */
-	        __func__, __LINE__, o->outpformat); /* gncov */
+	retval = EXIT_SUCCESS;
 
-	return EXIT_FAILURE; /* gncov */
+cleanup:
+	free(outp_s);
+	free(s);
+	free(lat1_s);
+	free(lon1_s);
+	free(lat2_s);
+	free(lon2_s);
+	free(ib_s);
+	free(hav_s);
+
+	return retval;
 }
 
 /*
@@ -268,6 +358,9 @@ int cmd_bpos(const struct Options *o, const char *coor,
              const char *bearing_s, const char *dist_s)
 {
 	double lat, lon, bearing, dist, nlat, nlon;
+	char *lat_s = NULL, *lon_s = NULL, *nlat_s = NULL, *nlon_s = NULL,
+	     *ib_s = NULL, *hav_s = NULL;
+	int retval = EXIT_FAILURE;
 
 	assert(o);
 	assert(coor);
@@ -297,28 +390,53 @@ int cmd_bpos(const struct Options *o, const char *coor,
 		dist *= 1000.0;
 	bearing_position(lat, lon, bearing, dist, &nlat, &nlon);
 
+	lat_s = allocstr("%f", lat);
+	lon_s = allocstr("%f", lon);
+	nlat_s = allocstr("%f", nlat);
+	nlon_s = allocstr("%f", nlon);
+	ib_s = allocstr("%f", initial_bearing(lat, lon, nlat, nlon));
+	hav_s = allocstr("%f", haversine(lat, lon, nlat, nlon));
+	if (!lat_s || !lon_s || !nlat_s || !nlon_s || !ib_s || !hav_s) {
+		failed("allocstr()"); /* gncov */
+		goto cleanup; /* gncov */
+	}
+	trim_zeros(lat_s);
+	trim_zeros(lon_s);
+	trim_zeros(nlat_s);
+	trim_zeros(nlon_s);
+	trim_zeros(ib_s);
+	trim_zeros(hav_s);
 	switch (o->outpformat) {
 	case OF_DEFAULT:
 	case OF_GPX:
-		return print_eor_coor(o, nlat, nlon, "bpos", coor, bearing_s,
-		                      dist_s)
-		       ? EXIT_FAILURE : EXIT_SUCCESS;
+		retval = print_eor_coor(o, nlat, nlon, "bpos", coor, bearing_s,
+		                        dist_s)
+		         ? EXIT_FAILURE : EXIT_SUCCESS;
+		break;
 	case OF_SQL:
 		puts("BEGIN;");
 		puts("CREATE TABLE IF NOT EXISTS bpos (lat1 REAL, lon1 REAL,"
 		     " lat2 REAL, lon2 REAL, bear REAL, dist REAL);");
-		printf("INSERT INTO bpos VALUES (%f, %f, %f, %f, %f, %f);\n",
-		       lat, lon, nlat, nlon,
-		       initial_bearing(lat, lon, nlat, nlon),
-		       haversine(lat, lon, nlat, nlon));
+		printf("INSERT INTO bpos VALUES (%s, %s, %s, %s, %s, %s);\n",
+		       lat_s, lon_s, nlat_s, nlon_s, ib_s, hav_s);
 		puts("COMMIT;");
-		return EXIT_SUCCESS;
+		retval = EXIT_SUCCESS;
+		break;
+	default: /* gncov */
+		myerror("%s(): o->outpformat has unknown format" /* gncov */
+		        " %d", __func__, o->outpformat); /* gncov */
+		break; /* gncov */
 	}
 
-	myerror("%s(): o->outpformat has unknown format %d", /* gncov */
-	        __func__, o->outpformat); /* gncov */
+cleanup:
+	free(hav_s);
+	free(ib_s);
+	free(nlon_s);
+	free(nlat_s);
+	free(lon_s);
+	free(lat_s);
 
-	return EXIT_FAILURE; /* gncov */
+	return retval;
 }
 
 /*
@@ -330,7 +448,8 @@ int cmd_course(const struct Options *o, const char *coor1, const char *coor2,
                const char *numpoints_s)
 {
 	double lat1, lon1, lat2, lon2, numpoints, nlat = 0.0, nlon = 0.0;
-	int i, retval = EXIT_SUCCESS;
+	int i, retval = EXIT_FAILURE;
+	char *nlat_s = NULL, *nlon_s = NULL, *dist_s = NULL, *frac_s = NULL;
 
 	assert(o);
 	assert(coor1);
@@ -377,39 +496,56 @@ int cmd_course(const struct Options *o, const char *coor1, const char *coor2,
 	}
 
 	for (i = 0; i <= numpoints; i++) {
-		double frac = 1.0 * i / numpoints,
-		       dist, bear;
-		char *bear_s;
+		double frac = 1.0 * i / numpoints;
+		char *bear_s = NULL;
 
 		routepoint(lat1, lon1, lat2, lon2, frac, &nlat, &nlon);
 		round_number(&nlat, 6);
 		round_number(&nlon, 6);
+		nlat_s = allocstr("%f", nlat);
+		nlon_s = allocstr("%f", nlon);
+		if (!nlat_s || !nlon_s) {
+			failed("allocstr()"); /* gncov */
+			goto cleanup; /* gncov */
+		}
+		trim_zeros(nlat_s);
+		trim_zeros(nlon_s);
 		switch(o->outpformat) {
 		case OF_DEFAULT:
-			printf("%f,%f\n", nlat, nlon);
+			printf("%s,%s\n", nlat_s, nlon_s);
 			break;
 		case OF_GPX:
-			printf("    <rtept lat=\"%f\" lon=\"%f\">\n"
-			       "    </rtept>\n", nlat, nlon);
+			printf("    <rtept lat=\"%s\" lon=\"%s\">\n"
+			       "    </rtept>\n", nlat_s, nlon_s);
 			break;
 		case OF_SQL:
-			dist = haversine(lat1, lon1, nlat, nlon);
+			dist_s = allocstr("%f", haversine(lat1, lon1,
+			                                  nlat, nlon));
+			frac_s = allocstr("%f", frac);
 			if (nlat != lat2 || nlon != lon2) {
-				bear = initial_bearing(nlat, nlon, lat2, lon2);
-				bear_s = allocstr("%f", bear);
+				bear_s = allocstr("%f",
+				                  initial_bearing(nlat, nlon,
+				                                  lat2, lon2));
 			} else {
 				bear_s = allocstr("NULL");
 			}
-			if (!bear_s) {
+			if (!dist_s || !bear_s || !frac_s) {
 				failed("allocstr()"); /* gncov */
-				return EXIT_FAILURE; /* gncov */
+				goto cleanup; /* gncov */
 			}
-			printf("INSERT INTO course VALUES (%d, %f, %f, %f,"
-			       " %f, %s);\n",
-			       i, nlat, nlon, dist, frac, bear_s);
-			free(bear_s);
+			trim_zeros(dist_s);
+			trim_zeros(frac_s);
+			trim_zeros(bear_s);
+			printf("INSERT INTO course VALUES (%d, %s, %s, %s,"
+			       " %s, %s);\n",
+			       i, nlat_s, nlon_s, dist_s, frac_s, bear_s);
+			free(bear_s); bear_s = NULL;
 			break;
 		}
+		free(frac_s); frac_s = NULL;
+		free(dist_s); dist_s = NULL;
+		free(nlon_s); nlon_s = NULL;
+		free(nlat_s); nlat_s = NULL;
 	}
 
 	switch (o->outpformat) {
@@ -424,6 +560,14 @@ int cmd_course(const struct Options *o, const char *coor1, const char *coor2,
 		break;
 	}
 
+	retval = EXIT_SUCCESS;
+
+cleanup:
+	free(frac_s);
+	free(dist_s);
+	free(nlon_s);
+	free(nlat_s);
+
 	return retval;
 }
 
@@ -433,17 +577,21 @@ int cmd_course(const struct Options *o, const char *coor1, const char *coor2,
  */
 
 int cmd_lpos(const struct Options *o, const char *coor1, const char *coor2,
-             const char *fracdist_s)
+             const char *fracdist_p)
 {
 	double lat1, lon1, lat2, lon2, fracdist, nlat, nlon;
+	char *lat1_s = NULL, *lon1_s = NULL, *lat2_s = NULL, *lon2_s = NULL,
+	     *fracdist_s = NULL, *nlat_s = NULL, *nlon_s = NULL, *hav_s = NULL,
+	     *ib_s = NULL;
+	int retval = EXIT_FAILURE;
 
 	assert(o);
 	assert(coor1);
 	assert(coor2);
-	assert(fracdist_s);
+	assert(fracdist_p);
 
 	msg(7, "%s(\"%s\", \"%s\", \"%s\")",
-	       __func__, coor1, coor2, fracdist_s);
+	       __func__, coor1, coor2, fracdist_p);
 
 	if (parse_coordinate(coor1, true, &lat1, &lon1)) {
 		myerror("%s: Invalid coordinate", coor1);
@@ -453,8 +601,8 @@ int cmd_lpos(const struct Options *o, const char *coor1, const char *coor2,
 		myerror("%s: Invalid coordinate", coor2);
 		return EXIT_FAILURE;
 	}
-	if (string_to_double(fracdist_s, &fracdist)) {
-		myerror("%s: Invalid fraction", fracdist_s);
+	if (string_to_double(fracdist_p, &fracdist)) {
+		myerror("%s: Invalid fraction", fracdist_p);
 		return EXIT_FAILURE;
 	}
 	if (are_antipodal(lat1, lon1, lat2, lon2)) {
@@ -467,26 +615,66 @@ int cmd_lpos(const struct Options *o, const char *coor1, const char *coor2,
 	case OF_DEFAULT:
 	case OF_GPX:
 		return print_eor_coor(o, nlat, nlon, "lpos",
-		                      coor1, coor2, fracdist_s)
+		                      coor1, coor2, fracdist_p)
 		       ? EXIT_FAILURE : EXIT_SUCCESS;
 	case OF_SQL:
 		puts("BEGIN;");
 		puts("CREATE TABLE IF NOT EXISTS lpos (lat1 REAL, lon1 REAL,"
 		     " lat2 REAL, lon2 REAL, frac REAL, dlat REAL, dlon REAL,"
 		     " dist REAL, bear REAL);");
-		printf("INSERT INTO lpos VALUES (%f, %f, %f, %f, %f, %f, %f,"
-		       " %f, %f);\n",
-		       lat1, lon1, lat2, lon2, fracdist, nlat, nlon,
-		       haversine(lat1, lon2, nlat, nlon),
-		       initial_bearing(lat1, lon2, nlat, nlon));
+
+		lat1_s = allocstr("%f", lat1);
+		lon1_s = allocstr("%f", lon1);
+		lat2_s = allocstr("%f", lat2);
+		lon2_s = allocstr("%f", lon2);
+		fracdist_s = allocstr("%f", fracdist);
+		nlat_s = allocstr("%f", nlat);
+		nlon_s = allocstr("%f", nlon);
+		hav_s = allocstr("%f", haversine(lat1, lon2, nlat, nlon));
+		ib_s = allocstr("%f", initial_bearing(lat1, lon2, nlat, nlon));
+
+		if (!lat1_s || !lon1_s || !lat2_s || !lon2_s || !fracdist_s
+		    || !nlat_s || !nlon_s || !hav_s || !ib_s) {
+			failed("allocstr()"); /* gncov */
+			goto cleanup; /* gncov */
+		}
+
+		trim_zeros(lat1_s);
+		trim_zeros(lon1_s);
+		trim_zeros(lat2_s);
+		trim_zeros(lon2_s);
+		trim_zeros(fracdist_s);
+		trim_zeros(nlat_s);
+		trim_zeros(nlon_s);
+		trim_zeros(hav_s);
+		trim_zeros(ib_s);
+
+		printf("INSERT INTO lpos VALUES (%s, %s, %s, %s, %s, %s, %s,"
+		       " %s, %s);\n",
+		       lat1_s, lon1_s, lat2_s, lon2_s, fracdist_s, nlat_s,
+		       nlon_s, hav_s, ib_s);
 		puts("COMMIT;");
-		return EXIT_SUCCESS;
+		break;
+	default: /* gncov */
+		myerror("%s(): o->outpformat has unknown" /* gncov */
+		        " format %d",
+		        __func__, o->outpformat); /* gncov */
 	}
 
-	myerror("%s(): o->outpformat has unknown format %d", /* gncov */
-	        __func__, o->outpformat); /* gncov */
+	retval = EXIT_SUCCESS;
 
-	return EXIT_FAILURE; /* gncov */
+cleanup:
+	free(lat1_s);
+	free(lon1_s);
+	free(lat2_s);
+	free(lon2_s);
+	free(fracdist_s);
+	free(nlat_s);
+	free(nlon_s);
+	free(hav_s);
+	free(ib_s);
+
+	return retval;
 }
 
 /*
@@ -564,18 +752,37 @@ int cmd_randpos(const struct Options *o, const char *coor,
 
 		if (o->outpformat == OF_SQL) {
 			double dist, bear;
+			char *lat_s = NULL, *lon_s = NULL, *dist_s = NULL,
+			     *bear_s = NULL;
 
 			dist = haversine(c_lat, c_lon, lat, lon);
 			bear = initial_bearing(c_lat, c_lon, lat, lon);
+			lat_s = allocstr("%f", lat);
+			lon_s = allocstr("%f", lon);
+			dist_s = allocstr("%f", dist);
+			bear_s = allocstr("%f", bear);
+			if (!lat_s || !lon_s || !dist_s || !bear_s) {
+				failed("allocstr()"); /* gncov */
+				return EXIT_FAILURE; /* gncov */
+			}
+			trim_zeros(lat_s);
+			trim_zeros(lon_s);
+			trim_zeros(dist_s);
+			trim_zeros(bear_s);
 			if (c_lat > 90.0) {
 				printf("INSERT INTO randpos VALUES"
-				       " (%ld, %ld, %f, %f, NULL, NULL);\n",
-				       o->seedval, l, lat, lon);
+				       " (%ld, %ld, %s, %s, NULL, NULL);\n",
+				       o->seedval, l, lat_s, lon_s);
 			} else {
 				printf("INSERT INTO randpos VALUES"
-				       " (%ld, %ld, %f, %f, %f, %f);\n",
-				       o->seedval, l, lat, lon, dist, bear);
+				       " (%ld, %ld, %s, %s, %s, %s);\n",
+				       o->seedval, l, lat_s, lon_s, dist_s,
+				       bear_s);
 			}
+			free(lat_s);
+			free(lon_s);
+			free(dist_s);
+			free(bear_s);
 		} else {
 			print_coordinate(o, lat, lon, name, NULL);
 		}
