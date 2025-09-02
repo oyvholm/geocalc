@@ -1631,6 +1631,73 @@ static void test_gpx_wpt(void)
                               /*** strings.c ***/
 
 /*
+ * chk_tz() - Used by test_trim_zeros(). Verifies that the number in the string 
+ * `got` equals `exp` after processing by trim_zeros(). Returns nothing.
+ */
+
+static void chk_tz(const int linenum, const char *got, const char *exp)
+{
+	const char *res;
+	char *s;
+
+	assert(got);
+	assert(exp);
+
+	s = mystrdup(got);
+	if (!s) {
+		failed_ok("mystrdup()"); /* gncov */
+		return; /* gncov */
+	}
+	res = trim_zeros(s);
+	OK_STRCMP_L(res, exp, linenum, "trim_zeros(\"%s\"), expects \"%s\"",
+	                               got, exp);
+	print_gotexp(res, exp);
+	free(s);
+}
+
+/*
+ * test_trim_zeros() - Tests the trim_zeros() function. Returns nothing.
+ */
+
+static void test_trim_zeros(void)
+{
+	diag("Test trim_zeros()");
+
+#define chk_tz(got, exp)  chk_tz(__LINE__, (got), (exp))
+
+	chk_tz("", "");
+	chk_tz("+", "+");
+	chk_tz("++++++", "++++++");
+	chk_tz("++1.0", "++1.0");
+	chk_tz("+0.0000", "+0.0");
+	chk_tz("+0.29750000", "+0.2975");
+	chk_tz("+5.0", "+5.0");
+	chk_tz("+5.000", "+5.0");
+	chk_tz("-", "-");
+	chk_tz("-+0.0", "-+0.0");
+	chk_tz("---", "---");
+	chk_tz("-0.0000", "-0.0");
+	chk_tz("-7.9650", "-7.965");
+	chk_tz(".", ".");
+	chk_tz(".3000", ".3");
+	chk_tz("0", "0");
+	chk_tz("00000", "00000");
+	chk_tz("1", "1");
+	chk_tz("1.0.0", "1.0.0");
+	chk_tz("1.234 abc", "1.234 abc");
+	chk_tz("5.", "5.");
+	chk_tz("5.0", "5.0");
+	chk_tz("5.00000", "5.0");
+	chk_tz("5.1", "5.1");
+	chk_tz("5.100000", "5.1");
+	chk_tz("5.10001", "5.10001");
+	chk_tz("9.234abc", "9.234abc");
+	chk_tz("abc", "abc");
+
+#undef chk_tz
+}
+
+/*
  * test_mystrdup() - Tests the mystrdup() function. Returns nothing.
  */
 
@@ -3586,6 +3653,7 @@ static void test_functions(const struct Options *o)
 	test_gpx_wpt();
 
 	/* strings.c */
+	test_trim_zeros();
 	test_mystrdup();
 	test_allocstr();
 	test_count_substr();

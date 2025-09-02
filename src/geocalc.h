@@ -177,6 +177,7 @@ int opt_selftest(char *execname, const struct Options *o);
 
 /* strings.c */
 int string_to_double(const char *s, double *dest);
+char *trim_zeros(char *s);
 char *mystrdup(const char *s);
 char *allocstr_va(const char *format, va_list ap);
 char *allocstr(const char *format, ...);

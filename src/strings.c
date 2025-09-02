@@ -72,6 +72,46 @@ int string_to_double(const char *s, double *dest)
 }
 
 /*
+ * trim_zeros() - Trim trailing zeros from the decimal number in `s`, keeping 
+ * the decimal point with one zero if present. Returns `s` immediately if:
+ *
+ * - `s` is NULL or empty
+ * - there is no period ('.') in the string
+ * - string_to_double() fails to parse the number
+ * - there are any characters other than [0-9], '+', '-', or '.' in the string
+ *
+ * Trailing zeros after the decimal point are removed, but the decimal point 
+ * and one zero are kept (e.g., "5.00000" becomes "5.0"). Zeros at the start or 
+ * before the decimal point are preserved. The function modifies `s` directly, 
+ * so pass a copy if the original string must be kept.
+ */
+
+char *trim_zeros(char *s)
+{
+	char *p;
+	double d;
+
+	assert(s);
+
+	if (!s || !*s)
+		return s;
+	if (!strchr(s, '.'))
+		return s;
+	if (string_to_double(s, &d))
+		return s;
+	for (p = s; *p; p++) {
+		if (!strchr("0123456789+-.", *p))
+			return s; /* gncov */
+	}
+
+	p--;
+	while (p > s + 1 && *p == '0' && *(p - 1) != '.')
+		*p-- = '\0';
+
+	return s;
+}
+
+/*
  * mystrdup() - Custom implementation of `strdup()`, which isn't available in 
  * C99. Returns a pointer to an allocated duplicate of `s`. If `malloc()` fails 
  * or `s` is NULL, it returns NULL.
