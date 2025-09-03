@@ -138,13 +138,14 @@ below 0 or above 1 to calculate positions beyond \fIcoor2\fP or in the opposite
 direction from \fIcoor1\fP.
 .TP
 \fBrandpos\fP [[\fIcoor\fP \fImaxdist\fP] \fImindist\fP]
-Generate random coordinates anywhere in the world. If \fIcoor\fP and 
-\fImaxdist\fP are provided, locations will be within \fImaxdist\fP meters from 
-\fIcoor\fP. If \fImindist\fP is also specified, it sets the minimum distance in 
-meters from \fIcoor\fP. For worldwide locations with only a minimum distance,\& 
-use \fImaxdist\fP = 0. If \fImaxdist\fP is not 0 and \fImindist\fP is greater 
-than \fImaxdist\fP, their values will be swapped automatically. Use 
-\fB\-\-count\fP to specify the number of coordinates to generate.
+Generates uniformly distributed random coordinates worldwide, avoiding polar 
+bias using a spherical distribution (arcsine for latitude, uniform for 
+longitude). If \fIcoor\fP and \fImaxdist\fP are given, locations are within 
+\fImaxdist\fP meters of \fIcoor\fP. Add \fImindist\fP to set a minimum 
+distance. Use \fImaxdist\fP with a value of 0 with \fImindist\fP for positions 
+at least \fImindist\fP meters from \fIcoor\fP. If \fImindist\fP exceeds 
+\fImaxdist\fP, the values are swapped. Use \fB\-\-count\fP to specify the 
+number of coordinates to generate.
 .SH EXIT STATUS
 .TP
 0
@@ -175,7 +176,8 @@ Find center point on Madagascar, measured from the points furthest north and
 south. Print the result as a GPX waypoint.
 .TP
 \fCgeocalc \-\-km \-\-count 20 \-F gpx randpos 33.33131,44.39689 12\fP
-Generate 20 random locations within Baghdad and output them in GPX format.
+Generate 20 random locations within a radius of 12 km of Baghdad and output 
+them in GPX format.
 .TP
 \fCgeocalc \-F sql \-\-count 1000000 randpos | sqlite3 randworld.db\fP
 Generate 1 million random locations around the world and store them in an 

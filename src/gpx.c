@@ -21,7 +21,7 @@
 #include "geocalc.h"
 
 /*
- * xml_escape_string() - Return pointer to allocated string where the data in 
+ * xml_escape_string() - Returns pointer to allocated string where the data in 
  * `text` is escaped for use in XML files.
  */
 

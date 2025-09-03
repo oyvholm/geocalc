@@ -53,7 +53,10 @@ Contains the following commands:
   positions, where `fracdist` is a fraction that specifies how far along 
   the line the point is.
 - **`randpos`**\
-  Generates random coordinates.
+  Generates random geographic coordinates, either uniformly distributed 
+  across the globe or within or outside a specified distance range from 
+  a center point. The command avoids polar bias by using a spherical 
+  distribution (arcsine for latitude, uniform for longitude).
 
 ### Examples
 
@@ -67,14 +70,15 @@ Contains the following commands:
 - `geocalc -F gpx course 52.3731,4.891 35.681,139.767 1000`\
   Create 1000 intermediate points on a straight line from Amsterdam to 
   Tokyo in GPX format.
-- `geocalc dist 90,0 -90,0`\
-  Calculate the distance from the North Pole to the South Pole.
+- `geocalc --km dist 90,0 -90,0`\
+  Calculate the distance from the North Pole to the South Pole and use 
+  kilometers in the result.
 - `geocalc -F gpx lpos -11.952039,49.245985 -25.606629,45.167246 0.5`\
   Find center point on Madagascar, measured from the points furthest 
   north and south. Print the result as a GPX waypoint.
 - `geocalc --km --count 20 -F gpx randpos 33.33131,44.39689 12`\
-  Generate 20 random locations within Baghdad and output them in GPX 
-  format.
+  Generate 20 random locations within a radius of 12 km of Baghdad and 
+  output them in GPX format.
 - `geocalc -F sql --count 1000000 randpos | sqlite3 randworld.db`\
   Generate 1 million random locations around the world and store them in 
   an SQLite database.

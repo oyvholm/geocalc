@@ -40,7 +40,7 @@ struct Options opt_struct(void)
 }
 
 /*
- * msg() - Print a message prefixed with "[progname]: " to stderr if the 
+ * msg() - Prints a message prefixed with "[progname]: " to stderr if the 
  * current verbose level is equal or higher than the first argument. The rest 
  * of the arguments are delivered to vfprintf().
  * Returns the number of characters written.
@@ -96,7 +96,7 @@ const char *std_strerror(const int errnum)
 }
 
 /*
- * myerror() - Print an error message to stderr using this format:
+ * myerror() - Prints an error message to stderr using this format:
  *
  *     a: b: c
  *
@@ -104,7 +104,7 @@ const char *std_strerror(const int errnum)
  * output from the printf-like string and optional arguments, and `c` is the 
  * error message from `errno`.
  *
- * If `errno` contained an error value (!0), it is reset to 0.
+ * If `errno` contained an error value (non-zero), it is reset to 0.
  *
  * If `errno` indicates no error, the ": c" part is not printed. Returns the 
  * number of characters written.
@@ -133,7 +133,7 @@ int myerror(const char *format, ...)
 }
 
 /*
- * print_license() - Display the program license. Returns `EXIT_SUCCESS`.
+ * print_license() - Displays the program license. Returns `EXIT_SUCCESS`.
  */
 
 static int print_license(void)
@@ -162,8 +162,8 @@ static int print_license(void)
 }
 
 /*
- * print_version() - Print version information on stdout. If `-q` is used, only 
- * the version number is printed. Returns `EXIT_SUCCESS`.
+ * print_version() - Prints version information on stdout. If `-q` is used, 
+ * only the version number is printed. Returns `EXIT_SUCCESS`.
  */
 
 static int print_version(const struct Options *o)
@@ -279,21 +279,21 @@ static int usage(const struct Options *o, const int retval)
 	       "    positions beyond `coor2` or in the opposite direction"
 	       " from `coor1`.\n");
 	printf("  randpos [[coor maxdist] mindist]\n"
-	       "    Generate random coordinates anywhere in the world. If"
-	       " `coor` and \n"
-	       "    `maxdist` are provided, locations will be within `maxdist`"
-	       " meters \n"
-	       "    from `coor`. If `mindist` is also specified, it sets the"
-	       " minimum \n"
-	       "    distance in meters from `coor`. For worldwide locations"
-	       " with only a \n"
-	       "    minimum distance, use `maxdist` = 0. If `maxdist` is not 0"
-	       " and \n"
-	       "    `mindist` is greater than `maxdist`, their values will be"
-	       " swapped \n"
-	       "    automatically. Use --count to specify the number of"
-	       " coordinates to \n"
-	       "    generate.\n");
+	       "    Generate uniformly distributed random coordinates"
+	       " worldwide, \n"
+	       "    avoiding polar bias using a spherical distribution"
+	       " (arcsine for \n"
+	       "    latitude, uniform for longitude). If `coor` and `maxdist`"
+	       " are given, \n"
+	       "    locations are within `maxdist` meters of `coor`. Add"
+	       " `mindist` to \n"
+	       "    set a minimum distance. Use `maxdist` with a value of 0"
+	       " with \n"
+	       "    `mindist` for positions at least `mindist` meters from"
+	       " `coor`. If \n"
+	       "    `mindist` exceeds `maxdist`, the values are swapped. Use"
+	       " --count to \n"
+	       "    specify the number of coordinates to generate.\n");
 	printf("\n");
 	printf("Options:\n");
 	printf("\n");
@@ -372,8 +372,8 @@ static int usage(const struct Options *o, const int retval)
 }
 
 /*
- * choose_opt_action() - Decide what to do when option `c` is found. Store 
- * changes in `dest`. Read definitions for long options from `opts`.
+ * choose_opt_action() - Decides what to do when option `c` is found. Changes 
+ * are stored in `dest`. Reads definitions for long options from `opts`. 
  * Returns 0 if ok, or 1 if `c` is unknown or anything fails.
  */
 
@@ -478,7 +478,7 @@ void init_opt(struct Options *dest)
 }
 
 /*
- * set_opt_valgrind() - Change the value of `opt.valgrind`. Used by 
+ * set_opt_valgrind() - Changes the value of `opt.valgrind`. Used by 
  * test_valgrind_option() in case --valgrind is used and Valgrind isn't 
  * installed.
  */
@@ -490,8 +490,8 @@ void set_opt_valgrind(bool b) /* gncov */
 } /* gncov */
 
 /*
- * parse_options() - Parse command line options and store the result in `dest`. 
- * Returns 0 if successful, or 1 if an error occurs.
+ * parse_options() - Parses command line options and stores the result in 
+ * `dest`. Returns 0 if successful, or 1 if an error occurs.
  */
 
 static int parse_options(struct Options *dest,
@@ -543,7 +543,7 @@ static int parse_options(struct Options *dest,
 }
 
 /*
- * wrong_argcount() - Check that the number of arguments to a command is 
+ * wrong_argcount() - Checks that the number of arguments to a command is 
  * correct. Returns 0 if the amount is correct, if it's not, it prints an error 
  * message and returns 1.
  */
@@ -686,11 +686,11 @@ static int process_args(const struct Options *o, int argc, char *argv[])
 }
 
 /*
- * setup_options() - Do necessary changes to `o` based on the user input.
+ * setup_options() - Makes necessary changes to `o` based on the user input.
  *
- * - Set `o->outpformat` to the corresponding integer value of the -F/--format 
+ * - Sets `o->outpformat` to the corresponding integer value of the -F/--format 
  *   argument.
- * - Parse the optional argument to --selftest and set `o->testexec` and 
+ * - Parses the optional argument to --selftest and set `o->testexec` and 
  *   `o->testfunc`.
  *
  * Returns 0 if everything is ok, otherwise it returns 1.

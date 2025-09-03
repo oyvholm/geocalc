@@ -29,7 +29,7 @@ static const double RAD_TO_DEG = 180.0 / M_PI;
 #define rad2deg(a)  ((a) * RAD_TO_DEG)
 
 /*
- * are_antipodal() - Check if two points are antipodal, i.e. on exactly 
+ * are_antipodal() - Checks if two points are antipodal, i.e. on exactly 
  * opposite positions of a spherical planet. To account for rounding errors, a 
  * small margin (≈0.01 mm) is allowed. Returns 1 if they're antipodal, 
  * otherwise 0.
@@ -54,10 +54,9 @@ int are_antipodal(const double lat1, const double lon1,
 }
 
 /*
- * normalize_longitude() - Normalize a longitude value to the range [-180,180].
- *
- * Adjusts the given longitude to make sure it falls within -180 to 180 
- * degrees. If the input is already within this range, no change is made.
+ * normalize_longitude() - Normalizes a longitude value to the range 
+ * [-180,180], adjusts the given longitude to make sure it falls within -180 to 
+ * 180 degrees. If the input is already within this range, no change is made.
  *
  * Parameters:
  * - lon: Pointer to the longitude value to be normalized (in degrees).
@@ -78,8 +77,8 @@ static void normalize_longitude(double *lon)
 }
 
 /*
- * set_antipode() - Set the coordinate `dlat,dlon` to the antipodal position on 
- * Earth. By repeating the process the original values are back. Returns 
+ * set_antipode() - Sets the coordinate `dlat,dlon` to the antipodal position 
+ * on Earth. By repeating the process the original values are back. Returns 
  * nothing.
  */
 
@@ -158,7 +157,7 @@ int bearing_position(const double lat, const double lon,
 }
 
 /*
- * haversine() - Calculate great-circle distance between two geographic 
+ * haversine() - Calculates great-circle distance between two geographic 
  * coordinates.
  *
  * Parameters:
@@ -293,7 +292,7 @@ double karney_distance(const double lat1, const double lon1,
 }
 
 /*
- * karney_bearing() - Calculate the initial bearing from point (lat1, lon1) to 
+ * karney_bearing() - Calculates the initial bearing from point (lat1, lon1) to 
  * point (lat2, lon2) using Karney's method on the WGS84 ellipsoid.
  * Returns bearing in degrees, 0 to 360.
  *
@@ -402,7 +401,7 @@ double karney_bearing(const double lat1, const double lon1,
 }
 
 /*
- * distance() - Calculate the distance between 2 locations with the formula 
+ * distance() - Calculates the distance between 2 locations with the formula 
  * specified in `formula`. Returns the distance in meters.
  */
 
@@ -423,9 +422,9 @@ double distance(const DistFormula formula,
 }
 
 /*
- * initial_bearing() - Calculate the initial bearing from point `lat1, lon1` to 
- * point `lat2, lon2`. Returns bearing in degrees: 0 = north, 90 = east, 180 = 
- * south, 270 = west.
+ * initial_bearing() - Calculates the initial bearing from point `lat1, lon1` 
+ * to point `lat2, lon2`. Returns bearing in degrees: 0 = north, 90 = east, 180 
+ * = south, 270 = west.
  *
  * Returns:
  * - -1.0 if values outside the valid coordinate range are provided
@@ -458,7 +457,7 @@ double initial_bearing(const double lat1, const double lon1,
 }
 
 /*
- * bearing() - Calculate the initial bearing at position `lat1,lon1` towards 
+ * bearing() - Calculates the initial bearing at position `lat1,lon1` towards 
  * position `lat2,lon2` using the distance formula in `formula`. Returns the 
  * compass direction as a value between 0 and 360 where north is 0.
  */
@@ -480,7 +479,7 @@ double bearing(const DistFormula formula,
 }
 
 /*
- * rand_pos() - Generate a random position on Earth with optional distance 
+ * rand_pos() - Generates a random position on Earth with optional distance 
  * constraints.
  *
  * If `c_lat` is larger than 90, generate a random location somewhere on Earth. 
