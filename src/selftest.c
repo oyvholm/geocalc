@@ -2450,6 +2450,15 @@ static void test_cmd_anti(void)
 	   EXIT_SUCCESS,
 	   "--format sql anti -14.861893,-69.128489");
 
+	tc((chp{ execname, "-F", "sql", "anti", "80,70", NULL }),
+	   "BEGIN;\n"
+	   "CREATE TABLE IF NOT EXISTS anti (lat REAL, lon REAL, a_lat REAL, a_lon REAL);\n"
+	   "INSERT INTO anti VALUES (80.0, 70.0, -80.0, -110.0);\n"
+	   "COMMIT;\n",
+	   "",
+	   EXIT_SUCCESS,
+	   "-F sql anti 80,70");
+
 	tc((chp{ execname, "-F", "gpx", "anti", "-61.859515,84.219729",
 	         NULL }),
 	   GPX_HEADER

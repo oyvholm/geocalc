@@ -193,7 +193,7 @@ int cmd_anti(const struct Options *o, const char *coor)
 		}
 		trim_zeros(lat_s);
 		trim_zeros(lon_s);
-		trim_zeros(nlon_s);
+		trim_zeros(nlat_s);
 		trim_zeros(nlon_s);
 		puts("BEGIN;");
 		puts("CREATE TABLE IF NOT EXISTS anti (lat REAL, lon REAL,"
