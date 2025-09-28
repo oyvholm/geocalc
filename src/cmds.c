@@ -630,8 +630,8 @@ int cmd_lpos(const struct Options *o, const char *coor1, const char *coor2,
 		fracdist_s = allocstr("%f", fracdist);
 		nlat_s = allocstr("%f", nlat);
 		nlon_s = allocstr("%f", nlon);
-		hav_s = allocstr("%f", haversine(lat1, lon2, nlat, nlon));
-		ib_s = allocstr("%f", initial_bearing(lat1, lon2, nlat, nlon));
+		hav_s = allocstr("%f", haversine(lat1, lon1, nlat, nlon));
+		ib_s = allocstr("%f", initial_bearing(lat1, lon1, nlat, nlon));
 
 		if (!lat1_s || !lon1_s || !lat2_s || !lon2_s || !fracdist_s
 		    || !nlat_s || !nlon_s || !hav_s || !ib_s) {

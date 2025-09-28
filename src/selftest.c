@@ -2959,7 +2959,7 @@ static void test_cmd_lpos(void)
 	         NULL }),
 	   "BEGIN;\n"
 	   "CREATE TABLE IF NOT EXISTS lpos (lat1 REAL, lon1 REAL, lat2 REAL, lon2 REAL, frac REAL, dlat REAL, dlon REAL, dist REAL, bear REAL);\n"
-	   "INSERT INTO lpos VALUES (1.0, 2.0, 87.188, -130.77, 0.2, 19.169669, 1.31824, 14327441.236686, 64.166424);\n"
+	   "INSERT INTO lpos VALUES (1.0, 2.0, 87.188, -130.77, 0.2, 19.169669, 1.31824, 2021740.468082, 357.935874);\n"
 	   "COMMIT;\n",
 	   "",
 	   EXIT_SUCCESS,

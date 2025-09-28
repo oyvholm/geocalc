@@ -16,6 +16,9 @@ v0.x.x - 2025-xx-xx
   keep one zero to avoid turning numbers into integers.
 - `bear`: Generate an error for coincident points. As with antipodal 
   points, the answer is undefined.
+- `lpos`: Fix wrong `dist` and `bear` values in the SQL output. It used 
+  distance and bearing from `lat1,lon2` instead of `lat1,lon1`. The 
+  error was introduced in commit `6ab0e36e6c6b`.
 
 v0.3.0 - 2025-06-30
 -------------------
