@@ -60,6 +60,13 @@ char *binbuf_cpy(struct binbuf *dest, const struct binbuf *src)
 		myerror("%s(): `dest` or `src` is NULL", __func__); /* gncov */
 		return NULL; /* gncov */
 	}
+
+	if (src->len > src->alloc) {
+		myerror("%s(): src->len (%zu) is larger than" /* gncov */
+		        " src->alloc (%zu)", __func__, src->len, src->alloc);
+		return NULL; /* gncov */
+	}
+
 	binbuf_init(&sb);
 	sb.alloc = src->alloc;
 	sb.buf = malloc(sb.alloc);
@@ -68,12 +75,6 @@ char *binbuf_cpy(struct binbuf *dest, const struct binbuf *src)
 		return NULL; /* gncov */
 	}
 	sb.len = src->len;
-	if (sb.len > sb.alloc) {
-		myerror("%s(): sb.len (%zu) is larger than" /* gncov */
-		        " sb.alloc (%zu)",
-		        __func__, sb.len, sb.alloc);
-		return NULL; /* gncov */
-	}
 	memcpy(sb.buf, src->buf, src->alloc);
 	*dest = sb;
 
