@@ -301,7 +301,7 @@ int cmd_bear_dist(const char *cmd, const struct Options *o,
 		hav_s = allocstr(sql_patt, haversine(lat1, lon1, lat2, lon2));
 		if (!lat1_s || !lon1_s || !lat2_s || !lon2_s || !ib_s
 		    || !hav_s) {
-			failed(allocstr); /* gncov */
+			failed("allocstr()"); /* gncov */
 			goto cleanup; /* gncov */
 		}
 		trim_zeros(lat1_s);
