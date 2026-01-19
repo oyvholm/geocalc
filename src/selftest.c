@@ -2280,11 +2280,11 @@ static void test_seed_option(const struct Options *o)
 	binbuf_init(&bb1);
 	binbuf_init(&bb2);
 	binbuf_init(&bb3);
-	exec_output(o, &bb1,( chp{ execname, "--seed", "64738",
+	exec_output(o, &bb1, (chp{ execname, "--seed", "64738",
 	                           "--count", "20", "randpos", NULL }));
-	exec_output(o, &bb2,( chp{ execname, "--seed", "64739",
+	exec_output(o, &bb2, (chp{ execname, "--seed", "64739",
 	                           "--count", "20", "randpos", NULL }));
-	exec_output(o, &bb3,( chp{ execname, "--seed", "64738",
+	exec_output(o, &bb3, (chp{ execname, "--seed", "64738",
 	                           "--count", "20", "randpos", NULL }));
 	OK_NOTNULL(strcmp(bb1.buf, bb2.buf),
 	           "randpos with seed 64738 and 64739 are different");
@@ -3444,7 +3444,7 @@ static void test_cmd_randpos(const struct Options *o)
 	   "randpos with 1 extra argument");
 
 	streams_init(&ss);
-	streams_exec(o, &ss,( chp{ execname, "randpos", NULL }));
+	streams_exec(o, &ss, (chp{ execname, "randpos", NULL }));
 	lat = lon = 0;
 	res = parse_coordinate(ss.out.buf, true, &lat, &lon);
 	OK_SUCCESS(res, "randpos: Coordinate is valid");
