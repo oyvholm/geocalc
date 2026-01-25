@@ -7,7 +7,7 @@ Summary of user-visible changes in Geocalc
 For a complete log of changes, refer to the Git commit log in the 
 repositories mentioned in `README.md`.
 
-v0.x.x - 2026-xx-xx
+v0.4.0 - 2026-01-25
 -------------------
 
 - Add the `anti` command, prints the antipodal position of a coordinate.

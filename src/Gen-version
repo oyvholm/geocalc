@@ -12,8 +12,8 @@
 
 progname=Gen-version
 
-exec_version=0.3.0
-exec_date=2025-06-30
+exec_version=0.4.0
+exec_date=2026-01-25
 
 tag_prefix="v$exec_version"
 has_git=$(git --version | grep -q "git version" && echo 1 || echo 0)
