@@ -7,7 +7,7 @@ Summary of user-visible changes in Geocalc
 For a complete log of changes, refer to the Git commit log in the 
 repositories mentioned in `README.md`.
 
-v0.x.x - 2025-xx-xx
+v0.x.x - 2026-xx-xx
 -------------------
 
 - Add the `anti` command, prints the antipodal position of a coordinate.
@@ -19,6 +19,21 @@ v0.x.x - 2025-xx-xx
 - `lpos`: Fix wrong `dist` and `bear` values in the SQL output. It used 
   distance and bearing from `lat1,lon2` instead of `lat1,lon1`. The 
   error was introduced in commit `6ab0e36e6c6b`.
+- `make`: Strip the binary if `STRIP` is non-empty.
+- `--selftest`: Print all "# " lines to stdout instead of stderr.
+- `--selftest`: Don't check or warn about unexpected `errno` value 
+  unless compiled with `CHECK_ERRNO`.
+- Create `make gncov-remove`, deletes all `gncov` markers. Used by `make 
+  gncov-refresh`.
+- `Makefile`: `gcov`: Use DEVEL=1 for consistent stats + silence `make` 
+  noise.
+- `selftest.c`: Replace all calls to ok() with `OK_*()` macros.
+- Fix isdigit() compiler warning on NetBSD.
+- Refactor streams_exec(), avoid potential pipe deadlock and make it 
+  accept larger input.
+- Delete test_streams_exec(), don't test stdin. Avoids sporadic broken 
+  pipe errors in the tests.
+- Improve set_antipode() and normalize_longitude().
 
 v0.3.0 - 2025-06-30
 -------------------
