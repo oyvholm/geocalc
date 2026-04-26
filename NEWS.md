@@ -7,6 +7,12 @@ Summary of user-visible changes in Geocalc
 For a complete log of changes, refer to the Git commit log in the 
 repositories mentioned in `README.md`.
 
+v0.x.x - 2026-xx-xx
+-------------------
+
+- `--selftest`: Don't print the exit status value twice when the tested 
+  command exits with the wrong status.
+
 v0.4.0 - 2026-01-25
 -------------------
 
