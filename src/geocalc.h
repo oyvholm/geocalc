@@ -150,7 +150,7 @@ void round_number(double *dest, const int decimals);
 int cmd_anti(const struct Options *o, const char *coor);
 int cmd_bear_dist(const char *cmd, const struct Options *o,
                   const char *coor1, const char *coor2);
-int cmd_bpos(const struct Options *o,const char *coor,
+int cmd_bpos(const struct Options *o, const char *coor,
              const char *bearing_s, const char *dist_s);
 int cmd_course(const struct Options *o, const char *coor1, const char *coor2,
                const char *numpoints_s);

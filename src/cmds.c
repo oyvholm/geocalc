@@ -260,8 +260,7 @@ int cmd_bear_dist(const char *cmd, const struct Options *o,
 		return EXIT_FAILURE;
 	}
 	if (isnan(result) && o->distformula == FRM_KARNEY
-	    && !strcmp(cmd, "dist"))
-	{
+	    && !strcmp(cmd, "dist")) {
 		myerror("Formula did not converge, antipodal points");
 		return EXIT_FAILURE;
 	}
@@ -270,10 +269,8 @@ int cmd_bear_dist(const char *cmd, const struct Options *o,
 		result /= 1000.0;
 	switch (o->outpformat) {
 	case OF_DEFAULT:
-		s = allocstr("%%.%uf",
-		             o->distformula == FRM_KARNEY
-		               ? KARNEY_DECIMALS
-		               : HAVERSINE_DECIMALS);
+		s = allocstr("%%.%uf", o->distformula == FRM_KARNEY
+		                       ? KARNEY_DECIMALS : HAVERSINE_DECIMALS);
 		if (!s) {
 			failed("allocstr()"); /* gncov */
 			goto cleanup; /* gncov */
@@ -510,7 +507,7 @@ int cmd_course(const struct Options *o, const char *coor1, const char *coor2,
 		}
 		trim_zeros(nlat_s);
 		trim_zeros(nlon_s);
-		switch(o->outpformat) {
+		switch (o->outpformat) {
 		case OF_DEFAULT:
 			printf("%s,%s\n", nlat_s, nlon_s);
 			break;
@@ -822,8 +819,7 @@ int cmd_randpos(const struct Options *o, const char *coor,
 static int bench_dist_func(const char *name,
                            double (*fnc)(const double, const double,
                                          const double, const double),
-                           const time_t dur,
-                           struct bench_result *br)
+                           const time_t dur, struct bench_result *br)
 {
 	assert(name);
 	assert(fnc);

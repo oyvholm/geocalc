@@ -263,8 +263,7 @@ static int usage(const struct Options *o, const int retval)
 	printf("  course <coor1> <coor2> <numpoints>\n"
 	       "    Generate a list of intermediate points on a direct line"
 	       " between two \n"
-	       "    locations.\n"
-	       "");
+	       "    locations.\n");
 	printf("  dist <coor1> <coor2>\n"
 	       "    Calculate the distance between two points.\n");
 	printf("  lpos <coor1> <coor2> <fracdist>\n"
@@ -508,20 +507,20 @@ static int parse_options(struct Options *dest,
 		int c;
 		int option_index = 0;
 		static const struct option long_options[] = {
-			{"count", required_argument, NULL, 0},
-			{"format", required_argument, NULL, 'F'},
-			{"haversine", no_argument, NULL, 'H'},
-			{"help", no_argument, NULL, 'h'},
-			{"karney", no_argument, NULL, 'K'},
-			{"km", no_argument, NULL, 0},
-			{"license", no_argument, NULL, 0},
-			{"quiet", no_argument, NULL, 'q'},
-			{"seed", required_argument, NULL, 0},
-			{"selftest", no_argument, NULL, 0},
-			{"valgrind", no_argument, NULL, 0},
-			{"verbose", no_argument, NULL, 'v'},
-			{"version", no_argument, NULL, 0},
-			{0, 0, 0, 0}
+			{ "count", required_argument, NULL, 0 },
+			{ "format", required_argument, NULL, 'F' },
+			{ "haversine", no_argument, NULL, 'H' },
+			{ "help", no_argument, NULL, 'h' },
+			{ "karney", no_argument, NULL, 'K' },
+			{ "km", no_argument, NULL, 0 },
+			{ "license", no_argument, NULL, 0 },
+			{ "quiet", no_argument, NULL, 'q' },
+			{ "seed", required_argument, NULL, 0 },
+			{ "selftest", no_argument, NULL, 0 },
+			{ "valgrind", no_argument, NULL, 0 },
+			{ "verbose", no_argument, NULL, 'v' },
+			{ "version", no_argument, NULL, 0 },
+			{ 0, 0, 0, 0 }
 		};
 
 		c = getopt_long(argc, argv,

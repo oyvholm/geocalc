@@ -283,7 +283,7 @@ static int ok(const int i, const int linenum, const char *desc, ...)
 		bail_out("%s(): desc is NULL", __func__); /* gncov */
 
 	va_start(ap, desc);
-	ok_va(i, linenum,  desc, ap);
+	ok_va(i, linenum, desc, ap);
 	va_end(ap);
 
 	return !!i;
@@ -405,8 +405,7 @@ static char *gotexp_output(const char *got, const char *exp)
 			failed_ok("mystrdup()"); /* gncov */
 	} else {
 		s = allocstr("         got: '%s'\n"
-		             "    expected: '%s'",
-		             no_null(got), no_null(exp));
+		             "    expected: '%s'", no_null(got), no_null(exp));
 		if (!s)
 			failed_ok("allocstr()"); /* gncov */
 	}
@@ -534,13 +533,13 @@ static void test_command(const int linenum, const char identical, char *cmd[],
 	streams_exec(&o, &ss, cmd);
 	if (e_stdout) {
 		OK_FALSE_L(tc_cmp(identical, ss.out.buf, e_stdout), linenum,
-		         "%s (stdout)", descbuf);
+		           "%s (stdout)", descbuf);
 		if (tc_cmp(identical, ss.out.buf, e_stdout))
 			print_gotexp(ss.out.buf, e_stdout); /* gncov */
 	}
 	if (e_stderr) {
 		OK_FALSE_L(tc_cmp(identical, ss.err.buf, e_stderr), linenum,
-		                  "%s (stderr)", descbuf);
+		           "%s (stderr)", descbuf);
 		if (tc_cmp(identical, ss.err.buf, e_stderr))
 			print_gotexp(ss.err.buf, e_stderr); /* gncov */
 	}
@@ -735,7 +734,8 @@ static void test_diag_big(void)
  * directly because it would pollute the the test output. Returns nothing.
  */
 
-static void test_diag(void) {
+static void test_diag(void)
+{
 	char *p, *s;
 	const char *desc;
 
@@ -1944,7 +1944,8 @@ static void chk_coor(const int linenum, const char *s, const int exp_ret,
  * nothing.
  */
 
-static void test_parse_coordinate(void) {
+static void test_parse_coordinate(void)
+{
 	diag("Test parse_coordinate()");
 
 #define chk_coor(s, exp_ret, exp_lat, exp_lon)  \
@@ -2857,12 +2858,12 @@ static void test_cmd_lpos(void)
 	   "--km lpos: At the North Pole");
 	tc((chp{ execname, "--format", "gpx", "lpos", "45,0", "45,180",
 	         "0.5", NULL }),
-	             GPX_HEADER
-	             "  <wpt lat=\"90.0\" lon=\"0.0\">\n"
-	             "    <name>lpos</name>\n"
-	             "    <cmt>lpos 45,0 45,180 0.5</cmt>\n"
-	             "  </wpt>\n"
-	             "</gpx>\n",
+	   GPX_HEADER
+	   "  <wpt lat=\"90.0\" lon=\"0.0\">\n"
+	   "    <name>lpos</name>\n"
+	   "    <cmt>lpos 45,0 45,180 0.5</cmt>\n"
+	   "  </wpt>\n"
+	   "</gpx>\n",
 	   "",
 	   EXIT_SUCCESS,
 	   "--format gpx lpos: At the North Pole");
@@ -3214,8 +3215,8 @@ next:
 		p = strtok(NULL, "\n");
 	}
 	OK_EQUAL_L(errcount, 0, linenum,
-	          "randpos: All %lu coordinates were inside range of"
-	          " %.0f to %.0f meters", coorcount, mindist, maxdist);
+	           "randpos: All %lu coordinates were inside range of"
+	           " %.0f to %.0f meters", coorcount, mindist, maxdist);
 	free(s);
 }
 
@@ -3311,8 +3312,8 @@ static void te_randpos(const int linenum, const OutputFormat format,
 	streams_init(&ss);
 	streams_exec(&o, &ss, cmd);
 	OK_SUCCESS_L(chk_coor_outp(linenum, format, ss.out.buf, num, coor,
-	                           mindist, maxdist), linenum,
-	             desc);
+	                           mindist, maxdist),
+	             linenum, desc);
 	streams_free(&ss);
 }
 
@@ -3331,44 +3332,44 @@ static void test_randpos_dist_max(void)
 
 	diag("randpos with max_dist");
 
-	as =(chp{ execname, "--count", "50", "randpos", "1.234,5.6789", "100",
-	          NULL });
+	as = (chp{ execname, "--count", "50", "randpos", "1.234,5.6789", "100",
+	           NULL });
 	te_randpos(OF_DEFAULT, as, 50, "1.234,5.6789", 0.0, 100.0,
 	           "randpos: 50 pos inside a radius of 100m");
 
-	as =(chp{ execname, "--count", "51", "randpos", "1.234,5.6789",
-	          "100000000", NULL });
+	as = (chp{ execname, "--count", "51", "randpos", "1.234,5.6789",
+	           "100000000", NULL });
 	te_randpos(OF_DEFAULT, as, 51, "1.234,5.6789", 0.0,
-	           MAX_EARTH_DISTANCE,
-	           "randpos: max_dist is larger than MAX_EARTH_DISTANCE");
+		   MAX_EARTH_DISTANCE,
+		   "randpos: max_dist is larger than MAX_EARTH_DISTANCE");
 
-	as =(chp{ execname, "--count", "52", "randpos", "1.234,5.6789", "0",
-	          "100000000", NULL });
+	as = (chp{ execname, "--count", "52", "randpos", "1.234,5.6789", "0",
+	           "100000000", NULL });
 	te_randpos(OF_DEFAULT, as, 52, "1.234,5.6789", 0.0,
-	           MAX_EARTH_DISTANCE,
-	           "randpos: min_dist is larger than MAX_EARTH_DISTANCE");
+		   MAX_EARTH_DISTANCE,
+		   "randpos: min_dist is larger than MAX_EARTH_DISTANCE");
 
-	as =(chp{ execname, "--count", "53", "randpos", "1.234,5.67",
-	          "100000000", "100000000", NULL });
+	as = (chp{ execname, "--count", "53", "randpos", "1.234,5.67",
+	           "100000000", "100000000", NULL });
 	te_randpos(OF_DEFAULT, as, 53, "1.234,5.67", MAX_EARTH_DISTANCE,
 	           MAX_EARTH_DISTANCE,
 	           "randpos: min_dist and max_dist are larger than"
 	           " MAX_EARTH_DISTANCE, stdout looks ok");
 
-	as =(chp{ execname, "-F", "gpx", "--count", "14", "randpos",
-	          "19.63,-19.70", "25", NULL });
+	as = (chp{ execname, "-F", "gpx", "--count", "14", "randpos",
+	           "19.63,-19.70", "25", NULL });
 	te_randpos(OF_GPX, as, 14, NULL, 0, 0,
 	           "-F gpx --count 14 randpos 19.63,-19.70 25");
 
-	as =(chp{ execname, "--km", "--count", "50", "randpos",
-	          "1.234,5.6789", "100", NULL });
+	as = (chp{ execname, "--km", "--count", "50", "randpos",
+	           "1.234,5.6789", "100", NULL });
 	te_randpos(OF_DEFAULT, as, 50,
 	           "1.234,5.6789", 0.0, 100000.0,
 	           "--km randpos: 50 pos inside a radius of 100km,"
 	           " stdout looks ok");
 
-	as =(chp{ execname, "--km", "--count", "50", "randpos",
-	          "1.234,5.6789", "100000", NULL });
+	as = (chp{ execname, "--km", "--count", "50", "randpos",
+	           "1.234,5.6789", "100000", NULL });
 	te_randpos(OF_DEFAULT, as, 50,
 	           "1.234,5.6789", 0.0, MAX_EARTH_DISTANCE,
 	           "--km randpos: max_dist is larger than MAX_EARTH_DISTANCE,"
