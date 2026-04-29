@@ -129,7 +129,7 @@ IS_DEV = [ -z "$(NODEVEL)" \
 MAN_VERSION = $$(grep EXEC_VERSION version.h | cut -d '"' -f 2 \
                  | sed 's/-/\\\\-/g;')
 TESTABLE_LINES = $$(grep -E '^ +\#\#\#\#\#:' *.c.gcov \
-                    | grep -vF '/* gncov */' | wc -l)
+                    | grep -Fiv '/* gncov */' | wc -l)
 
 .PHONY: all
 all: $(EXEC) $(MANPAGE)
@@ -226,7 +226,7 @@ gcov:
 	$(MAKE) -s clean test GCOV=1 DEVEL=1
 	gcov $(CFILES)
 	@echo $$(grep -E '^ +#####:' *.c.gcov | wc -l) untested lines >&2
-	@echo $$(grep -E '^ +#####:' *.c.gcov | grep -F '/* gncov */' \
+	@echo $$(grep -E '^ +#####:' *.c.gcov | grep -Fi '/* gncov */' \
 	         | wc -l) gncov lines >&2
 	@echo $(TESTABLE_LINES) testable lines >&2
 
@@ -250,7 +250,7 @@ gncov-refresh:
 
 .PHONY: gncov-remove
 gncov-remove:
-	perl -pi -e 's, /\* gncov \*/,,g;' $(CFILES)
+	perl -pi -e 's, /\* gncov \*/,,gi;' $(CFILES)
 
 .PHONY: html
 html: $(HTMLFILE)
