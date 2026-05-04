@@ -208,6 +208,7 @@ clean:
 	rm -f *.s
 	rm -f gmon.out gmon.sum
 	rm -f version.h
+	rm -fr .$(EXEC)-test.tmp
 
 .PHONY: dupdesc
 dupdesc:

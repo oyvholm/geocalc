@@ -188,6 +188,8 @@
 	errno = 0; \
 } while (0)
 
+#define TMPDIR  ".geocalc-test.tmp"
+
 #define sc(cmd, num_stdout, num_stderr, desc, ...)  \
         sc_func(__LINE__, (cmd), (num_stdout), (num_stderr), \
                 (desc), ##__VA_ARGS__);
@@ -666,7 +668,7 @@ static void verify_constants(void)
 }
 
 /******************************************************************************
-                                Function tests
+                 Function tests, no temporary directory needed
 ******************************************************************************/
 
                              /*** selftest.c ***/
@@ -3630,6 +3632,34 @@ static void test_cmd_randpos(const struct Options *o)
 ******************************************************************************/
 
 /*
+ * functests_with_tempdir() - Tests functions that need a temporary directory 
+ * to store the output from stderr and stdout. Returns nothing.
+ */
+
+static void functests_with_tempdir(void)
+{
+	int result;
+
+	diag("Test functions that need a temporary directory for stdout and"
+	     " stderr");
+	result = mkdir(TMPDIR, 0755);
+	OK_SUCCESS(result, "mkdir " TMPDIR " for function tests");
+	if (result) {
+		diag("Cannot create directory \"%s\", skipping" /* gncov */
+		     " tests: %s", TMPDIR, strerror(errno)); /* gncov */
+		errno = 0; /* gncov */
+		return; /* gncov */
+	}
+
+	result = rmdir(TMPDIR);
+	OK_SUCCESS(result, "rmdir " TMPDIR " after function tests");
+	if (result) {
+		diag_errno(); /* gncov */
+		return; /* gncov */
+	}
+}
+
+/*
  * test_functions() - Tests various functions directly. Returns nothing.
  */
 
@@ -3674,6 +3704,8 @@ static void test_functions(const struct Options *o)
 	test_count_substr();
 	test_str_replace();
 	test_parse_coordinate();
+
+	functests_with_tempdir();
 }
 
 /*
@@ -3773,6 +3805,7 @@ int opt_selftest(char *main_execname, const struct Options *o)
 #undef OK_TRUE
 #undef OK_TRUE_L
 #undef OPTION_ERROR_STR
+#undef TMPDIR
 #undef TYPE_HELP_STR
 #undef Tc
 #undef chp

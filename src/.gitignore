@@ -4,6 +4,7 @@
 /*.o
 /*.s
 /.devel
+/.geocalc-test.tmp/
 /.make-tlok.tmp
 /gdbopts
 /geocalc
