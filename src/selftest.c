@@ -199,6 +199,9 @@
 #define Tc(cmd, num_stdout, num_stderr, desc, ...) \
         tc_func(linenum, (cmd), (num_stdout), (num_stderr), \
         (desc), ##__VA_ARGS__)
+#define rc(cmd, num_stdout, num_stderr, desc, ...)  \
+        rc_func(__LINE__, (cmd), (num_stdout), (num_stderr), \
+                (desc), ##__VA_ARGS__);
 #define verify_output_files(desc, exp_stdout, exp_stderr)  \
         verify_output_files_func(__LINE__, desc, exp_stdout, exp_stderr)
 
@@ -616,6 +619,31 @@ static void tc_func(const int linenum, char *cmd[], const char *exp_stdout,
 
 	va_start(ap, desc);
 	test_command(linenum, 1, cmd, exp_stdout, exp_stderr, exp_retval,
+	             desc, ap);
+	va_end(ap);
+}
+
+/*
+ * rc_func() - Executes command `cmd` and verifies that stdout and stderr 
+ * matches the regexp patterns in `exp_stdout` and `exp_stderr` and that the 
+ * return value is identical to `exp_retval`. Not meant to be called directly, 
+ * but via the rc() macro that logs the line number automatically. Returns 
+ * nothing.
+ */
+
+static void rc_func(const int linenum, char *cmd[], const char *exp_stdout,
+                    const char *exp_stderr, const int exp_retval,
+                    const char *desc, ...)
+{
+	va_list ap;
+
+	assert(cmd);
+	assert(*cmd);
+	assert(desc);
+	assert(*desc);
+
+	va_start(ap, desc);
+	test_command(linenum, 2, cmd, exp_stdout, exp_stderr, exp_retval,
 	             desc, ap);
 	va_end(ap);
 }
@@ -2473,14 +2501,9 @@ static void test_standard_options(void)
 	   "--version with -q shows only the version number");
 
 	diag("Test --license");
-	sc((chp{ execname, "--license", NULL }),
-	   "GNU General Public License",
-	   "",
-	   EXIT_SUCCESS,
-	   "--license: It's GPL");
-	sc((chp{ execname, "--license", NULL }),
-	   "either version 2 of the License",
-	   "",
+	rc((chp{ execname, "--license", NULL }),
+	   "GNU General Public License.*either version 2 of the License",
+	   "^$",
 	   EXIT_SUCCESS,
 	   "--license: It's version 2 of the GPL");
 
@@ -4261,6 +4284,7 @@ int opt_selftest(char *main_execname, const struct Options *o)
 #undef print_gotexp_nostr
 #undef print_gotexp_size_t
 #undef print_gotexp_ulong
+#undef rc
 #undef sc
 #undef tc
 #undef verify_output_files
