@@ -2392,7 +2392,7 @@ static void test_parse_coordinate(void)
 }
 
 /******************************************************************************
-                           Test the executable file
+            Test the executable file, no temporary directory needed
 ******************************************************************************/
 
                          /****** Option tests ******/
@@ -4045,6 +4045,10 @@ static void test_cmd_randpos(const struct Options *o)
 #undef te_randpos
 
 /******************************************************************************
+              Test the executable file with a temporary directory
+******************************************************************************/
+
+/******************************************************************************
                         Top-level --selftest functions
 ******************************************************************************/
 
@@ -4124,6 +4128,30 @@ static void functests_with_tempdir(void)
 		diag_errno(); /* gncov */
 		return; /* gncov */
 	}
+}
+
+/*
+ * tests_with_tempdir() - Executes tests on the executable with a temporary 
+ * directory. The temporary directory uses a standard name, defined in TMPDIR. 
+ * If the directory already exists or it's unable to create it, it aborts. 
+ * Returns nothing.
+ */
+
+static void tests_with_tempdir(void)
+{
+	int result;
+
+	result = mkdir(TMPDIR, 0777);
+	OK_SUCCESS(result, "%s(): Create temporary directory %s",
+	                   __func__, TMPDIR);
+	if (result) {
+		diag("Cannot create directory \"%s\", skipping" /* gncov */
+		     " tests: %s", TMPDIR, strerror(errno)); /* gncov */
+		errno = 0; /* gncov */
+		return; /* gncov */
+	}
+
+	OK_SUCCESS(rmdir(TMPDIR), "Delete temporary directory %s", TMPDIR);
 }
 
 /*
@@ -4212,6 +4240,7 @@ static void test_executable(const struct Options *o)
 	test_multiple(__LINE__, "bear");
 	test_multiple(__LINE__, "dist");
 	test_cmd_randpos(o);
+	tests_with_tempdir();
 	print_version_info(o);
 }
 
