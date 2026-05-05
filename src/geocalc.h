@@ -26,6 +26,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <getopt.h>
 #include <math.h>
 #include <regex.h>
@@ -139,6 +140,7 @@ struct bench_result {
  */
 
 /* geocalc.c */
+extern char *progname;
 struct Options opt_struct(void);
 int msg(const int verbose, const char *format, ...);
 const char *std_strerror(const int errnum);
@@ -167,9 +169,11 @@ char *gpx_wpt(const double lat, const double lon,
               const char *name, const char *cmt);
 
 /* io.c */
+bool file_exists(const char *s);
 void streams_init(struct streams *dest);
 void streams_free(struct streams *dest);
 char *read_from_fp(FILE *fp, struct binbuf *dest);
+char *read_from_file(const char *fname);
 int streams_exec(const struct Options *o, struct streams *dest, char *cmd[]);
 int exec_output(const struct Options *o, struct binbuf *dest, char *cmd[]);
 
