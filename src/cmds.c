@@ -730,20 +730,12 @@ int cmd_randpos(const struct Options *o, const char *coor,
 
 	for (l = 1; l <= o->count; l++) {
 		double lat, lon;
-		char *name, *seedstr = NULL;
+		char *name;
 
-		if (o->seed) {
-			seedstr = allocstr(", seed %ld", o->seedval);
-			if (!seedstr) {
-				failed("allocstr()"); /* gncov */
-				return EXIT_FAILURE; /* gncov */
-			}
-		}
 		rand_pos(&lat, &lon, c_lat, c_lon, maxdist_d, mindist_d);
-		name = allocstr("Random %lu%s", l, seedstr ? seedstr : "");
+		name = allocstr("Random %lu, seed %ld", l, o->seedval);
 		if (!name) {
 			failed("allocstr()"); /* gncov */
-			free(seedstr); /* gncov */
 			return EXIT_FAILURE; /* gncov */
 		}
 
@@ -785,7 +777,6 @@ int cmd_randpos(const struct Options *o, const char *coor,
 		}
 
 		free(name);
-		free(seedstr);
 	}
 
 	switch (o->outpformat) {

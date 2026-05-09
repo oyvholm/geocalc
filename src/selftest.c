@@ -3678,7 +3678,7 @@ static int chk_coor_outp(const int linenum, const OutputFormat format,
 		         " lat=\"-?[0-9]+\\.[0-9]+\""
 		         " lon=\"-?[0-9]+\\.[0-9]+\""
 		         ">\n"
-		         "    <name>Random [0-9]+</name>\n"
+		         "    <name>Random [0-9]+, seed [0-9]+</name>\n"
 		         "  </wpt>\n"
 		         "){%u}"
 		         "</gpx>\n$";

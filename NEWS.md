@@ -10,6 +10,8 @@ repositories mentioned in `README.md`.
 v0.x.x - 2026-xx-xx
 -------------------
 
+- Always include the seed value in the `randpos` GPX output, not only 
+  when `--seed` is used.
 - `--selftest`: Don't print the exit status value twice when the tested 
   command exits with the wrong status.
 
