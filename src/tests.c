@@ -1,5 +1,5 @@
 /*
- * selftest.c
+ * tests.c
  * File ID: 93fe63c6-87f2-11ef-bfa9-83850402c3ce
  *
  * (C)opyleft 2024- Øyvind A. Holm <sunny@sunbase.org>
@@ -896,7 +896,7 @@ static void verify_constants(void)
                  Function tests, no temporary directory needed
 ******************************************************************************/
 
-                             /*** selftest.c ***/
+                               /*** tests.c ***/
 
 /*
  * test_ok_macros() - Tests the OK_*() macros. Returns nothing.
@@ -4167,7 +4167,7 @@ static void test_functions(const struct Options *o)
 
 	diag("Test selftest routines");
 
-	/* selftest.c */
+	/* tests.c */
 	verify_constants();
 	test_diag();
 	test_gotexp_output();

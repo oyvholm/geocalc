@@ -177,9 +177,6 @@ char *read_from_file(const char *fname);
 int streams_exec(const struct Options *o, struct streams *dest, char *cmd[]);
 int exec_output(const struct Options *o, struct binbuf *dest, char *cmd[]);
 
-/* selftest.c */
-int opt_selftest(char *execname, const struct Options *o);
-
 /* strings.c */
 int string_to_double(const char *s, double *dest);
 char *trim_zeros(char *s);
@@ -191,6 +188,9 @@ char *str_replace(const char *s, const char *s1, const char *s2);
 int re_check(const char *pattern, const char *s);
 int parse_coordinate(const char *s, bool validate,
                      double *dest_lat, double *dest_lon);
+
+/* tests.c */
+int opt_selftest(char *execname, const struct Options *o);
 
 #endif /* ifndef _GEOCALC_H */
 

@@ -14,8 +14,8 @@ CFILES += geocalc.c
 CFILES += geomath.c
 CFILES += gpx.c
 CFILES += io.c
-CFILES += selftest.c
 CFILES += strings.c
+CFILES += tests.c
 CFLAGS  =
 CFLAGS += $$($(IS_DEV) && echo -O0 || echo -O2)
 CFLAGS += $$(test -n "$(GCOV)" && echo -n "-fprofile-arcs -ftest-coverage")
@@ -88,7 +88,7 @@ LIBS  =
 LIBS += $$(test -n "$(GCOV)" && echo "-lgcov --coverage")
 LIBS += -lm
 LONGLINES_ALLOWED  =
-LONGLINES_ALLOWED += -e selftest.c
+LONGLINES_ALLOWED += -e tests.c
 LONGLINES_FILES  =
 LONGLINES_FILES += $$(echo $(CFILES) | fmt -1 | grep -vF $(LONGLINES_ALLOWED))
 LONGLINES_FILES += $(HFILES)
@@ -105,8 +105,8 @@ OBJS += geocalc.o
 OBJS += geomath.o
 OBJS += gpx.o
 OBJS += io.o
-OBJS += selftest.o
 OBJS += strings.o
+OBJS += tests.o
 PDFFILE = $(EXEC).pdf
 TESTS = all
 
@@ -180,14 +180,14 @@ gpx.o: gpx.c $(DEPS)
 io.o: io.c $(DEPS)
 	$(CC) $(CFLAGS) io.c
 
-selftest.o: selftest.c $(DEPS)
-	$(CC) $(CFLAGS) selftest.c
-
 strings.o: strings.c $(DEPS)
 	$(CC) $(CFLAGS) strings.c
 
 tags: $(CFILES) $(HFILES)
 	ctags $(CFILES) $(HFILES)
+
+tests.o: tests.c $(DEPS)
+	$(CC) $(CFLAGS) tests.c
 
 .PHONY: asm
 asm: $(DEPS)
@@ -295,12 +295,12 @@ testsrc:
 	@$(MAKE) -s longlines
 	@echo Check for duplicated test descriptions
 	@$(MAKE) -s dupdesc
-	@echo "Count #define and #undef in selftest.c"
-	@(grep '^#define' selftest.c | wc -l; \
-	  grep '^#undef' selftest.c | wc -l) | uniq | fmt \
+	@echo "Count #define and #undef in tests.c"
+	@(grep '^#define' tests.c | wc -l; \
+	  grep '^#undef' tests.c | wc -l) | uniq | fmt \
 	  | grep ' ' | grep --color=always . && exit 1 || true
-	@echo "Search for failed() in selftest.c"
-	@grep -n '\<failed(' --color=always selftest.c && exit 1 || true
+	@echo "Search for failed() in tests.c"
+	@grep -n '\<failed(' --color=always tests.c && exit 1 || true
 
 .PHONY: tlok
 tlok:
