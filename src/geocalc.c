@@ -418,6 +418,7 @@ static int choose_opt_action(struct Options *dest,
 			dest->selftest = true;
 		} else if (!strcmp(opts->name, "valgrind")) {
 			dest->valgrind = dest->selftest = true;
+			lst_use_valgrind = true;
 		} else if (!strcmp(opts->name, "version")) {
 			dest->version = true;
 		}
@@ -475,18 +476,6 @@ void init_opt(struct Options *dest)
 	dest->verbose = 0;
 	dest->version = false;
 }
-
-/*
- * set_opt_valgrind() - Changes the value of `opt.valgrind`. Used by 
- * test_valgrind_option() in case --valgrind is used and Valgrind isn't 
- * installed.
- */
-
-void set_opt_valgrind(bool b) /* gncov */
-{
-	assert(b == false || b == true); /* gncov */
-	opt.valgrind = b; /* gncov */
-} /* gncov */
 
 /*
  * parse_options() - Parses command line options and stores the result in 

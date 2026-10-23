@@ -10,6 +10,8 @@ repositories mentioned in `README.md`.
 v0.x.x - 2026-xx-xx
 -------------------
 
+- Refactor the code to use the `libselftest` library and delete 
+  redundant functions.
 - Always include the seed value in the `randpos` GPX output, not only 
   when `--seed` is used.
 - `--selftest`: Don't print the exit status value twice when the tested 

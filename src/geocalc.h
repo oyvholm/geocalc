@@ -42,9 +42,9 @@
 #include <time.h>
 #include <unistd.h>
 
-#include "binbuf.h"
 #include "geomath.h"
 #include "gpx.h"
+#include "selftest.h"
 
 #define PROJ_NAME  "Geocalc"
 #define PROJ_URL  "https://gitlab.com/oyvholm/geocalc"
@@ -113,13 +113,6 @@ struct Options {
 	bool version;
 };
 
-struct streams {
-	struct binbuf in;
-	struct binbuf out;
-	struct binbuf err;
-	int ret;
-};
-
 struct bench_result {
 	const char *name;
 	struct timespec start;
@@ -146,7 +139,6 @@ int msg(const int verbose, const char *format, ...);
 const char *std_strerror(const int errnum);
 int myerror(const char *format, ...);
 void init_opt(struct Options *dest);
-void set_opt_valgrind(bool b);
 
 /* cmds.c */
 void round_number(double *dest, const int decimals);
@@ -169,13 +161,6 @@ char *gpx_wpt(const double lat, const double lon,
               const char *name, const char *cmt);
 
 /* io.c */
-bool file_exists(const char *s);
-void streams_init(struct streams *dest);
-void streams_free(struct streams *dest);
-char *read_from_fp(FILE *fp, struct binbuf *dest);
-char *read_from_file(const char *fname);
-int streams_exec(const struct Options *o, struct streams *dest, char *cmd[]);
-int exec_output(const struct Options *o, struct binbuf *dest, char *cmd[]);
 
 /* strings.c */
 int string_to_double(const char *s, double *dest);
@@ -183,9 +168,6 @@ char *trim_zeros(char *s);
 char *mystrdup(const char *s);
 char *allocstr_va(const char *format, va_list ap);
 char *allocstr(const char *format, ...);
-size_t count_substr(const char *s, const char *substr);
-char *str_replace(const char *s, const char *s1, const char *s2);
-int re_check(const char *pattern, const char *s);
 int parse_coordinate(const char *s, bool validate,
                      double *dest_lat, double *dest_lon);
 

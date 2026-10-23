@@ -8,12 +8,12 @@ LD = cc
 PREFIX = /usr/local
 
 CFILES  =
-CFILES += binbuf.c
 CFILES += cmds.c
 CFILES += geocalc.c
 CFILES += geomath.c
 CFILES += gpx.c
 CFILES += io.c
+CFILES += selftest.c
 CFILES += strings.c
 CFILES += tests.c
 CFLAGS  =
@@ -22,7 +22,6 @@ CFLAGS += $$(test -n "$(GCOV)" && echo -n "-fprofile-arcs -ftest-coverage")
 CFLAGS += $$(test -n "$(PROF)" && echo -n "-pg")
 CFLAGS += $(DEVFLAGS_STR)
 CFLAGS += -Wall
-CFLAGS += -Wno-gnu-zero-variadic-macro-arguments
 CFLAGS += -c
 DEPS = version.h $(HFILES) Makefile
 DEVEL =
@@ -70,10 +69,10 @@ DEVFLAGS += -pedantic
 DEVFLAGS_STR = $$($(IS_DEV) && echo $(DEVFLAGS))
 GNCOV_STR = $$(test -n "$(GNCOV)" && echo "-g")
 HFILES  =
-HFILES += binbuf.h
 HFILES += geocalc.h
 HFILES += geomath.h
 HFILES += gpx.h
+HFILES += selftest.h
 HTMLFILE = $(EXEC).html
 IGNFILES  =
 IGNFILES += -e ^bin/gcov-cmt
@@ -88,10 +87,11 @@ LIBS  =
 LIBS += $$(test -n "$(GCOV)" && echo "-lgcov --coverage")
 LIBS += -lm
 LONGLINES_ALLOWED  =
+LONGLINES_ALLOWED += -e selftest.c
 LONGLINES_ALLOWED += -e tests.c
 LONGLINES_FILES  =
 LONGLINES_FILES += $$(echo $(CFILES) | fmt -1 | grep -vF $(LONGLINES_ALLOWED))
-LONGLINES_FILES += $(HFILES)
+LONGLINES_FILES += $$(echo $(HFILES) | fmt -1 | grep -vF $(LONGLINES_ALLOWED))
 LONGLINES_FILES += $(MANSRC)
 LONGLINES_FILES += Gen-version
 LONGLINES_FILES += Makefile
@@ -99,12 +99,12 @@ MANPAGE = $(EXEC).1
 MANSRC = $(MANPAGE).man
 MAN_DATE = $$(grep EXEC_DATE version.h | cut -d '"' -f 2 | sed 's/-/\\\\-/g;')
 OBJS  =
-OBJS += binbuf.o
 OBJS += cmds.o
 OBJS += geocalc.o
 OBJS += geomath.o
 OBJS += gpx.o
 OBJS += io.o
+OBJS += selftest.o
 OBJS += strings.o
 OBJS += tests.o
 PDFFILE = $(EXEC).pdf
@@ -165,9 +165,6 @@ version.h: Gen-version $(CFILES) $(HFILES) Makefile
 geocalc.o: geocalc.c $(DEPS)
 	$(CC) $(CFLAGS) geocalc.c
 
-binbuf.o: binbuf.c $(DEPS)
-	$(CC) $(CFLAGS) binbuf.c
-
 cmds.o: cmds.c $(DEPS)
 	$(CC) $(CFLAGS) cmds.c
 
@@ -179,6 +176,9 @@ gpx.o: gpx.c $(DEPS)
 
 io.o: io.c $(DEPS)
 	$(CC) $(CFLAGS) io.c
+
+selftest.o: selftest.c $(DEPS)
+	$(CC) $(CFLAGS) selftest.c
 
 strings.o: strings.c $(DEPS)
 	$(CC) $(CFLAGS) strings.c
@@ -295,10 +295,6 @@ testsrc:
 	@$(MAKE) -s longlines
 	@echo Check for duplicated test descriptions
 	@$(MAKE) -s dupdesc
-	@echo "Count #define and #undef in tests.c"
-	@(grep '^#define' tests.c | wc -l; \
-	  grep '^#undef' tests.c | wc -l) | uniq | fmt \
-	  | grep ' ' | grep --color=always . && exit 1 || true
 	@echo "Search for failed() in tests.c"
 	@grep -n '\<failed(' --color=always tests.c && exit 1 || true
 
